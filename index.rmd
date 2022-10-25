@@ -1,0 +1,116 @@
+---
+title: "FinBIF"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#FDF7F7"
+      fg: "#141B1F"
+      primary: "#1F74AD"
+      base_font:
+        google: Prompt
+      code_font:
+        google: JetBrains Mono
+    orientation: columns
+    vertical_layout: fill
+---
+
+```{r setup, include = FALSE}
+library(flexdashboard)
+library(finbif)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyr)
+library(knitr)
+thematic::thematic_rmd()
+options(finbif_cache_path = "cache", finbif_hide_progress = TRUE)
+
+filter <- list(
+  quality_issues = "both",
+  record_reliability = c("reliable", "unassessed", "unreliable"),
+  record_quality = c(
+    "expert_verified", "community_verified", "unassessed", "uncertain",
+    "erroneous"
+  )
+)
+
+quality <-
+  fb_occurrence(
+    filter = filter, select = c("collection_quality", "record_quality"),
+    aggregate = "records", n = "all") |> 
+  mutate(record_quality = replace_na(record_quality, "NEUTRAL")) |>
+  group_by(collection_quality, record_quality) |>
+  summarise(n_records = sum(n_records), .groups = "keep") |>
+  rename(Quality = record_quality, Count = n_records) |>
+  ungroup() |>
+  mutate(
+    Quality = recode_factor(
+      Quality,
+      EXPERT_VERIFIED = "Expert verified",
+      COMMUNITY_VERIFIED = "Community verified",
+      NEUTRAL = "Unassessed",
+      UNCERTAIN = "Uncertain",
+      ERRONEOUS = "Erroneous",
+      .ordered = TRUE
+    )
+  )
+```
+
+Column {data-width=600 .tabset}
+-----------------------------------------------------------------------
+
+### Occurrence Data
+
+```{r occurrence-data}
+fb_occurrence(
+  filter = filter, select = "first_load_date", aggregate = "records",
+  order_by = "first_load_date", n = "all"
+) |>
+ggplot() +
+aes(x = as.Date(first_load_date), y = cumsum(n_records)) +
+geom_line() +
+scale_y_continuous(label = comma) +
+labs(x = NULL, y = "Occurrence records")
+```
+
+### Annotations
+
+```{r annotations}
+fb_occurrence(
+  filter = filter, select = "record_annotation_created", aggregate = "records",
+  n = "all"
+) |>
+arrange(record_annotation_created) |>
+ggplot() +
+aes(x = as.Date(record_annotation_created), y = cumsum(n_records)) +
+geom_line() +
+scale_y_continuous(label = comma) +
+labs(x = NULL, y = "Annotations")
+```
+
+Column {data-width=400}
+-----------------------------------------------------------------------
+
+### Professionals
+
+```{r professional}
+filter(quality, collection_quality == 1) |>
+select(-collection_quality) |>
+knitr::kable()
+```
+
+### Specialists
+
+```{r specialist}
+filter(quality, collection_quality == 2) |>
+select(-collection_quality) |>
+kable()
+```
+
+### Citizen Scientists
+
+```{r citizen-scientists}
+filter(quality, collection_quality == 3) |>
+select(-collection_quality) |>
+kable()
+```

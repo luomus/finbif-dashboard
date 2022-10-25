@@ -53,7 +53,8 @@ quality <-
       ERRONEOUS = "Erroneous",
       .ordered = TRUE
     )
-  )
+  ) |>
+  arrange(Quality)
 ```
 
 Column {data-width=600 .tabset}

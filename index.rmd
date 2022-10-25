@@ -21,9 +21,21 @@ library(ggplot2)
 library(scales)
 library(dplyr)
 library(tidyr)
-library(knitr)
-thematic::thematic_rmd()
-options(finbif_cache_path = "cache", finbif_hide_progress = TRUE)
+library(DT)
+
+thematic::thematic_rmd(
+  font = "auto", bg = "#FDF7F7", fg = "#141B1F", accent = "#1F74AD"
+)
+
+options(
+  finbif_cache_path = "cache",
+  finbif_hide_progress = TRUE,
+  DT.options = list(
+    paging = FALSE,
+    searching = FALSE,
+    info = FALSE
+  )
+)
 
 filter <- list(
   quality_issues = "both",
@@ -97,7 +109,7 @@ Column {data-width=400}
 ```{r professional}
 filter(quality, collection_quality == 1) |>
 select(-collection_quality) |>
-knitr::kable()
+datatable(rownames = FALSE)
 ```
 
 ### Specialists
@@ -105,7 +117,7 @@ knitr::kable()
 ```{r specialist}
 filter(quality, collection_quality == 2) |>
 select(-collection_quality) |>
-kable()
+datatable(rownames = FALSE)
 ```
 
 ### Citizen Scientists
@@ -113,5 +125,5 @@ kable()
 ```{r citizen-scientists}
 filter(quality, collection_quality == 3) |>
 select(-collection_quality) |>
-kable()
+datatable(rownames = FALSE)
 ```

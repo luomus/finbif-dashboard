@@ -1,0 +1,174 @@
+---
+title: "LAJI.FI"
+output: 
+  flexdashboard::flex_dashboard:
+    theme:
+      bg: "#FDF7F7"
+      fg: "#141B1F"
+      primary: "#1F74AD"
+      base_font:
+        google: Roboto
+      code_font:
+        google: JetBrains Mono
+    orientation: columns
+    vertical_layout: fill
+runtime: shiny
+---
+
+```{js, echo = FALSE}
+document.querySelector(".navbar-header").innerHTML =
+  '<a href="https://laji.fi" class="navbar-brand">LAJI.FI</a>'
+```
+
+```{r setup, include = FALSE}
+library(flexdashboard)
+library(finbif)
+library(ggplot2)
+library(scales)
+library(dplyr)
+library(tidyr)
+library(janitor)
+library(lubridate)
+
+thematic::thematic_shiny(
+  font = "Roboto", bg = "#FDF7F7", fg = "#141B1F", accent = "#1F74AD"
+)
+
+options(
+  finbif_use_cache = 0.05,
+  finbif_hide_progress = TRUE,
+  finbif_rate_limit = Inf,
+  finbif_max_page_size = 3000
+)
+
+filter <- list(
+  quality_issues = "both",
+  record_reliability = c("reliable", "unassessed", "unreliable"),
+  record_quality = c(
+    "expert_verified", "community_verified", "unassessed", "uncertain",
+    "erroneous"
+  )
+)
+```
+
+Occurrence Data
+================================================================================
+
+Column {data-width=600 .tabset}
+--------------------------------------------------------------------------------
+
+### Occurrences
+
+```{r occurrence-data}
+renderPlot({
+  fb_occurrence(
+    filter = filter, select = "first_load_date", aggregate = "records",
+    n = "all"
+  ) |>
+  arrange(first_load_date) |>
+  ggplot() +
+  aes(x = as.Date(first_load_date), y = cumsum(n_records)) +
+  geom_line() +
+  scale_y_continuous(label = comma) +
+  labs(x = NULL, y = "Occurrence records")
+})
+```
+
+### Annotations
+
+```{r annotations}
+renderPlot({
+
+  n <- 500
+
+  annotations <- fb_occurrence(
+    filter = c(filter, list(annotated = TRUE)),
+    select = "record_annotation_created",
+    sample = TRUE, n = n
+  )
+
+  record_annotation_created <- annotations[["record_annotation_created"]]
+  record_annotation_created <- unlist(record_annotation_created)
+  record_annotation_created <- sort(record_annotation_created)
+  record_annotation_created <- as_datetime(record_annotation_created)
+
+  total_annotations <- attr(annotations, "nrec_avl")
+
+  n_annotations <- length(record_annotation_created)
+
+  mult <- total_annotations / n
+
+  n_annotations <- seq_len(n_annotations)
+
+  n_annotations <- n_annotations * mult
+  
+  ggplot() +
+  aes(x = record_annotation_created, y = n_annotations) +
+  geom_line() +
+  scale_y_continuous(label = comma) +
+  labs(x = NULL, y = "Annotations")
+
+})
+```
+
+Column {data-width=400}
+--------------------------------------------------------------------------------
+
+### Total Records
+
+```{r fb_count}
+renderValueBox({
+  valueBox(
+    fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
+    icon = "fa-pen"
+  )
+})
+```
+
+### Collection Quality
+</br>
+```{r professional}
+selectInput(
+  "collection_quality",
+  NULL,
+  c(
+    "Professionals" = "professional", "Specialists" = "hobbyist",
+    "Citizen Scientists" = "amateur"
+  )
+)
+
+renderTable(
+  {
+    fb_occurrence(
+      filter = c(filter, list(collection_quality = input$collection_quality)),
+      select = c(Quality = "record_quality"), aggregate = "records", n = "all"
+    ) |>
+    mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
+    group_by(Quality) |>
+    summarise(n_records = sum(n_records), .groups = "drop") |>
+    rename(Count = n_records) |>
+    mutate(
+      Quality = factor(
+        Quality,
+        levels = c(
+          "Expert verified", "Community verified", "Unassessed", "Uncertain",
+          "Erroneous"
+        ),
+        ordered = TRUE
+      )
+    ) |>
+    arrange(Quality) |>
+    adorn_totals()
+  },
+  striped = TRUE
+)
+```
+
+Users
+================================================================================
+
+Column {data-width=600 .tabset}
+--------------------------------------------------------------------------------
+
+Column {data-width=400}
+--------------------------------------------------------------------------------

@@ -41,6 +41,12 @@ options(
   finbif_max_page_size = 3000
 )
 
+if (Sys.getenv("BRANCH") != "main") {
+
+  options(finbif_api_url = "https://apitest.laji.fi")
+
+}
+
 filter <- list(
   quality_issues = "both",
   record_reliability = c("reliable", "unassessed", "unreliable"),

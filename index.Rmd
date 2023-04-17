@@ -3,8 +3,9 @@ title: "LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
     theme:
-      bg: "#FDF7F7"
-      fg: "#141B1F"
+      version: 4
+      fg: "#FDF7F7"
+      bg: "#2C3E50"
       primary: "#1F74AD"
       base_font:
         google: Roboto
@@ -30,9 +31,10 @@ library(dplyr)
 library(tidyr)
 library(janitor)
 library(lubridate)
+library(DT)
 
 thematic::thematic_shiny(
-  font = "Roboto", bg = "#FDF7F7", fg = "#141B1F", accent = "#1F74AD"
+  font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
 )
 
 options(
@@ -60,6 +62,91 @@ filter <- list(
 
 Occurrence Data
 ================================================================================
+
+Column {data-width=400}
+--------------------------------------------------------------------------------
+
+### Records
+
+```{r fb_record_count}
+renderValueBox({
+  valueBox(
+    fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
+    icon = "fa-pen", color = "#1F74AD"
+  )
+})
+```
+
+### Species
+
+```{r fb_species_count}
+renderValueBox({
+  valueBox(
+    fb_occurrence(
+      filter = filter, select = "species_scientific_name",
+      aggregate = "records", count_only = TRUE
+    ),
+    icon = "fa-dove", color = "#1F74AD"
+  )
+})
+```
+
+### Datasets
+
+```{r fb_collection_count}
+renderValueBox({
+  valueBox(
+    fb_occurrence(
+      filter = filter, select = "collection_id", aggregate = "records",
+      count_only = TRUE
+    ),
+    icon = "fa-database", color = "#1F74AD"
+  )
+})
+```
+
+### Collection Quality
+</br>
+```{r professional}
+selectInput(
+  "collection_quality",
+  NULL,
+  c(
+    "Professionals" = "professional", "Specialists" = "hobbyist",
+    "Citizen Scientists" = "amateur"
+  )
+)
+
+renderDataTable(
+  {
+    fb_occurrence(
+      filter = c(filter, list(collection_quality = input$collection_quality)),
+      select = c(Quality = "record_quality"), aggregate = "records", n = "all"
+    ) |>
+    mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
+    group_by(Quality) |>
+    summarise(n_records = sum(n_records), .groups = "drop") |>
+    rename(Count = n_records) |>
+    mutate(
+      Quality = factor(
+        Quality,
+        levels = c(
+          "Expert verified", "Community verified", "Unassessed", "Uncertain",
+          "Erroneous"
+        ),
+        ordered = TRUE
+      )
+    ) |>
+    arrange(Quality) |>
+    adorn_totals() |>
+    datatable(
+      rownames = FALSE,
+      options = list(bPaginate = FALSE, searching = FALSE, info = FALSE),
+      fillContainer = TRUE
+    )
+  }
+)
+```
 
 Column {data-width=600 .tabset}
 --------------------------------------------------------------------------------
@@ -121,59 +208,6 @@ renderPlotly({
   ggplotly(p)
 
 })
-```
-
-Column {data-width=400}
---------------------------------------------------------------------------------
-
-### Total Records
-
-```{r fb_count}
-renderValueBox({
-  valueBox(
-    fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
-    icon = "fa-pen"
-  )
-})
-```
-
-### Collection Quality
-</br>
-```{r professional}
-selectInput(
-  "collection_quality",
-  NULL,
-  c(
-    "Professionals" = "professional", "Specialists" = "hobbyist",
-    "Citizen Scientists" = "amateur"
-  )
-)
-
-renderTable(
-  {
-    fb_occurrence(
-      filter = c(filter, list(collection_quality = input$collection_quality)),
-      select = c(Quality = "record_quality"), aggregate = "records", n = "all"
-    ) |>
-    mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
-    group_by(Quality) |>
-    summarise(n_records = sum(n_records), .groups = "drop") |>
-    rename(Count = n_records) |>
-    mutate(
-      Quality = factor(
-        Quality,
-        levels = c(
-          "Expert verified", "Community verified", "Unassessed", "Uncertain",
-          "Erroneous"
-        ),
-        ordered = TRUE
-      )
-    ) |>
-    arrange(Quality) |>
-    adorn_totals()
-  },
-  striped = TRUE
-)
 ```
 
 Users

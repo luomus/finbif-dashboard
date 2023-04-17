@@ -24,6 +24,7 @@ document.querySelector(".navbar-header").innerHTML =
 library(flexdashboard)
 library(finbif)
 library(ggplot2)
+library(plotly)
 library(scales)
 library(dplyr)
 library(tidyr)
@@ -66,53 +67,58 @@ Column {data-width=600 .tabset}
 ### Occurrences
 
 ```{r occurrence-data}
-renderPlot({
-  fb_occurrence(
+renderPlotly({
+  p <- fb_occurrence(
     filter = filter, select = "first_load_date", aggregate = "records",
     n = "all"
   ) |>
   arrange(first_load_date) |>
+  mutate(Date = as.Date(first_load_date), Records = cumsum(n_records)) |>
   ggplot() +
-  aes(x = as.Date(first_load_date), y = cumsum(n_records)) +
+  aes(x = Date, y = Records) +
   geom_line() +
   scale_y_continuous(label = comma) +
-  labs(x = NULL, y = "Occurrence records")
+  labs(x = NULL, y = "Records")
+  ggplotly(p)
 })
 ```
 
 ### Annotations
 
 ```{r annotations}
-renderPlot({
+renderPlotly({
 
   n <- 500
 
-  annotations <- fb_occurrence(
+  n_annotations <- fb_occurrence(
     filter = c(filter, list(annotated = TRUE)),
     select = "record_annotation_created",
     sample = TRUE, n = n
   )
 
-  record_annotation_created <- annotations[["record_annotation_created"]]
-  record_annotation_created <- unlist(record_annotation_created)
-  record_annotation_created <- sort(record_annotation_created)
-  record_annotation_created <- as_datetime(record_annotation_created)
+  Date <- n_annotations[["record_annotation_created"]]
+  Date <- unlist(Date)
+  Date <- sort(Date)
+  Date <- as_datetime(Date)
+  Date <- as.Date(Date)
 
-  total_annotations <- attr(annotations, "nrec_avl")
+  total_annotations <- attr(n_annotations, "nrec_avl")
 
-  n_annotations <- length(record_annotation_created)
+  Annotations <- length(Date)
 
   mult <- total_annotations / n
 
-  n_annotations <- seq_len(n_annotations)
+  Annotations <- seq_len(Annotations)
 
-  n_annotations <- n_annotations * mult
-  
-  ggplot() +
-  aes(x = record_annotation_created, y = n_annotations) +
-  geom_line() +
-  scale_y_continuous(label = comma) +
-  labs(x = NULL, y = "Annotations")
+  Annotations <- as.integer(Annotations * mult)
+
+  p <- ggplot() +
+    aes(x = Date, y = Annotations) +
+    geom_line() +
+    scale_y_continuous(label = comma) +
+    labs(x = NULL, y = "Annotations")
+
+  ggplotly(p)
 
 })
 ```

@@ -63,13 +63,29 @@ filter <- list(
 Occurrence Data
 ================================================================================
 
-Column {data-width=400}
+Column {data-width=150}
+--------------------------------------------------------------------------------
+
+### Data Restriction
+
+```{r inputs}
+selectInput(
+  "restriction",
+  NULL,
+  c("All Data" = " ", "Restricted Only" = "true", "Unrestricted Only" = "false")
+)
+```
+
+Column {data-width=250}
 --------------------------------------------------------------------------------
 
 ### Records
 
 ```{r fb_record_count}
 renderValueBox({
+
+  filter <- c(filter, list(restricted = input$restriction))
+
   valueBox(
     fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
     icon = "fa-pen", color = "#1F74AD"
@@ -81,6 +97,9 @@ renderValueBox({
 
 ```{r fb_species_count}
 renderValueBox({
+
+  filter <- c(filter, list(restricted = input$restriction))
+
   valueBox(
     fb_occurrence(
       filter = filter, select = "species_scientific_name",
@@ -95,6 +114,9 @@ renderValueBox({
 
 ```{r fb_collection_count}
 renderValueBox({
+
+  filter <- c(filter, list(restricted = input$restriction))
+
   valueBox(
     fb_occurrence(
       filter = filter, select = "collection_id", aggregate = "records",
@@ -119,6 +141,9 @@ selectInput(
 
 renderDataTable(
   {
+
+    filter <- c(filter, list(restricted = input$restriction))
+
     fb_occurrence(
       filter = c(filter, list(collection_quality = input$collection_quality)),
       select = c(Quality = "record_quality"), aggregate = "records", n = "all"
@@ -148,13 +173,16 @@ renderDataTable(
 )
 ```
 
-Column {data-width=600 .tabset}
+Column {data-width=600 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
 ### Occurrences
 
 ```{r occurrence-data}
 renderPlotly({
+
+  filter <- c(filter, list(restricted = input$restriction))
+
   p <- fb_occurrence(
     filter = filter, select = "first_load_date", aggregate = "records",
     n = "all"
@@ -175,6 +203,8 @@ renderPlotly({
 ```{r annotations}
 renderPlotly({
 
+  filter <- c(filter, list(restricted = input$restriction))
+  
   n <- 500
 
   n_annotations <- fb_occurrence(

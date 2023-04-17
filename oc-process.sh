@@ -55,5 +55,4 @@ oc process -f $f \
 -p BRANCH=$BRANCH \
 -p HOST=$HOST \
 -p FINBIF_ACCESS_TOKEN=$FINBIF_ACCESS_TOKEN \
--p BRANCH=$BRANCH \
 | jq $ITEM

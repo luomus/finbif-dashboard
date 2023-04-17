@@ -17,8 +17,6 @@ parameters:
     value: latest
   - name: FINBIF_ACCESS_TOKEN
     required: true
-  - name: FINBIF_API_URL
-    required: true
   - name: APP_PORT
     required: true
     value: "3838"

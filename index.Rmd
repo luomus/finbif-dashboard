@@ -32,13 +32,15 @@ library(tidyr)
 library(janitor)
 library(lubridate)
 library(DT)
+library(thematic)
 
-thematic::thematic_shiny(
+thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
 )
 
 options(
   finbif_use_cache = 0.05,
+  finbif_cache_offset = .5,
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000
@@ -50,11 +52,24 @@ if (Sys.getenv("BRANCH") != "main") {
 
 }
 
+sanitise <- function(x) {
+
+  switch(x, `NULL` = NULL, x)
+
+}
+
 filter <- list(
   quality_issues = "both",
-  record_reliability = c("reliable", "unassessed", "unreliable"),
+  record_reliability = c(
+    "reliable",
+    "unassessed",
+    "unreliable"
+  ),
   record_quality = c(
-    "expert_verified", "community_verified", "unassessed", "uncertain",
+    "expert_verified",
+    "community_verified",
+    "unassessed",
+    "uncertain",
     "erroneous"
   )
 )
@@ -66,13 +81,67 @@ Occurrence Data
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
+### Data Sources
+
+```{r sources}
+selectInput(
+  "source",
+  NULL,
+  c(
+    "All Sources" = "NULL",
+    "FinBIF" = "HR.1989",
+    "Iisalmi Museum" = "HR.4911",
+    "Kieppi, Kokkola Museum" = "HR.121",
+    "Kuopio Museum" = "HR.1127",
+    "Luke" = "HR.1915",
+    "Luomus" = "HR.128",
+    "Metsähallitus" = "HR.3551",
+    "Porvoo Museum" = "HR.4171",
+    "SYKE" = "HR.3552",
+    "Tampere Museum" = "HR.3811",
+    "University of Jyväskylä " = "HR.1247",
+    "University of Oulu" = "HR.1207",
+    "University of Turku" = "HR.1627"
+  )
+)
+```
+
+### Taxa
+
+```{r taxa}
+selectInput(
+  "taxa",
+  NULL,
+  c(
+    "All Taxa" = "NULL",
+    "Algae" = "Algae",
+    "Bryophytes" = "Bryophytes",
+    "Vascular Plants",
+    "Fungi and lichens" = "Fungi and lichens",
+    "Worms" = "Worms",
+    "Molluscs" = "Molluscs",
+    "Crustaceans" = "Crustaceans",
+    "Myriapods" = "Myriapods",
+    "Insects and arachnids" = "Insects and arachnids",
+    "Fishes" = "Fishes",
+    "Reptiles and amphibians" = "Reptiles and amphibians",
+    "Birds" = "Birds",
+    "Mammals" = "Mammals"
+  )
+)
+```
+
 ### Data Restriction
 
-```{r inputs}
+```{r restriction}
 selectInput(
   "restriction",
   NULL,
-  c("All Data" = " ", "Restricted Only" = "true", "Unrestricted Only" = "false")
+  c(
+    "All Data" = "NULL",
+    "Restricted Only" = "true",
+    "Unrestricted Only" = "false"
+  )
 )
 ```
 
@@ -84,12 +153,21 @@ Column {data-width=250}
 ```{r fb_record_count}
 renderValueBox({
 
-  filter <- c(filter, list(restricted = input$restriction))
+  filter <- c(
+    filter,
+    list(
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
+    )
+  )
 
   valueBox(
     fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
-    icon = "fa-pen", color = "#1F74AD"
+    icon = "fa-pen",
+    color = "#1F74AD"
   )
+  
 })
 ```
 
@@ -98,15 +176,26 @@ renderValueBox({
 ```{r fb_species_count}
 renderValueBox({
 
-  filter <- c(filter, list(restricted = input$restriction))
+  filter <- c(
+    filter,
+    list(
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
+    )
+  )
 
   valueBox(
     fb_occurrence(
-      filter = filter, select = "species_scientific_name",
-      aggregate = "records", count_only = TRUE
+      filter = filter,
+      select = "species_scientific_name",
+      aggregate = "records",
+      count_only = TRUE
     ),
-    icon = "fa-dove", color = "#1F74AD"
+    icon = "fa-dove",
+    color = "#1F74AD"
   )
+  
 })
 ```
 
@@ -115,15 +204,26 @@ renderValueBox({
 ```{r fb_collection_count}
 renderValueBox({
 
-  filter <- c(filter, list(restricted = input$restriction))
+  filter <- c(
+    filter,
+    list(
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
+    )
+  )
 
   valueBox(
     fb_occurrence(
-      filter = filter, select = "collection_id", aggregate = "records",
+      filter = filter, 
+      select = "collection_id",
+      aggregate = "records",
       count_only = TRUE
     ),
-    icon = "fa-database", color = "#1F74AD"
+    icon = "fa-database",
+    color = "#1F74AD"
   )
+  
 })
 ```
 
@@ -134,43 +234,57 @@ selectInput(
   "collection_quality",
   NULL,
   c(
-    "Professionals" = "professional", "Specialists" = "hobbyist",
+    "All" = "NULL",
+    "Professionals" = "professional",
+    "Specialists" = "hobbyist",
     "Citizen Scientists" = "amateur"
   )
 )
 
-renderDataTable(
-  {
+renderDataTable({
 
-    filter <- c(filter, list(restricted = input$restriction))
-
-    fb_occurrence(
-      filter = c(filter, list(collection_quality = input$collection_quality)),
-      select = c(Quality = "record_quality"), aggregate = "records", n = "all"
-    ) |>
-    mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
-    group_by(Quality) |>
-    summarise(n_records = sum(n_records), .groups = "drop") |>
-    rename(Count = n_records) |>
-    mutate(
-      Quality = factor(
-        Quality,
-        levels = c(
-          "Expert verified", "Community verified", "Unassessed", "Uncertain",
-          "Erroneous"
-        ),
-        ordered = TRUE
-      )
-    ) |>
-    arrange(Quality) |>
-    adorn_totals() |>
-    datatable(
-      rownames = FALSE,
-      options = list(bPaginate = FALSE, searching = FALSE, info = FALSE),
-      fillContainer = TRUE
+  filter <- c(
+    filter,
+    list(
+      collection_quality = sanitise(input$collection_quality),
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
     )
-  }
-)
+  )
+
+  fb_occurrence(
+    filter = filter,
+    select = c(Quality = "record_quality"),
+    aggregate = "records",
+    n = "all"
+  ) |>
+  mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
+  group_by(Quality) |>
+  summarise(n_records = sum(n_records), .groups = "drop") |>
+  rename(Count = n_records) |>
+  mutate(
+    Quality = factor(
+      Quality,
+      levels = c(
+        "Expert verified",
+        "Community verified",
+        "Unassessed", 
+        "Uncertain",
+        "Erroneous"
+      ),
+      ordered = TRUE
+    )
+  ) |>
+  arrange(Quality) |>
+  adorn_totals() |>
+  datatable(
+    rownames = FALSE,
+    options = list(bPaginate = FALSE, searching = FALSE, info = FALSE),
+    fillContainer = TRUE
+  )
+
+})
 ```
 
 Column {data-width=600 .tabset .tabset-fade}
@@ -181,20 +295,30 @@ Column {data-width=600 .tabset .tabset-fade}
 ```{r occurrence-data}
 renderPlotly({
 
-  filter <- c(filter, list(restricted = input$restriction))
+  filter <- c(
+    filter,
+    list(
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
+    )
+  )
 
-  p <- fb_occurrence(
-    filter = filter, select = "first_load_date", aggregate = "records",
-    n = "all"
-  ) |>
-  arrange(first_load_date) |>
-  mutate(Date = as.Date(first_load_date), Records = cumsum(n_records)) |>
-  ggplot() +
-  aes(x = Date, y = Records) +
-  geom_line() +
-  scale_y_continuous(label = comma) +
-  labs(x = NULL, y = "Records")
+  p <-
+    fb_occurrence(
+      filter = filter, select = "first_load_date", aggregate = "records",
+      n = "all"
+    ) |>
+    arrange(first_load_date) |>
+    mutate(Date = as.Date(first_load_date), Records = cumsum(n_records)) |>
+    ggplot() +
+    aes(x = Date, y = Records) +
+    geom_line() +
+    scale_y_continuous(label = comma) +
+    labs(x = NULL, y = "Records")
+
   ggplotly(p)
+
 })
 ```
 
@@ -203,14 +327,23 @@ renderPlotly({
 ```{r annotations}
 renderPlotly({
 
-  filter <- c(filter, list(restricted = input$restriction))
-  
+  filter <- c(
+    filter,
+    list(
+      annotated = TRUE,
+      restricted = sanitise(input$restriction),
+      informal_groups = sanitise(input$taxa),
+      collection = sanitise(input$source)
+    )
+  )
+
   n <- 500
 
   n_annotations <- fb_occurrence(
-    filter = c(filter, list(annotated = TRUE)),
+    filter = filter,
     select = "record_annotation_created",
-    sample = TRUE, n = n
+    sample = TRUE,
+    n = n
   )
 
   Date <- n_annotations[["record_annotation_created"]]
@@ -229,7 +362,8 @@ renderPlotly({
 
   Annotations <- as.integer(Annotations * mult)
 
-  p <- ggplot() +
+  p <-
+    ggplot() +
     aes(x = Date, y = Annotations) +
     geom_line() +
     scale_y_continuous(label = comma) +

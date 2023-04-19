@@ -22,18 +22,18 @@ document.querySelector(".navbar-header").innerHTML =
 ```
 
 ```{r setup, include = FALSE}
-library(flexdashboard)
-library(finbif)
-library(ggplot2)
-library(plotly)
-library(scales)
 library(dplyr)
-library(tidyr)
+library(DT)
+library(finbif)
+library(flexdashboard)
+library(future)
+library(ggplot2)
 library(janitor)
 library(lubridate)
-library(DT)
+library(plotly)
+library(scales)
 library(thematic)
-library(future)
+library(tidyr)
 library(promises)
 
 plan(multisession, workers = 4L)
@@ -45,7 +45,6 @@ thematic_shiny(
 options(
   finbif_use_cache = 0.05,
   finbif_cache_offset = .5,
-  finbif_cache_path = "cache",
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000L,
@@ -218,7 +217,7 @@ species_count <-
         options(op)
 
         fb_occurrence(
-          filter = species_count_filter, 
+          filter = species_count_filter,
           select = "species_scientific_name",
           aggregate = "records",
           count_only = TRUE
@@ -234,7 +233,7 @@ species_count <-
 renderValueBox({
 
   species_count() %...>%
-  valueBox(icon = "fa-pen", color = "#1F74AD")
+  valueBox(icon = "fa-dove", color = "#1F74AD")
 
 })
 ```
@@ -276,7 +275,7 @@ collection_count <-
 renderValueBox({
 
   collection_count() %...>%
-  valueBox(icon = "fa-pen", color = "#1F74AD")
+  valueBox(icon = "fa-database", color = "#1F74AD")
 
 })
 ```

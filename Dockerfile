@@ -38,7 +38,7 @@ ENV  OPENBLAS_NUM_THREADS 1
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY index.Rmd /home/user/index.Rmd
 
-RUN  mkdir -p /home/user/data \
+RUN  mkdir -p /home/user/cache \
   && chgrp -R 0 /home/user \
   && chmod -R g=u /home/user /etc/passwd
 

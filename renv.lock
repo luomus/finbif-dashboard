@@ -149,6 +149,16 @@
       ],
       "Hash": "89e6d8219950eac806ae0c489052048a"
     },
+    "codetools": {
+      "Package": "codetools",
+      "Version": "0.2-19",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "c089a619a7fae175d149d89164f8c7d8"
+    },
     "colorspace": {
       "Package": "colorspace",
       "Version": "2.1-0",
@@ -314,7 +324,7 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "cebebcf758a1874a066528468828dcbe5dc2bbf9",
+      "RemoteSha": "15764aa78e4b06610bf91811b72b1e217c1f2d05",
       "Requirements": [
         "R",
         "digest",
@@ -323,7 +333,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "69f085e9a404ea493ae08713dc579aef"
+      "Hash": "39a4407cff0805d78087b58f1cbc3223"
     },
     "flexdashboard": {
       "Package": "flexdashboard",
@@ -349,7 +359,7 @@
     },
     "fontawesome": {
       "Package": "fontawesome",
-      "Version": "0.5.0",
+      "Version": "0.5.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -357,7 +367,7 @@
         "htmltools",
         "rlang"
       ],
-      "Hash": "e80750aec5717dedc019ad7ee40e4a7c"
+      "Hash": "1e22b8cabbad1eae951a75e9f8b52378"
     },
     "fs": {
       "Package": "fs",
@@ -369,6 +379,21 @@
         "methods"
       ],
       "Hash": "f4dcd23b67e33d851d2079f703e8b985"
+    },
+    "future": {
+      "Package": "future",
+      "Version": "1.32.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "digest",
+        "globals",
+        "listenv",
+        "parallel",
+        "parallelly",
+        "utils"
+      ],
+      "Hash": "c68517cf2f78be4ea86e140b8598a4ca"
     },
     "generics": {
       "Package": "generics",
@@ -405,6 +430,17 @@
         "withr"
       ],
       "Hash": "3a147ee02e85a8941aad9909f1b43b7b"
+    },
+    "globals": {
+      "Package": "globals",
+      "Version": "0.16.2",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "codetools"
+      ],
+      "Hash": "baa9585ab4ce47a9f4618e671778cc6f"
     },
     "glue": {
       "Package": "glue",
@@ -648,6 +684,16 @@
       ],
       "Hash": "001cecbeac1cff9301bdc3775ee46a86"
     },
+    "listenv": {
+      "Package": "listenv",
+      "Version": "0.9.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R"
+      ],
+      "Hash": "4fbd3679ec8ee169ba28d4b1ea7d0e8f"
+    },
     "lubridate": {
       "Package": "lubridate",
       "Version": "1.9.2",
@@ -756,6 +802,18 @@
         "askpass"
       ],
       "Hash": "0f7cd2962e3044bb940cca4f4b5cecbe"
+    },
+    "parallelly": {
+      "Package": "parallelly",
+      "Version": "1.35.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "parallel",
+        "tools",
+        "utils"
+      ],
+      "Hash": "1cf5a54cfc5dcb0b84037acfd93cbca7"
     },
     "pillar": {
       "Package": "pillar",
@@ -1124,13 +1182,13 @@
     },
     "tinytex": {
       "Package": "tinytex",
-      "Version": "0.44",
+      "Version": "0.45",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "xfun"
       ],
-      "Hash": "c0f007e2eeed7722ce13d42b84a22e07"
+      "Hash": "e4e357f28c2edff493936b6cb30c3d65"
     },
     "utf8": {
       "Package": "utf8",

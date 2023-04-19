@@ -33,6 +33,10 @@ library(janitor)
 library(lubridate)
 library(DT)
 library(thematic)
+library(future)
+library(promises)
+
+plan(multisession, workers = 4L)
 
 thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
@@ -41,9 +45,11 @@ thematic_shiny(
 options(
   finbif_use_cache = 0.05,
   finbif_cache_offset = .5,
+  finbif_cache_path = "cache",
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
-  finbif_max_page_size = 3000
+  finbif_max_page_size = 3000L,
+  finbif_use_async = FALSE
 )
 
 if (Sys.getenv("BRANCH") != "main") {
@@ -52,13 +58,15 @@ if (Sys.getenv("BRANCH") != "main") {
 
 }
 
+op <- options()
+
 sanitise <- function(x) {
 
   switch(x, `NULL` = NULL, x)
 
 }
 
-filter <- list(
+base_filter <- list(
   quality_issues = "both",
   record_reliability = c(
     "reliable",
@@ -117,14 +125,14 @@ selectInput(
     "Algae" = "Algae",
     "Bryophytes" = "Bryophytes",
     "Vascular Plants",
-    "Fungi and lichens" = "Fungi and lichens",
+    "Fungi & Lichen" = "Fungi and lichens",
     "Worms" = "Worms",
     "Molluscs" = "Molluscs",
     "Crustaceans" = "Crustaceans",
     "Myriapods" = "Myriapods",
-    "Insects and arachnids" = "Insects and arachnids",
-    "Fishes" = "Fishes",
-    "Reptiles and amphibians" = "Reptiles and amphibians",
+    "Insects & Arachnids" = "Insects and arachnids",
+    "Fish" = "Fishes",
+    "Reptiles & Amphibians" = "Reptiles and amphibians",
     "Birds" = "Birds",
     "Mammals" = "Mammals"
   )
@@ -151,79 +159,125 @@ Column {data-width=250}
 ### Records
 
 ```{r fb_record_count}
+record_count <-
+  reactive({
+
+    record_count_filter <- c(
+      base_filter,
+      list(
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
+    )
+
+    future_promise(
+      {
+
+        options(op)
+
+        fb_occurrence(
+          filter = record_count_filter,
+          select = "record_id",
+          count_only = TRUE
+        )
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(input$restriction, input$taxa, input$source)
+
 renderValueBox({
 
-  filter <- c(
-    filter,
-    list(
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
-    )
-  )
+  record_count() %...>%
+  valueBox(icon = "fa-pen", color = "#1F74AD")
 
-  valueBox(
-    fb_occurrence(filter = filter, select = "record_id", count_only = TRUE),
-    icon = "fa-pen",
-    color = "#1F74AD"
-  )
-  
 })
 ```
 
 ### Species
 
 ```{r fb_species_count}
+species_count <-
+  reactive({
+
+    species_count_filter <- c(
+      base_filter,
+      list(
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
+    )
+
+    future_promise(
+      {
+
+        options(op)
+
+        fb_occurrence(
+          filter = species_count_filter, 
+          select = "species_scientific_name",
+          aggregate = "records",
+          count_only = TRUE
+        )
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(input$restriction, input$taxa, input$source)
+
 renderValueBox({
 
-  filter <- c(
-    filter,
-    list(
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
-    )
-  )
+  species_count() %...>%
+  valueBox(icon = "fa-pen", color = "#1F74AD")
 
-  valueBox(
-    fb_occurrence(
-      filter = filter,
-      select = "species_scientific_name",
-      aggregate = "records",
-      count_only = TRUE
-    ),
-    icon = "fa-dove",
-    color = "#1F74AD"
-  )
-  
 })
 ```
 
 ### Datasets
 
 ```{r fb_collection_count}
+collection_count <-
+  reactive({
+
+    collection_count_filter <- c(
+      base_filter,
+      list(
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
+    )
+
+    future_promise(
+      {
+
+        options(op)
+
+        fb_occurrence(
+          filter = collection_count_filter,
+          select = "collection_id",
+          aggregate = "records",
+          count_only = TRUE
+        )
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(input$restriction, input$taxa, input$source)
+
 renderValueBox({
 
-  filter <- c(
-    filter,
-    list(
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
-    )
-  )
+  collection_count() %...>%
+  valueBox(icon = "fa-pen", color = "#1F74AD")
 
-  valueBox(
-    fb_occurrence(
-      filter = filter, 
-      select = "collection_id",
-      aggregate = "records",
-      count_only = TRUE
-    ),
-    icon = "fa-database",
-    color = "#1F74AD"
-  )
-  
 })
 ```
 
@@ -241,43 +295,62 @@ selectInput(
   )
 )
 
-renderDataTable({
+quality_table <-
+  reactive({
 
-  filter <- c(
-    filter,
-    list(
-      collection_quality = sanitise(input$collection_quality),
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
+    quality_table_filter <- c(
+      base_filter,
+      list(
+        collection_quality = sanitise(input$collection_quality),
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
     )
+
+    future_promise(
+      {
+
+        options(op)
+
+        fb_occurrence(
+          filter = quality_table_filter,
+          select = c(Quality = "record_quality"),
+          aggregate = "records",
+          n = "all"
+        ) %>%
+        mutate(record_quality = replace_na(Quality, "Unnassesed")) %>%
+        group_by(Quality) %>%
+        summarise(n_records = sum(n_records), .groups = "drop") %>%
+        rename(Count = n_records) %>%
+        mutate(
+          Quality = factor(
+            Quality,
+            levels = c(
+              "Expert verified",
+              "Community verified",
+              "Unassessed", 
+              "Uncertain",
+              "Erroneous"
+            ),
+            ordered = TRUE
+          )
+        ) %>%
+        arrange(Quality) %>%
+        adorn_totals()
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(
+    input$collection_quality, input$restriction, input$taxa, input$source
   )
 
-  fb_occurrence(
-    filter = filter,
-    select = c(Quality = "record_quality"),
-    aggregate = "records",
-    n = "all"
-  ) |>
-  mutate(record_quality = replace_na(Quality, "Unnassesed")) |>
-  group_by(Quality) |>
-  summarise(n_records = sum(n_records), .groups = "drop") |>
-  rename(Count = n_records) |>
-  mutate(
-    Quality = factor(
-      Quality,
-      levels = c(
-        "Expert verified",
-        "Community verified",
-        "Unassessed", 
-        "Uncertain",
-        "Erroneous"
-      ),
-      ordered = TRUE
-    )
-  ) |>
-  arrange(Quality) |>
-  adorn_totals() |>
+renderDataTable({
+
+  quality_table() %...>%
   datatable(
     rownames = FALSE,
     options = list(bPaginate = FALSE, searching = FALSE, info = FALSE),
@@ -293,31 +366,50 @@ Column {data-width=600 .tabset .tabset-fade}
 ### Occurrences
 
 ```{r occurrence-data}
+occurrence_plot <-
+  reactive({
+
+    occurrence_filter <- c(
+      base_filter,
+      list(
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
+    )
+
+    future_promise(
+      {
+
+        options(op)
+
+        fb_occurrence(
+          filter = occurrence_filter,
+          select = "first_load_date",
+          aggregate = "records",
+          n = "all"
+        ) %>%
+        arrange(first_load_date) %>%
+        mutate(
+          Date = as.Date(first_load_date), Records = cumsum(n_records)
+        ) %>%
+        ggplot() +
+        aes(x = Date, y = Records) +
+        geom_line() +
+        scale_y_continuous(label = comma) +
+        labs(x = NULL, y = "Records")
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(input$restriction, input$taxa, input$source)
+
 renderPlotly({
 
-  filter <- c(
-    filter,
-    list(
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
-    )
-  )
-
-  p <-
-    fb_occurrence(
-      filter = filter, select = "first_load_date", aggregate = "records",
-      n = "all"
-    ) |>
-    arrange(first_load_date) |>
-    mutate(Date = as.Date(first_load_date), Records = cumsum(n_records)) |>
-    ggplot() +
-    aes(x = Date, y = Records) +
-    geom_line() +
-    scale_y_continuous(label = comma) +
-    labs(x = NULL, y = "Records")
-
-  ggplotly(p)
+  occurrence_plot() %...>%
+  ggplotly
 
 })
 ```
@@ -325,51 +417,66 @@ renderPlotly({
 ### Annotations
 
 ```{r annotations}
+annotations_plot <-
+  reactive({
+
+    annotations_filter <- c(
+      base_filter,
+      list(
+        annotated = TRUE,
+        restricted = sanitise(input$restriction),
+        informal_groups = sanitise(input$taxa),
+        collection = sanitise(input$source)
+      )
+    )
+
+    future_promise(
+      {
+
+        options(op)
+
+        n <- 500
+
+        n_annotations <- fb_occurrence(
+          filter = annotations_filter,
+          select = "record_annotation_created",
+          sample = TRUE,
+          n = n
+        )
+
+        Date <- n_annotations[["record_annotation_created"]]
+        Date <- unlist(Date)
+        Date <- sort(Date)
+        Date <- as_datetime(Date)
+        Date <- as.Date(Date)
+
+        total_annotations <- attr(n_annotations, "nrec_avl")
+
+        Annotations <- length(Date)
+
+        mult <- total_annotations / n
+
+        Annotations <- seq_len(Annotations)
+
+        Annotations <- as.integer(Annotations * mult)
+
+        ggplot() +
+         aes(x = Date, y = Annotations) +
+         geom_line() +
+         scale_y_continuous(label = comma) +
+         labs(x = NULL, y = "Annotations")
+
+      },
+      seed = TRUE
+    )
+
+  }) %>%
+  bindEvent(input$restriction, input$taxa, input$source)
+
 renderPlotly({
 
-  filter <- c(
-    filter,
-    list(
-      annotated = TRUE,
-      restricted = sanitise(input$restriction),
-      informal_groups = sanitise(input$taxa),
-      collection = sanitise(input$source)
-    )
-  )
-
-  n <- 500
-
-  n_annotations <- fb_occurrence(
-    filter = filter,
-    select = "record_annotation_created",
-    sample = TRUE,
-    n = n
-  )
-
-  Date <- n_annotations[["record_annotation_created"]]
-  Date <- unlist(Date)
-  Date <- sort(Date)
-  Date <- as_datetime(Date)
-  Date <- as.Date(Date)
-
-  total_annotations <- attr(n_annotations, "nrec_avl")
-
-  Annotations <- length(Date)
-
-  mult <- total_annotations / n
-
-  Annotations <- seq_len(Annotations)
-
-  Annotations <- as.integer(Annotations * mult)
-
-  p <-
-    ggplot() +
-    aes(x = Date, y = Annotations) +
-    geom_line() +
-    scale_y_continuous(label = comma) +
-    labs(x = NULL, y = "Annotations")
-
-  ggplotly(p)
+  annotations_plot() %...>%
+  ggplotly
 
 })
 ```

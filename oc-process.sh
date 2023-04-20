@@ -17,11 +17,12 @@ source ./$e
 set +a
 
 BRANCH=$(git symbolic-ref --short -q HEAD)
+FINBIF_PRIVATE_API="unset"
 
 if [ "$BRANCH" != "main" ]; then
 
 HOST=$HOST_DEV
-FINBIF_ACCESS_TOKEN=$FINBIF_DEV_ACCESS_TOKEN
+FINBIF_PRIVATE_API="dev"
 
 fi
 
@@ -54,5 +55,5 @@ fi
 oc process -f $f \
 -p BRANCH=$BRANCH \
 -p HOST=$HOST \
--p FINBIF_ACCESS_TOKEN=$FINBIF_ACCESS_TOKEN \
+-p FINBIF_PRIVATE_API=$FINBIF_PRIVATE_API \
 | jq $ITEM

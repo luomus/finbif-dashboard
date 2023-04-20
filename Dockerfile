@@ -32,8 +32,10 @@ RUN R -e "install.packages('renv')" \
 HEALTHCHECK --interval=1m --timeout=10s \
   CMD curl -sfI -o /dev/null 0.0.0.0:3838 || exit 1
 
-ENV  HOME /home/user
-ENV  OPENBLAS_NUM_THREADS 1
+ENV HOME /home/user
+ENV OPENBLAS_NUM_THREADS 1
+ENV FINBIF_USER_AGENT https://github.com/luomus/finbif-dashboard
+ENV FINBIF_USE_PRIVATE_API true
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY index.Rmd /home/user/index.Rmd

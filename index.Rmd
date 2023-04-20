@@ -51,12 +51,6 @@ options(
   finbif_use_async = FALSE
 )
 
-if (Sys.getenv("BRANCH") != "main") {
-
-  options(finbif_api_url = "https://apitest.laji.fi")
-
-}
-
 op <- options()
 
 sanitise <- function(x) {

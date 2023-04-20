@@ -82,8 +82,8 @@ objects:
         - image: ${APP}-${BRANCH}:${TAG}
           name: ${APP}-${BRANCH}
           env:
-          - name: FINBIF_ACCESS_TOKEN
-            value: ${FINBIF_ACCESS_TOKEN}
+          - name: FINBIF_PRIVATE_API
+            value: ${FINBIF_PRIVATE_API}
           - name: BRANCH
             value: ${BRANCH}
           ports:

@@ -22,21 +22,12 @@ document.querySelector(".navbar-header").innerHTML =
 ```
 
 ```{r setup, include = FALSE}
-library(dplyr)
 library(DT)
 library(finbif)
 library(flexdashboard)
-library(future)
-library(ggplot2)
-library(janitor)
-library(lubridate)
+library(httr2)
 library(plotly)
-library(scales)
 library(thematic)
-library(tidyr)
-library(promises)
-
-plan(multisession, workers = 4L)
 
 thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
@@ -74,6 +65,10 @@ base_filter <- list(
     "erroneous"
   )
 )
+
+api <- Sys.getenv("DASHBOARD_API")
+
+req <- request(api)
 ```
 
 Occurrence Data
@@ -155,37 +150,22 @@ Column {data-width=250}
 record_count <-
   reactive({
 
-    record_count_filter <- c(
-      base_filter,
-      list(
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
+    req_url_path(req, "record-count") |>
+    req_url_query(
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
 
-    future_promise(
-      {
-
-        options(op)
-
-        fb_occurrence(
-          filter = record_count_filter,
-          select = "record_id",
-          count_only = TRUE
-        )
-
-      },
-      seed = TRUE
-    )
-
-  }) %>%
+  }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 renderValueBox({
 
-  record_count() %...>%
-  valueBox(icon = "fa-pen", color = "#1F74AD")
+  valueBox(record_count(), icon = "fa-pen", color = "#1F74AD")
 
 })
 ```
@@ -196,38 +176,21 @@ renderValueBox({
 species_count <-
   reactive({
 
-    species_count_filter <- c(
-      base_filter,
-      list(
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
+    req_url_path(req, "species-count") |>
+    req_url_query(
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
 
-    future_promise(
-      {
-
-        options(op)
-
-        fb_occurrence(
-          filter = species_count_filter,
-          select = "species_scientific_name",
-          aggregate = "records",
-          count_only = TRUE
-        )
-
-      },
-      seed = TRUE
-    )
-
-  }) %>%
+  }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 renderValueBox({
-
-  species_count() %...>%
-  valueBox(icon = "fa-dove", color = "#1F74AD")
+  valueBox(species_count(), icon = "fa-dove", color = "#1F74AD")
 
 })
 ```
@@ -238,38 +201,22 @@ renderValueBox({
 collection_count <-
   reactive({
 
-    collection_count_filter <- c(
-      base_filter,
-      list(
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
+    req_url_path(req, "collection-count") |>
+    req_url_query(
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
 
-    future_promise(
-      {
-
-        options(op)
-
-        fb_occurrence(
-          filter = collection_count_filter,
-          select = "collection_id",
-          aggregate = "records",
-          count_only = TRUE
-        )
-
-      },
-      seed = TRUE
-    )
-
-  }) %>%
+  }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 renderValueBox({
 
-  collection_count() %...>%
-  valueBox(icon = "fa-database", color = "#1F74AD")
+  valueBox(collection_count(), icon = "fa-database", color = "#1F74AD")
 
 })
 ```
@@ -291,52 +238,16 @@ selectInput(
 quality_table <-
   reactive({
 
-    quality_table_filter <- c(
-      base_filter,
-      list(
-        collection_quality = sanitise(input$collection_quality),
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
-
-    future_promise(
-      {
-
-        options(op)
-
-        fb_occurrence(
-          filter = quality_table_filter,
-          select = c(`Verification Status` = "record_quality"),
-          aggregate = "records",
-          n = "all"
-        ) %>%
-        mutate(
-          record_quality = replace_na(`Verification Status`, "Unnassesed")
-        ) %>%
-        group_by(`Verification Status`) %>%
-        summarise(n_records = sum(n_records), .groups = "drop") %>%
-        rename(`Number of Records` = n_records) %>%
-        mutate(
-          `Verification Status` = factor(
-            `Verification Status`,
-            levels = c(
-              "Expert verified",
-              "Community verified",
-              "Unassessed", 
-              "Uncertain",
-              "Erroneous"
-            ),
-            ordered = TRUE
-          )
-        ) %>%
-        arrange(`Verification Status`) %>%
-        adorn_totals()
-
-      },
-      seed = TRUE
-    )
+    req_url_path(req, "quality-table") |>
+    req_url_query(
+      collection_quality = input$collection_quality,
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
 
   }) %>%
   bindEvent(
@@ -344,8 +255,8 @@ quality_table <-
   )
 
 renderDataTable({
-  quality_table() %...>%
   datatable(
+    quality_table(),
     rownames = FALSE,
     options = list(
       bPaginate = FALSE, searching = FALSE, info = FALSE, ordering = FALSE
@@ -364,47 +275,22 @@ Column {data-width=600 .tabset .tabset-fade}
 occurrence_plot <-
   reactive({
 
-    occurrence_filter <- c(
-      base_filter,
-      list(
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
-
-    future_promise(
-      {
-
-        options(op)
-
-        fb_occurrence(
-          filter = occurrence_filter,
-          select = "first_load_date",
-          aggregate = "records",
-          n = "all"
-        ) %>%
-        arrange(first_load_date) %>%
-        mutate(
-          Date = as.Date(first_load_date), Records = cumsum(n_records)
-        ) %>%
-        ggplot() +
-        aes(x = Date, y = Records) +
-        geom_line() +
-        scale_y_continuous(label = comma) +
-        labs(x = NULL, y = "Records")
-
-      },
-      seed = TRUE
-    )
+    req_url_path(req, "occurrence-plot") |>
+    req_url_query(
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
 
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
 renderPlotly({
 
-  occurrence_plot() %...>%
-  ggplotly
+  ggplotly(occurrence_plot())
 
 })
 ```
@@ -415,73 +301,22 @@ renderPlotly({
 annotations_plot <-
   reactive({
 
-    annotations_filter <- c(
-      base_filter,
-      list(
-        annotated = TRUE,
-        restricted = sanitise(input$restriction),
-        informal_groups = sanitise(input$taxa),
-        collection = sanitise(input$source)
-      )
-    )
-
-    future_promise(
-      {
-
-        options(op)
-
-        n <- 500
-
-        n_annotations <- fb_occurrence(
-          filter = annotations_filter,
-          select = "record_annotation_created",
-          sample = TRUE,
-          n = n
-        )
-
-        Date <- n_annotations[["record_annotation_created"]]
-        Date <- unlist(Date)
-        Date <- sort(Date)
-
-        if (is.null(Date)) {
-
-          Date <- Sys.Date()
-
-          Annotations <- 0
-
-        } else {
-
-          Date <- as_date(Date)
-
-          total_annotations <- attr(n_annotations, "nrec_avl")
-
-          Annotations <- length(Date)
-
-          mult <- total_annotations / n
-
-          Annotations <- seq_len(Annotations)
-
-          Annotations <- as.integer(Annotations * mult)
-
-        }
-
-        ggplot() +
-         aes(x = Date, y = Annotations) +
-         geom_line() +
-         scale_y_continuous(label = comma) +
-         labs(x = NULL, y = "Annotations")
-
-      },
-      seed = TRUE
-    )
-
+    req_url_path(req, "annotations-plot") |>
+    req_url_query(
+      restriction = input$restriction,
+      taxa = input$taxa, 
+      source = input$source
+    ) |>
+    req_perform() |>
+    resp_body_raw() |>
+    unserialize()
+    
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
 renderPlotly({
 
-  annotations_plot() %...>%
-  ggplotly
+  ggplotly(annotations_plot())
 
 })
 ```

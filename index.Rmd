@@ -274,14 +274,14 @@ renderValueBox({
 })
 ```
 
-### Collection Quality
+### Dataset Quality Level
 </br>
 ```{r professional}
 selectInput(
   "collection_quality",
   NULL,
   c(
-    "All" = "NULL",
+    "All Levels" = "NULL",
     "Professionals" = "professional",
     "Specialists" = "hobbyist",
     "Citizen Scientists" = "amateur"
@@ -308,17 +308,19 @@ quality_table <-
 
         fb_occurrence(
           filter = quality_table_filter,
-          select = c(Quality = "record_quality"),
+          select = c(`Verification Status` = "record_quality"),
           aggregate = "records",
           n = "all"
         ) %>%
-        mutate(record_quality = replace_na(Quality, "Unnassesed")) %>%
-        group_by(Quality) %>%
-        summarise(n_records = sum(n_records), .groups = "drop") %>%
-        rename(Count = n_records) %>%
         mutate(
-          Quality = factor(
-            Quality,
+          record_quality = replace_na(`Verification Status`, "Unnassesed")
+        ) %>%
+        group_by(`Verification Status`) %>%
+        summarise(n_records = sum(n_records), .groups = "drop") %>%
+        rename(`Number of Records` = n_records) %>%
+        mutate(
+          `Verification Status` = factor(
+            `Verification Status`,
             levels = c(
               "Expert verified",
               "Community verified",
@@ -329,7 +331,7 @@ quality_table <-
             ordered = TRUE
           )
         ) %>%
-        arrange(Quality) %>%
+        arrange(`Verification Status`) %>%
         adorn_totals()
 
       },
@@ -342,14 +344,14 @@ quality_table <-
   )
 
 renderDataTable({
-
   quality_table() %...>%
   datatable(
     rownames = FALSE,
-    options = list(bPaginate = FALSE, searching = FALSE, info = FALSE),
+    options = list(
+      bPaginate = FALSE, searching = FALSE, info = FALSE, ordering = FALSE
+    ),
     fillContainer = TRUE
   )
-
 })
 ```
 
@@ -440,18 +442,28 @@ annotations_plot <-
         Date <- n_annotations[["record_annotation_created"]]
         Date <- unlist(Date)
         Date <- sort(Date)
-        Date <- as_datetime(Date)
-        Date <- as.Date(Date)
 
-        total_annotations <- attr(n_annotations, "nrec_avl")
+        if (is.null(Date)) {
 
-        Annotations <- length(Date)
+          Date <- Sys.Date()
 
-        mult <- total_annotations / n
+          Annotations <- 0
 
-        Annotations <- seq_len(Annotations)
+        } else {
 
-        Annotations <- as.integer(Annotations * mult)
+          Date <- as_date(Date)
+
+          total_annotations <- attr(n_annotations, "nrec_avl")
+
+          Annotations <- length(Date)
+
+          mult <- total_annotations / n
+
+          Annotations <- seq_len(Annotations)
+
+          Annotations <- as.integer(Annotations * mult)
+
+        }
 
         ggplot() +
          aes(x = Date, y = Annotations) +

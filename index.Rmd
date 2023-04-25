@@ -13,7 +13,7 @@ output:
         google: JetBrains Mono
     orientation: columns
     vertical_layout: fill
-runtime: shiny
+runtime: shiny_prerendered
 ---
 
 ```{js, echo = FALSE}
@@ -21,7 +21,7 @@ document.querySelector(".navbar-header").innerHTML =
   '<a href="https://laji.fi" class="navbar-brand">LAJI.FI</a>'
 ```
 
-```{r setup, include = FALSE}
+```{r setup, context = "setup", include = FALSE}
 library(DT)
 library(finbif)
 library(flexdashboard)
@@ -31,39 +31,6 @@ library(thematic)
 
 thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
-)
-
-options(
-  finbif_use_cache = 0.05,
-  finbif_cache_offset = .5,
-  finbif_hide_progress = TRUE,
-  finbif_rate_limit = Inf,
-  finbif_max_page_size = 3000L,
-  finbif_use_async = FALSE
-)
-
-op <- options()
-
-sanitise <- function(x) {
-
-  switch(x, `NULL` = NULL, x)
-
-}
-
-base_filter <- list(
-  quality_issues = "both",
-  record_reliability = c(
-    "reliable",
-    "unassessed",
-    "unreliable"
-  ),
-  record_quality = c(
-    "expert_verified",
-    "community_verified",
-    "unassessed",
-    "uncertain",
-    "erroneous"
-  )
 )
 
 api <- Sys.getenv("DASHBOARD_API")
@@ -79,7 +46,7 @@ Column {data-width=150}
 
 ### Data Sources
 
-```{r sources}
+```{r sources, context = "render", echo = FALSE}
 selectInput(
   "source",
   NULL,
@@ -104,7 +71,7 @@ selectInput(
 
 ### Taxa
 
-```{r taxa}
+```{r taxa, context = "render", echo = FALSE}
 selectInput(
   "taxa",
   NULL,
@@ -129,7 +96,7 @@ selectInput(
 
 ### Data Restriction
 
-```{r restriction}
+```{r restriction, context = "render", echo = FALSE}
 selectInput(
   "restriction",
   NULL,
@@ -146,7 +113,11 @@ Column {data-width=250}
 
 ### Records
 
-```{r fb_record_count}
+```{r fb_record_count_output, context = "render", echo = FALSE}
+valueBoxOutput("record_count")
+```
+
+```{r fb_record_count_render, context = "server"}
 record_count <-
   reactive({
 
@@ -163,7 +134,7 @@ record_count <-
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-renderValueBox({
+output$record_count <- renderValueBox({
 
   valueBox(record_count(), icon = "fa-pen", color = "#1F74AD")
 
@@ -172,7 +143,11 @@ renderValueBox({
 
 ### Species
 
-```{r fb_species_count}
+```{r fb_species_count_output, context = "render", echo = FALSE}
+valueBoxOutput("species_count")
+```
+
+```{r fb_species_count_render, context = "server"}
 species_count <-
   reactive({
 
@@ -189,7 +164,7 @@ species_count <-
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-renderValueBox({
+output$species_count <- renderValueBox({
   valueBox(species_count(), icon = "fa-dove", color = "#1F74AD")
 
 })
@@ -197,7 +172,11 @@ renderValueBox({
 
 ### Datasets
 
-```{r fb_collection_count}
+```{r fb_collection_count_output, context = "render", echo = FALSE}
+valueBoxOutput("collection_count")
+```
+
+```{r fb_collection_count_render, context = "server"}
 collection_count <-
   reactive({
 
@@ -214,7 +193,7 @@ collection_count <-
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-renderValueBox({
+output$collection_count <- renderValueBox({
 
   valueBox(collection_count(), icon = "fa-database", color = "#1F74AD")
 
@@ -223,7 +202,7 @@ renderValueBox({
 
 ### Dataset Quality Level
 </br>
-```{r professional}
+```{r quality_table_output, context = "render", echo = FALSE}
 selectInput(
   "collection_quality",
   NULL,
@@ -235,6 +214,10 @@ selectInput(
   )
 )
 
+dataTableOutput("quality_table")
+```
+
+```{r quality_table_render, context = "server"}
 quality_table <-
   reactive({
 
@@ -254,7 +237,7 @@ quality_table <-
     input$collection_quality, input$restriction, input$taxa, input$source
   )
 
-renderDataTable({
+output$quality_table <- renderDataTable({
   datatable(
     quality_table(),
     rownames = FALSE,
@@ -271,7 +254,11 @@ Column {data-width=600 .tabset .tabset-fade}
 
 ### Occurrences
 
-```{r occurrence-data}
+```{r occurrence_plot_output, context = "render", echo = FALSE}
+plotlyOutput("occurrence_plot")
+```
+
+```{r occurrence_plot_render, context = "server"}
 occurrence_plot <-
   reactive({
 
@@ -288,7 +275,7 @@ occurrence_plot <-
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
-renderPlotly({
+output$occurrence_plot <- renderPlotly({
 
   ggplotly(occurrence_plot())
 
@@ -297,7 +284,11 @@ renderPlotly({
 
 ### Annotations
 
-```{r annotations}
+```{r annotations_plot_output, context = "render", echo = FALSE}
+plotlyOutput("annotations_plot")
+```
+
+```{r annotations_plot_render, context = "server"}
 annotations_plot <-
   reactive({
 
@@ -314,7 +305,7 @@ annotations_plot <-
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
-renderPlotly({
+output$annotations_plot <- renderPlotly({
 
   ggplotly(annotations_plot())
 

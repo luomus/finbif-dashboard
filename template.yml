@@ -26,7 +26,7 @@ parameters:
     value: "8000"
   - name: APP_CMD
     required: true
-    value: '["R", "-e", "rmarkdown::run(\"index.Rmd\", shiny_args = list(port = 3838, host = \"0.0.0.0\"))"]'
+    value: '["R", "--quiet", "-e", "rmarkdown::run(\"index.Rmd\", shiny_args = list(port = 3838, host = \"0.0.0.0\"), render_args = list(quiet = TRUE))"]'
   - name: API_CMD
     required: true
     value: '["Rscript", "--vanilla", "init.R"]'
@@ -96,7 +96,7 @@ objects:
           command: ${{APP_CMD}}
           env:
           - name: DASHBOARD_API
-            value: ${API}-${BRANCH}:${API_PORT}
+            value: ${API}-${BRANCH}.${APP}.svc:${API_PORT}
           ports:
           - containerPort: ${APP_PORT}
     triggers:

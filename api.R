@@ -44,7 +44,7 @@ sanitise <- function(x) {
 
 #* @get /record-count
 #* @serializer rds
-function(restriction, taxa, source) {
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   restriction <- sanitise(restriction)
 
@@ -67,7 +67,7 @@ function(restriction, taxa, source) {
 
 #* @get /species-count
 #* @serializer rds
-function(restriction, taxa, source) {
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   restriction <- sanitise(restriction)
 
@@ -91,7 +91,7 @@ function(restriction, taxa, source) {
 
 #* @get /collection-count
 #* @serializer rds
-function(restriction, taxa, source) {
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   restriction <- sanitise(restriction)
 
@@ -115,7 +115,7 @@ function(restriction, taxa, source) {
 
 #* @get /quality-table
 #* @serializer rds
-function(collection_quality, restriction, taxa, source) {
+function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   collection_quality <- sanitise(collection_quality)
 
@@ -167,7 +167,7 @@ function(collection_quality, restriction, taxa, source) {
 
 #* @get /occurrence-plot
 #* @serializer rds
-function(restriction, taxa, source) {
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   restriction <- sanitise(restriction)
 
@@ -202,7 +202,7 @@ function(restriction, taxa, source) {
 
 #* @get /annotations-plot
 #* @serializer rds
-function(restriction, taxa, source) {
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   restriction <- sanitise(restriction)
 

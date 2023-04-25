@@ -43,3 +43,7 @@ vignettes/*.pdf
 
 # DB
 *.sqlite
+
+# Prerendered shiny content
+index.html
+/index_files/

@@ -1,11 +1,14 @@
 kind: Template
 apiVersion: v1
 parameters:
+  - name: BRANCH
+    required: true
   - name: APP
     required: true
     value: finbif-dashboard
-  - name: BRANCH
+  - name: API
     required: true
+    value: plumber
   - name: GIT_HOST
     required: true
     value: https://github.com
@@ -15,11 +18,20 @@ parameters:
   - name: TAG
     required: true
     value: latest
-  - name: FINBIF_ACCESS_TOKEN
-    required: true
   - name: APP_PORT
     required: true
     value: "3838"
+  - name: API_PORT
+    required: true
+    value: "8000"
+  - name: APP_CMD
+    required: true
+    value: '["R", "-e", "rmarkdown::run(\"index.Rmd\", shiny_args = list(port = 3838, host = \"0.0.0.0\"))"]'
+  - name: API_CMD
+    required: true
+    value: '["Rscript", "--vanilla", "init.R"]'
+  - name: FINBIF_PRIVATE_API
+    required: true
   - name: HOST
     required: true
   - name: GITHUB_SECRET
@@ -81,11 +93,10 @@ objects:
         containers:
         - image: ${APP}-${BRANCH}:${TAG}
           name: ${APP}-${BRANCH}
+          command: ${{APP_CMD}}
           env:
-          - name: FINBIF_PRIVATE_API
-            value: ${FINBIF_PRIVATE_API}
-          - name: BRANCH
-            value: ${BRANCH}
+          - name: DASHBOARD_API
+            value: ${API}-${BRANCH}:${API_PORT}
           ports:
           - containerPort: ${APP_PORT}
     triggers:
@@ -95,6 +106,42 @@ objects:
         automatic: true
         containerNames:
         - ${APP}-${BRANCH}
+        from:
+          kind: ImageStreamTag
+          name: ${APP}-${BRANCH}:${TAG}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: ${API}-${BRANCH}
+    labels:
+      app: ${APP}
+  spec:
+    replicas: 1
+    selector:
+      app: ${APP}
+      deploymentconfig: ${API}-${BRANCH}
+    template:
+      metadata:
+        labels:
+          app: ${APP}
+          deploymentconfig: ${API}-${BRANCH}
+      spec:
+        containers:
+        - image: ${APP}-${BRANCH}:${TAG}
+          name: ${API}-${BRANCH}
+          command: ${{API_CMD}}
+          env:
+          - name: FINBIF_PRIVATE_API
+            value: ${FINBIF_PRIVATE_API}
+          ports:
+          - containerPort: ${API_PORT}
+    triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+        - ${API}-${BRANCH}
         from:
           kind: ImageStreamTag
           name: ${APP}-${BRANCH}:${TAG}
@@ -112,6 +159,20 @@ objects:
     selector:
       app: ${APP}
       deploymentconfig: ${APP}-${BRANCH}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${API}-${BRANCH}
+    labels:
+      app: ${APP}
+  spec:
+    ports:
+    - name: ${API_PORT}
+      port: ${API_PORT}
+      targetPort: ${{API_PORT}}
+    selector:
+      app: ${APP}
+      deploymentconfig: ${API}-${BRANCH}
 - kind: Route
   apiVersion: v1
   metadata:

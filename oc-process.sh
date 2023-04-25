@@ -34,17 +34,29 @@ elif [ $i = "image" ]; then
 
 ITEM=".items[1]"
 
-elif [ $i = "deploy" ]; then
+elif [ $i = "deploy-app" ]; then
 
 ITEM=".items[2]"
 
-elif [ $i = "service" ]; then
+elif [ $i = "deploy-api" ]; then
 
 ITEM=".items[3]"
 
-elif [ $i = "route" ]; then
+elif [ $i = "service-app" ]; then
 
 ITEM=".items[4]"
+
+elif [ $i = "service-api" ]; then
+
+ITEM=".items[5]"
+
+elif [ $i = "route" ]; then
+
+ITEM=".items[6]"
+
+elif [ $i = "job" ]; then
+
+ITEM=".items[7]"
 
 else
 

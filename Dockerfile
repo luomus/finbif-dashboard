@@ -42,6 +42,8 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY index.Rmd /home/user/index.Rmd
 COPY api.R /home/user/api.R
 COPY init.R /home/user/init.R
+COPY robots.txt /home/user/robots.txt
+COPY favicon.ico /home/user/favicon.ico
 
 RUN  mkdir -p /home/user \
   && chgrp -R 0 /home/user \

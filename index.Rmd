@@ -42,6 +42,19 @@ api <- Sys.getenv("DASHBOARD_API")
 req <- request(api)
 ```
 
+```{r resources, context = "server-start"}
+addResourcePath("robots.txt", "robots.txt")
+addResourcePath("favicon.ico", "favicon.ico")
+```
+
+```{r waiter, context = "render", echo = FALSE}
+autoWaiter(
+  html = bs5_spinner(style = "spin", color = "secondary"),
+  color = "transparent",
+  fadeout = TRUE
+)
+```
+
 Occurrence Data
 ================================================================================
 
@@ -51,12 +64,6 @@ Column {data-width=150}
 ### Data Sources
 
 ```{r sources, context = "render", echo = FALSE}
-autoWaiter(
-  html = bs5_spinner(style = "spin", color = "secondary"),
-  color = "transparent",
-  fadeout = TRUE
-)
-
 selectInput(
   "source",
   NULL,

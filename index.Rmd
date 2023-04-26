@@ -58,7 +58,7 @@ useShinyjs(html = TRUE)
 addResourcePath("robots.txt", "robots.txt")
 addResourcePath("favicon.ico", "favicon.ico")
 autoWaiter(
-  html = bs5_spinner(style = "spin", color = "secondary"),
+  html = spin_ring(),
   color = "transparent",
   fadeout = TRUE
 )
@@ -272,7 +272,7 @@ quality_table <-
       options = list(
         bPaginate = FALSE,
         searching = FALSE,
-        info = FALSE, 
+        info = FALSE,
         ordering = FALSE,
         processing = FALSE
       ),

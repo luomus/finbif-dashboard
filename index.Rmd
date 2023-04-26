@@ -67,10 +67,10 @@ autoWaiter(
 Occurrence Data
 ================================================================================
 
-Column {data-width=150}
+Column {data-width=175}
 --------------------------------------------------------------------------------
 
-### {data-height=100}
+### {data-height=50}
 
 ```{r reset, context = "render", echo = FALSE}
 actionButton("reset", "Reset", width = "100%", class = "btn-primary")
@@ -88,13 +88,14 @@ observeEvent(
 )
 ```
 
-### Data Sources {data-height=300}
+### {data-height=170}
 
 ```{r sources, context = "render", echo = FALSE}
 selectInput(
   "source",
   NULL,
   c(
+    "Data Source" = "",
     "All Sources" = "NULL",
     "FinBIF" = "HR.1989",
     "Iisalmi Museum" = "HR.4911",
@@ -109,17 +110,14 @@ selectInput(
     "University of Jyväskylä " = "HR.1247",
     "University of Oulu" = "HR.1207",
     "University of Turku" = "HR.1627"
-  )
+  ),
+  width = "100%"
 )
-```
-
-### Taxa {data-height=300}
-
-```{r taxa, context = "render", echo = FALSE}
 selectInput(
   "taxa",
   NULL,
   c(
+    "Taxa" = "",
     "All Taxa" = "NULL",
     "Algae" = "Algae",
     "Bryophytes" = "Bryophytes",
@@ -134,25 +132,25 @@ selectInput(
     "Reptiles & Amphibians" = "Reptiles and amphibians",
     "Birds" = "Birds",
     "Mammals" = "Mammals"
-  )
+  ),
+  width = "100%"
 )
-```
-
-### Data Restriction {data-height=300}
-
-```{r restriction, context = "render", echo = FALSE}
 selectInput(
   "restriction",
   NULL,
   c(
+    "Data Restriction" = "",
     "All Data" = "NULL",
     "Restricted Only" = "true",
     "Unrestricted Only" = "false"
-  )
+  ),
+  width = "100%"
 )
 ```
 
-Column {data-width=250}
+### {data-height=500 .no-mobile}
+
+Column {data-width=275}
 --------------------------------------------------------------------------------
 
 ### Records
@@ -236,18 +234,20 @@ collection_count <-
 output$collection_count <- renderValueBox(collection_count())
 ```
 
-### Dataset Quality Level
-</br>
+###
+
 ```{r quality_table_output, context = "render", echo = FALSE}
 selectInput(
   "collection_quality",
   NULL,
   c(
+    "Dataset Quality Level" = "",
     "All Levels" = "NULL",
     "Professionals" = "professional",
     "Specialists" = "hobbyist",
     "Citizen Scientists" = "amateur"
-  )
+  ),
+  width = "100%"
 )
 
 dataTableOutput("quality_table")
@@ -287,7 +287,7 @@ quality_table <-
 output$quality_table <- renderDataTable(quality_table())
 ```
 
-Column {data-width=600 .tabset .tabset-fade}
+Column {data-width=550 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
 ### Occurrences

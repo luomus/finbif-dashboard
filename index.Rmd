@@ -270,7 +270,11 @@ quality_table <-
     datatable(
       rownames = FALSE,
       options = list(
-        bPaginate = FALSE, searching = FALSE, info = FALSE, ordering = FALSE
+        bPaginate = FALSE,
+        searching = FALSE,
+        info = FALSE, 
+        ordering = FALSE,
+        processing = FALSE
       ),
       fillContainer = TRUE
     )

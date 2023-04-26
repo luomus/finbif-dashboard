@@ -25,8 +25,11 @@ document.querySelector(".navbar-header").innerHTML =
 library(DT)
 library(finbif)
 library(flexdashboard)
+library(ggplot2)
 library(httr2)
+library(lubridate)
 library(plotly)
+library(scales)
 library(thematic)
 
 thematic_shiny(
@@ -129,16 +132,13 @@ record_count <-
     ) |>
     req_perform() |>
     resp_body_raw() |>
-    unserialize()
+    unserialize() |>
+    valueBox(icon = "fa-pen", color = "#1F74AD")
 
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$record_count <- renderValueBox({
-
-  valueBox(record_count(), icon = "fa-pen", color = "#1F74AD")
-
-})
+output$record_count <- renderValueBox(record_count())
 ```
 
 ### Species
@@ -159,15 +159,13 @@ species_count <-
     ) |>
     req_perform() |>
     resp_body_raw() |>
-    unserialize()
+    unserialize() |>
+    valueBox(icon = "fa-dove", color = "#1F74AD")
 
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$species_count <- renderValueBox({
-  valueBox(species_count(), icon = "fa-dove", color = "#1F74AD")
-
-})
+output$species_count <- renderValueBox(species_count())
 ```
 
 ### Datasets
@@ -188,16 +186,13 @@ collection_count <-
     ) |>
     req_perform() |>
     resp_body_raw() |>
-    unserialize()
+    unserialize() |>
+    valueBox(icon = "fa-database", color = "#1F74AD")
 
   }) |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$collection_count <- renderValueBox({
-
-  valueBox(collection_count(), icon = "fa-database", color = "#1F74AD")
-
-})
+output$collection_count <- renderValueBox(collection_count())
 ```
 
 ### Dataset Quality Level
@@ -230,23 +225,21 @@ quality_table <-
     ) |>
     req_perform() |>
     resp_body_raw() |>
-    unserialize()
+    unserialize() |>
+    datatable(
+      rownames = FALSE,
+      options = list(
+        bPaginate = FALSE, searching = FALSE, info = FALSE, ordering = FALSE
+      ),
+      fillContainer = TRUE
+    )
 
   }) %>%
   bindEvent(
     input$collection_quality, input$restriction, input$taxa, input$source
   )
 
-output$quality_table <- renderDataTable({
-  datatable(
-    quality_table(),
-    rownames = FALSE,
-    options = list(
-      bPaginate = FALSE, searching = FALSE, info = FALSE, ordering = FALSE
-    ),
-    fillContainer = TRUE
-  )
-})
+output$quality_table <- renderDataTable(quality_table())
 ```
 
 Column {data-width=600 .tabset .tabset-fade}
@@ -262,24 +255,31 @@ plotlyOutput("occurrence_plot")
 occurrence_plot <-
   reactive({
 
-    req_url_path(req, "occurrence-plot") |>
-    req_url_query(
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize()
+    p <-
+      req_url_path(req, "occurrence-plot") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      ) |>
+      req_perform() |>
+      resp_body_raw() |>
+      unserialize() |>
+      mutate(
+        Date = as_date(first_load_date), Records = cumsum(n_records)
+      ) |>
+      ggplot() +
+        aes(x = Date, y = Records) +
+        geom_line() +
+        scale_y_continuous(label = comma) +
+        labs(x = NULL, y = "Records")
+
+    ggplotly(p)
 
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$occurrence_plot <- renderPlotly({
-
-  ggplotly(occurrence_plot())
-
-})
+output$occurrence_plot <- renderPlotly(occurrence_plot())
 ```
 
 ### Annotations
@@ -292,24 +292,29 @@ plotlyOutput("annotations_plot")
 annotations_plot <-
   reactive({
 
-    req_url_path(req, "annotations-plot") |>
-    req_url_query(
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize()
-    
+    p <-
+      req_url_path(req, "annotations-plot") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      ) |>
+      req_perform() |>
+      resp_body_raw() |>
+      unserialize() |>
+      mutate(Date = as_date(Date)) |>
+      ggplot() +
+        aes(x = Date, y = Annotations) +
+        geom_line() +
+        scale_y_continuous(label = comma) +
+        labs(x = NULL, y = "Annotations")
+
+    ggplotly(p)
+
   }) %>%
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$annotations_plot <- renderPlotly({
-
-  ggplotly(annotations_plot())
-
-})
+output$annotations_plot <- renderPlotly(annotations_plot())
 ```
 
 Users

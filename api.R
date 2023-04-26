@@ -1,24 +1,23 @@
 library(DBI, quietly = TRUE)
 library(dplyr, quietly = TRUE)
 library(finbif, quietly = TRUE)
-library(ggplot2, quietly = TRUE)
 library(janitor, quietly = TRUE)
-library(lubridate, quietly = TRUE)
 library(RSQLite, quietly = TRUE)
-library(scales, quietly = TRUE)
 library(tidyr, quietly = TRUE)
+library(future, quietly = TRUE)
 
-db <- dbConnect(SQLite(), "db-cache.sqlite")
+plan(multisession)
 
 options(
   finbif_use_cache = 0.05,
   finbif_cache_offset = .5,
-  finbif_cache_path = db,
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000L,
   finbif_use_async = FALSE
 )
+
+op <- options()
 
 base_filter <- list(
   quality_issues = "both",
@@ -57,11 +56,23 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     list(restricted = restriction, informal_groups = taxa, collection = source)
   )
 
-  fb_occurrence(
-    filter = record_count_filter,
-    select = "record_id",
-    count_only = TRUE
-  )
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <- fb_occurrence(
+      filter = record_count_filter, select = "record_id", count_only = TRUE
+    )
+
+    dbDisconnect(db)
+
+    ans
+
+  })
 
 }
 
@@ -80,12 +91,26 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     list(restricted = restriction, informal_groups = taxa, collection = source)
   )
 
-  fb_occurrence(
-    filter = species_count_filter,
-    select = "species_scientific_name",
-    aggregate = "records",
-    count_only = TRUE
-  )
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <- fb_occurrence(
+      filter = species_count_filter,
+      select = "species_scientific_name",
+      aggregate = "records",
+      count_only = TRUE
+    )
+
+    dbDisconnect(db)
+
+    ans
+
+  })
 
 }
 
@@ -104,12 +129,26 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     list(restricted = restriction, informal_groups = taxa, collection = source)
   )
 
-  fb_occurrence(
-    filter = collection_count_filter,
-    select = "collection_id",
-    aggregate = "records",
-    count_only = TRUE
-  )
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <- fb_occurrence(
+      filter = collection_count_filter,
+      select = "collection_id",
+      aggregate = "records",
+      count_only = TRUE
+    )
+
+    dbDisconnect(db)
+
+    ans
+
+  })
 
 }
 
@@ -135,33 +174,48 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
     )
   )
 
-  fb_occurrence(
-    filter = quality_table_filter,
-    select = c(`Verification Status` = "record_quality"),
-    aggregate = "records",
-    n = "all"
-  ) |>
-  mutate(
-    record_quality = replace_na(`Verification Status`, "Unnassesed")
-  ) |>
-  group_by(`Verification Status`) |>
-  summarise(n_records = sum(n_records), .groups = "drop") |>
-  rename(`Number of Records` = n_records) |>
-  mutate(
-    `Verification Status` = factor(
-      `Verification Status`,
-      levels = c(
-        "Expert verified",
-        "Community verified",
-        "Unassessed",
-        "Uncertain",
-        "Erroneous"
-      ),
-      ordered = TRUE
-    )
-  ) |>
-  arrange(`Verification Status`) |>
-  adorn_totals()
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = quality_table_filter,
+        select = c(`Verification Status` = "record_quality"),
+        aggregate = "records",
+        n = "all"
+      ) |>
+      mutate(
+        record_quality = replace_na(`Verification Status`, "Unnassesed")
+      ) |>
+      group_by(`Verification Status`) |>
+      summarise(n_records = sum(n_records), .groups = "drop") |>
+      rename(`Number of Records` = n_records) |>
+      mutate(
+        `Verification Status` = factor(
+          `Verification Status`,
+          levels = c(
+            "Expert verified",
+            "Community verified",
+            "Unassessed",
+            "Uncertain",
+            "Erroneous"
+          ),
+          ordered = TRUE
+        )
+      ) |>
+      arrange(`Verification Status`) |>
+      adorn_totals()
+
+    dbDisconnect(db)
+
+    ans
+
+  })
 
 }
 
@@ -182,21 +236,28 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     )
   )
 
-  fb_occurrence(
-    filter = occurrence_filter,
-    select = "first_load_date",
-    aggregate = "records",
-    n = "all"
-  ) |>
-  arrange(first_load_date) |>
-  mutate(
-    Date = as.Date(first_load_date), Records = cumsum(n_records)
-  ) |>
-  ggplot() +
-  aes(x = Date, y = Records) +
-  geom_line() +
-  scale_y_continuous(label = comma) +
-  labs(x = NULL, y = "Records")
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = occurrence_filter,
+        select = "first_load_date",
+        aggregate = "records",
+        n = "all"
+      ) |>
+      arrange(first_load_date)
+
+    dbDisconnect(db)
+
+    ans
+
+  })
 
 }
 
@@ -222,43 +283,51 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   n <- 500
 
-  n_annotations <- fb_occurrence(
-    filter = annotations_filter,
-    select = "record_annotation_created",
-    sample = TRUE,
-    n = n
-  )
+  future::future({
 
-  Date <- n_annotations[["record_annotation_created"]]
-  Date <- unlist(Date)
-  Date <- sort(Date)
+    options(op)
 
-  if (is.null(Date)) {
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
 
-    Date <- Sys.Date()
+    options(finbif_cache_path = db)
 
-    Annotations <- 0
+    n_annotations <- fb_occurrence(
+      filter = annotations_filter,
+      select = "record_annotation_created",
+      sample = TRUE,
+      n = n
+    )
 
-  } else {
+    Date <- n_annotations[["record_annotation_created"]]
+    Date <- unlist(Date)
+    Date <- sort(Date)
 
-    Date <- as_date(Date)
+    if (is.null(Date)) {
 
-    total_annotations <- attr(n_annotations, "nrec_avl")
+      Date <- Sys.Date()
 
-    Annotations <- length(Date)
+      Date <- as.character(Date)
 
-    mult <- total_annotations / n
+      Annotations <- 0
 
-    Annotations <- seq_len(Annotations)
+    } else {
 
-    Annotations <- as.integer(Annotations * mult)
+      total_annotations <- attr(n_annotations, "nrec_avl")
 
-  }
+      Annotations <- length(Date)
 
-  ggplot() +
-  aes(x = Date, y = Annotations) +
-  geom_line() +
-  scale_y_continuous(label = comma) +
-  labs(x = NULL, y = "Annotations")
+      mult <- total_annotations / n
+
+      Annotations <- seq_len(Annotations)
+
+      Annotations <- as.integer(Annotations * mult)
+
+    }
+
+    dbDisconnect(db)
+
+    data.frame(Date = Date, Annotations = Annotations)
+
+  })
 
 }

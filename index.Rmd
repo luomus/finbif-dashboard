@@ -3,7 +3,7 @@ title: "LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
     theme:
-      version: 4
+      version: 5
       fg: "#FDF7F7"
       bg: "#2C3E50"
       primary: "#1F74AD"
@@ -31,6 +31,7 @@ library(lubridate)
 library(plotly)
 library(scales)
 library(thematic)
+library(waiter)
 
 thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
@@ -50,6 +51,12 @@ Column {data-width=150}
 ### Data Sources
 
 ```{r sources, context = "render", echo = FALSE}
+autoWaiter(
+  html = bs5_spinner(style = "spin", color = "secondary"),
+  color = "transparent",
+  fadeout = TRUE
+)
+
 selectInput(
   "source",
   NULL,

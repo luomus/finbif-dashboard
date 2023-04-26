@@ -72,7 +72,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     ans
 
-  })
+  }, seed = TRUE)
 
 }
 
@@ -110,7 +110,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     ans
 
-  })
+  }, seed = TRUE)
 
 }
 
@@ -148,7 +148,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     ans
 
-  })
+  }, seed = TRUE)
 
 }
 
@@ -215,7 +215,7 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
     ans
 
-  })
+  }, seed = TRUE)
 
 }
 
@@ -257,7 +257,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     ans
 
-  })
+  }, seed = TRUE)
 
 }
 
@@ -328,6 +328,6 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     data.frame(Date = Date, Annotations = Annotations)
 
-  })
+  }, seed = TRUE)
 
 }

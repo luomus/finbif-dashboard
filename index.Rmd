@@ -30,6 +30,7 @@ library(httr2)
 library(lubridate)
 library(plotly)
 library(scales)
+library(shinyjs)
 library(thematic)
 library(waiter)
 
@@ -42,12 +43,19 @@ api <- Sys.getenv("DASHBOARD_API")
 req <- request(api)
 ```
 
-```{r resources, context = "server-start"}
-addResourcePath("robots.txt", "robots.txt")
-addResourcePath("favicon.ico", "favicon.ico")
+```{r shinyjs, context = "render", echo = FALSE}
+addResourcePath("shinyjs", system.file("srcjs", package = "shinyjs"))
 ```
 
+```{r resources, context = "server"}
+useShinyjs(html = TRUE)
+```
+
+<script src="shinyjs/inject.js"></script>
+
 ```{r waiter, context = "render", echo = FALSE}
+addResourcePath("robots.txt", "robots.txt")
+addResourcePath("favicon.ico", "favicon.ico")
 autoWaiter(
   html = bs5_spinner(style = "spin", color = "secondary"),
   color = "transparent",
@@ -61,7 +69,25 @@ Occurrence Data
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
-### Data Sources
+### {data-height=100}
+
+```{r reset, context = "render", echo = FALSE}
+actionButton("reset", "Reset", width = "100%", class = "btn-primary")
+```
+
+```{r reset_render, context = "server"}
+observeEvent(
+  input$reset,
+  {
+    reset("source")
+    reset("taxa")
+    reset("restriction")
+    reset("collection_quality")
+  }
+)
+```
+
+### Data Sources {data-height=300}
 
 ```{r sources, context = "render", echo = FALSE}
 selectInput(
@@ -86,7 +112,7 @@ selectInput(
 )
 ```
 
-### Taxa
+### Taxa {data-height=300}
 
 ```{r taxa, context = "render", echo = FALSE}
 selectInput(
@@ -111,7 +137,7 @@ selectInput(
 )
 ```
 
-### Data Restriction
+### Data Restriction {data-height=300}
 
 ```{r restriction, context = "render", echo = FALSE}
 selectInput(

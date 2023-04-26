@@ -70,25 +70,9 @@ Occurrence Data
 Column {data-width=175}
 --------------------------------------------------------------------------------
 
-### {data-height=50}
+### {data-height=250}
 
-```{r reset, context = "render", echo = FALSE}
-actionButton("reset", "Reset", width = "100%", class = "btn-primary")
-```
-
-```{r reset_render, context = "server"}
-observeEvent(
-  input$reset,
-  {
-    reset("source")
-    reset("taxa")
-    reset("restriction")
-    reset("collection_quality")
-  }
-)
-```
-
-### {data-height=170}
+####
 
 ```{r sources, context = "render", echo = FALSE}
 selectInput(
@@ -148,7 +132,23 @@ selectInput(
 )
 ```
 
-### {data-height=500 .no-mobile}
+####
+
+```{r reset, context = "render", echo = FALSE}
+actionButton("reset", "Reset", width = "100%", class = "btn-primary")
+```
+
+```{r reset_render, context = "server"}
+observeEvent(
+  input$reset,
+  {
+    reset("source")
+    reset("taxa")
+    reset("restriction")
+    reset("collection_quality")
+  }
+)
+```
 
 Column {data-width=275}
 --------------------------------------------------------------------------------

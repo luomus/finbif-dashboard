@@ -2,6 +2,7 @@
 title: "LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
+    favicon: favicon.ico
     theme:
       version: 5
       fg: "#FDF7F7"

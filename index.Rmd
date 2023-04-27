@@ -24,7 +24,6 @@ document.querySelector(".navbar-header").innerHTML =
 
 ```{r setup, context = "setup", include = FALSE}
 library(DT)
-library(finbif)
 library(flexdashboard)
 library(ggplot2)
 library(httr2)
@@ -175,6 +174,7 @@ record_count <-
     valueBox(icon = "fa-pen", color = "#1F74AD")
 
   }) |>
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$record_count <- renderValueBox(record_count())
@@ -202,6 +202,7 @@ species_count <-
     valueBox(icon = "fa-dove", color = "#1F74AD")
 
   }) |>
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$species_count <- renderValueBox(species_count())
@@ -229,6 +230,7 @@ collection_count <-
     valueBox(icon = "fa-database", color = "#1F74AD")
 
   }) |>
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$collection_count <- renderValueBox(collection_count())
@@ -280,6 +282,10 @@ quality_table <-
     )
 
   }) %>%
+  bindCache(
+    input$collection_quality, input$restriction, input$taxa, input$source,
+    cache = "session"
+  ) |>
   bindEvent(
     input$collection_quality, input$restriction, input$taxa, input$source
   )
@@ -322,6 +328,7 @@ occurrence_plot <-
     ggplotly(p)
 
   }) %>%
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$occurrence_plot <- renderPlotly(occurrence_plot())
@@ -357,6 +364,7 @@ annotations_plot <-
     ggplotly(p)
 
   }) %>%
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$annotations_plot <- renderPlotly(annotations_plot())

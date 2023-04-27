@@ -54,10 +54,6 @@ elif [ $i = "route" ]; then
 
 ITEM=".items[6]"
 
-elif [ $i = "job" ]; then
-
-ITEM=".items[7]"
-
 else
 
   ITEM=""

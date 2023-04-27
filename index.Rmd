@@ -316,16 +316,17 @@ occurrence_plot <-
       req_perform() |>
       resp_body_raw() |>
       unserialize() |>
-      mutate(
-        Date = as_date(first_load_date), Records = cumsum(n_records)
-      ) |>
+      mutate(Date = as_date(Date)) |>
       ggplot() +
         aes(x = Date, y = Records) +
         geom_line() +
+        facet_wrap(~Type, 2) +
         scale_y_continuous(label = comma) +
-        labs(x = NULL, y = "Records")
+        labs(x = NULL, y = "Records") +
+        theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
 
-    ggplotly(p)
+
+    ggplotly(p, dynamicTicks = TRUE)
 
   }) %>%
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
@@ -361,7 +362,7 @@ annotations_plot <-
         scale_y_continuous(label = comma) +
         labs(x = NULL, y = "Annotations")
 
-    ggplotly(p)
+    ggplotly(p, dynamicTicks = TRUE)
 
   }) %>%
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>

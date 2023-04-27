@@ -247,11 +247,19 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     ans <-
       fb_occurrence(
         filter = occurrence_filter,
-        select = "first_load_date",
+        select = c(Date = "first_load_date", Type = "superrecord_basis"),
         aggregate = "records",
         n = "all"
       ) |>
-      arrange(first_load_date)
+      mutate(
+        Type = case_match(
+          Type, "PRESERVED_SPECIMEN" ~ "Specimens", .default = "Observations"
+        )
+      ) |>
+      group_by(Type, Date) |>
+      summarise(Records = sum(n_records), .groups = "drop_last") |>
+      arrange(Date) |>
+      mutate(Records = cumsum(Records))
 
     dbDisconnect(db)
 

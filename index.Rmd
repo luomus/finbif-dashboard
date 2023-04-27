@@ -78,7 +78,7 @@ selectInput(
   "source",
   NULL,
   c(
-    "Data Source" = "",
+    "Data Source   " = "",
     "All Sources" = "NULL",
     "FinBIF" = "HR.1989",
     "Iisalmi Museum" = "HR.4911",
@@ -100,7 +100,7 @@ selectInput(
   "taxa",
   NULL,
   c(
-    "Taxa" = "",
+    "Taxa   " = "",
     "All Taxa" = "NULL",
     "Algae" = "Algae",
     "Bryophytes" = "Bryophytes",
@@ -122,7 +122,7 @@ selectInput(
   "restriction",
   NULL,
   c(
-    "Data Restriction" = "",
+    "Data Restriction   " = "",
     "All Data" = "NULL",
     "Restricted Only" = "true",
     "Unrestricted Only" = "false"
@@ -243,7 +243,7 @@ selectInput(
   "collection_quality",
   NULL,
   c(
-    "Dataset Quality Level" = "",
+    "Dataset Quality Level   " = "",
     "All Levels" = "NULL",
     "Professionals" = "professional",
     "Specialists" = "hobbyist",

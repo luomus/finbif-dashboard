@@ -9,8 +9,8 @@ library(future, quietly = TRUE)
 plan(multisession)
 
 options(
-  finbif_use_cache = 0.05,
-  finbif_cache_offset = .5,
+  finbif_use_cache = 1,
+  finbif_cache_offset = .1,
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000L,

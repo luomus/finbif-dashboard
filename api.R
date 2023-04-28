@@ -298,7 +298,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list(annotated = TRUE)
+  filter <- list()
 
   filter[["restricted"]] <- sanitise(restriction)
 

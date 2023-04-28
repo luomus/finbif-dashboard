@@ -154,7 +154,7 @@ observeEvent(
 )
 ```
 
-Column {data-width=250}
+Column {data-width=200}
 --------------------------------------------------------------------------------
 
 ### Records
@@ -298,7 +298,7 @@ quality_table <-
 output$quality_table <- renderDataTable(quality_table())
 ```
 
-Column {data-width=200 .tabset .tabset-fade}
+Column {data-width=250 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
 ### Occurrences

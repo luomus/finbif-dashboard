@@ -24,13 +24,16 @@ document.querySelector(".navbar-header").innerHTML =
 
 ```{r setup, context = "setup", include = FALSE}
 library(DT)
+library(dplyr)
 library(flexdashboard)
+library(geofi)
 library(ggplot2)
 library(httr2)
 library(lubridate)
 library(plotly)
 library(scales)
 library(shinyjs)
+library(sf)
 library(thematic)
 library(waiter)
 
@@ -41,6 +44,8 @@ thematic_shiny(
 api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
+
+finland <- get_municipalities()
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -66,7 +71,7 @@ autoWaiter(
 Occurrence Data
 ================================================================================
 
-Column {data-width=175}
+Column {data-width=150}
 --------------------------------------------------------------------------------
 
 ### {data-height=250}
@@ -149,7 +154,7 @@ observeEvent(
 )
 ```
 
-Column {data-width=275}
+Column {data-width=250}
 --------------------------------------------------------------------------------
 
 ### Records
@@ -281,7 +286,7 @@ quality_table <-
       fillContainer = TRUE
     )
 
-  }) %>%
+  }) |>
   bindCache(
     input$collection_quality, input$restriction, input$taxa, input$source,
     cache = "session"
@@ -293,7 +298,7 @@ quality_table <-
 output$quality_table <- renderDataTable(quality_table())
 ```
 
-Column {data-width=550 .tabset .tabset-fade}
+Column {data-width=200 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
 ### Occurrences
@@ -322,13 +327,13 @@ occurrence_plot <-
         geom_line() +
         facet_wrap(~Type, 2) +
         scale_y_continuous(label = comma) +
-        labs(x = NULL, y = "Records") +
+        labs(x = NULL, y = NULL) +
         theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
 
 
     ggplotly(p, dynamicTicks = TRUE)
 
-  }) %>%
+  }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
@@ -360,15 +365,81 @@ annotations_plot <-
         aes(x = Date, y = Annotations) +
         geom_line() +
         scale_y_continuous(label = comma) +
-        labs(x = NULL, y = "Annotations")
+        labs(x = NULL, y = NULL)
 
     ggplotly(p, dynamicTicks = TRUE)
 
-  }) %>%
+  }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
 output$annotations_plot <- renderPlotly(annotations_plot())
+```
+
+Column {data-width=300}
+--------------------------------------------------------------------------------
+
+### 
+
+```{r municipality_map_output, context = "render", echo = FALSE}
+fillCol(
+  height = "100%",
+  flex = c(NA, 1),
+  selectInput(
+    "level",
+    NULL,
+    c(
+      "Region" = "maakunta_name_en",
+      "Municipality" = "municipality_name_en"
+    ),
+    width = "100%"
+  ),
+  plotlyOutput("municipality_map")
+)
+```
+
+```{r municipality_map_render, context = "server"}
+municipality_map <-
+  reactive({
+
+    n <-
+      req_url_path(req, "municipality-map") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      ) |>
+      req_perform() |>
+      resp_body_raw() |>
+      unserialize()
+
+    level <- input$level
+
+    p <-
+      left_join(finland, n, by = join_by(municipality_name_fi)) |>
+      group_by(.data[[level]]) |>
+      summarise(Records = sum(n_records, na.rm = TRUE)) |>
+      mutate(
+        text = paste0(.data[[level]], ": " , Records),
+      ) |>
+      st_cast("MULTIPOLYGON") |>
+      ggplot() +
+        aes(
+          fill = Records,
+          text = text
+        ) +
+        geom_sf() +
+        scale_fill_viridis_c(label = comma)
+
+    ggplotly(p, tooltip = "text")
+
+  }) |>
+  bindCache(
+    input$level, input$restriction, input$taxa, input$source, cache = "session"
+  ) |>
+  bindEvent(input$level, input$restriction, input$taxa, input$source)
+
+output$municipality_map <- renderPlotly(municipality_map())
 ```
 
 Users

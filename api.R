@@ -293,3 +293,39 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
   }, seed = TRUE)
 
 }
+
+#* @get /municipality-map
+#* @serializer rds
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+
+  filter <- list(annotated = TRUE)
+
+  filter[["restricted"]] <- sanitise(restriction)
+
+  filter[["informal_groups"]] <- sanitise(taxa)
+
+  filter[["collection"]] <- sanitise(source)
+
+  future::future({
+
+    options(op)
+
+    db <- dbConnect(SQLite(), "db-cache.sqlite")
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = filter,
+        select = c(municipality_name_fi = "municipality"),
+        aggregate = "records",
+        n = "all", locale = "fi"
+      )
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}

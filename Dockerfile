@@ -16,9 +16,14 @@ RUN /install_R.sh
 RUN apt-get update \
  && apt-get install -y --no-install-recommends \
       curl \
+      gdal-bin \
       libcurl4-openssl-dev \
+      libgdal-dev \
+      libgeos-dev \
       libsodium-dev \
       libssl-dev \
+      libproj-dev \
+      libudunits2-dev \
       libz-dev \
       pandoc \
  && apt-get autoremove -y \

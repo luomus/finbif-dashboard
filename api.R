@@ -243,6 +243,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
+  n <- 500L
+
   future::future({
 
     options(op)

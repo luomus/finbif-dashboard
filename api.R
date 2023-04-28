@@ -10,7 +10,7 @@ plan(multisession)
 
 options(
   finbif_use_cache = 1,
-  finbif_cache_offset = .1,
+  finbif_timeout_offset = .1,
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000L,
@@ -18,22 +18,6 @@ options(
 )
 
 op <- options()
-
-base_filter <- list(
-  quality_issues = "both",
-  record_reliability = c(
-    "reliable",
-    "unassessed",
-    "unreliable"
-  ),
-  record_quality = c(
-    "expert_verified",
-    "community_verified",
-    "unassessed",
-    "uncertain",
-    "erroneous"
-  )
-)
 
 sanitise <- function(x) {
 
@@ -45,16 +29,13 @@ sanitise <- function(x) {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  restriction <- sanitise(restriction)
+  filter <- list()
 
-  taxa <- sanitise(taxa)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  source <- sanitise(source)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  record_count_filter <- c(
-    base_filter,
-    list(restricted = restriction, informal_groups = taxa, collection = source)
-  )
+  filter[["collection"]] <- sanitise(source)
 
   future::future({
 
@@ -65,7 +46,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     options(finbif_cache_path = db)
 
     ans <- fb_occurrence(
-      filter = record_count_filter, select = "record_id", count_only = TRUE
+      filter = filter, select = "record_id", count_only = TRUE
     )
 
     dbDisconnect(db)
@@ -80,16 +61,13 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  restriction <- sanitise(restriction)
+  filter <- list()
 
-  taxa <- sanitise(taxa)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  source <- sanitise(source)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  species_count_filter <- c(
-    base_filter,
-    list(restricted = restriction, informal_groups = taxa, collection = source)
-  )
+  filter[["collection"]] <- sanitise(source)
 
   future::future({
 
@@ -100,7 +78,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     options(finbif_cache_path = db)
 
     ans <- fb_occurrence(
-      filter = species_count_filter,
+      filter = filter,
       select = "species_scientific_name",
       aggregate = "records",
       count_only = TRUE
@@ -118,16 +96,13 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  restriction <- sanitise(restriction)
+  filter <- list()
 
-  taxa <- sanitise(taxa)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  source <- sanitise(source)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  collection_count_filter <- c(
-    base_filter,
-    list(restricted = restriction, informal_groups = taxa, collection = source)
-  )
+  filter[["collection"]] <- sanitise(source)
 
   future::future({
 
@@ -138,7 +113,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     options(finbif_cache_path = db)
 
     ans <- fb_occurrence(
-      filter = collection_count_filter,
+      filter = filter,
       select = "collection_id",
       aggregate = "records",
       count_only = TRUE
@@ -156,23 +131,15 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  collection_quality <- sanitise(collection_quality)
+  filter <- list()
 
-  restriction <- sanitise(restriction)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  taxa <- sanitise(taxa)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  source <- sanitise(source)
+  filter[["collection"]] <- sanitise(source)
 
-  quality_table_filter <- c(
-    base_filter,
-    list(
-      collection_quality = collection_quality,
-      restricted = restriction,
-      informal_groups = taxa,
-      collection = source
-    )
-  )
+  filter[["collection_quality"]] <- sanitise(collection_quality)
 
   future::future({
 
@@ -184,7 +151,7 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
     ans <-
       fb_occurrence(
-        filter = quality_table_filter,
+        filter = filter,
         select = c(`Verification Status` = "record_quality"),
         aggregate = "records",
         n = "all"
@@ -223,18 +190,13 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  restriction <- sanitise(restriction)
+  filter <- list()
 
-  taxa <- sanitise(taxa)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  source <- sanitise(source)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  occurrence_filter <- c(
-    base_filter,
-    list(
-      restricted = restriction, informal_groups = taxa, collection = source
-    )
-  )
+  filter[["collection"]] <- sanitise(source)
 
   future::future({
 
@@ -246,7 +208,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     ans <-
       fb_occurrence(
-        filter = occurrence_filter,
+        filter = filter,
         select = c(Date = "first_load_date", Type = "superrecord_basis"),
         aggregate = "records",
         n = "all"
@@ -273,23 +235,13 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  restriction <- sanitise(restriction)
+  filter <- list(annotated = TRUE)
 
-  taxa <- sanitise(taxa)
+  filter[["restricted"]] <- sanitise(restriction)
 
-  source <- sanitise(source)
+  filter[["informal_groups"]] <- sanitise(taxa)
 
-  annotations_filter <- c(
-    base_filter,
-    list(
-      annotated = TRUE,
-      restricted = restriction,
-      informal_groups = taxa,
-      collection = source
-    )
-  )
-
-  n <- 500
+  filter[["collection"]] <- sanitise(source)
 
   future::future({
 
@@ -300,7 +252,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     options(finbif_cache_path = db)
 
     n_annotations <- fb_occurrence(
-      filter = annotations_filter,
+      filter = filter,
       select = "record_annotation_created",
       sample = TRUE,
       n = n

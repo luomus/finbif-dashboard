@@ -26,16 +26,20 @@ document.querySelector(".navbar-header").innerHTML =
 library(DT)
 library(dplyr)
 library(flexdashboard)
+library(future)
 library(geofi)
 library(ggplot2)
 library(httr2)
 library(lubridate)
 library(plotly)
+library(promises)
 library(scales)
 library(shinyjs)
 library(sf)
 library(thematic)
 library(waiter)
+
+plan(multisession)
 
 thematic_shiny(
   font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
@@ -150,6 +154,7 @@ observeEvent(
     reset("taxa")
     reset("restriction")
     reset("collection_quality")
+    reset("level")
   }
 )
 ```
@@ -167,16 +172,22 @@ valueBoxOutput("record_count")
 record_count <-
   reactive({
 
-    req_url_path(req, "record-count") |>
-    req_url_query(
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize() |>
-    valueBox(icon = "fa-pen", color = "#1F74AD")
+    req <-
+      req_url_path(req, "record-count") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa,
+        source = input$source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-pen", color = "#1F74AD")
+
+    }, seed = TRUE)
 
   }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
@@ -195,16 +206,22 @@ valueBoxOutput("species_count")
 species_count <-
   reactive({
 
-    req_url_path(req, "species-count") |>
-    req_url_query(
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize() |>
-    valueBox(icon = "fa-dove", color = "#1F74AD")
+    req <-
+      req_url_path(req, "species-count") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-dove", color = "#1F74AD")
+
+    }, seed = TRUE)
 
   }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
@@ -223,16 +240,22 @@ valueBoxOutput("collection_count")
 collection_count <-
   reactive({
 
-    req_url_path(req, "collection-count") |>
-    req_url_query(
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize() |>
-    valueBox(icon = "fa-database", color = "#1F74AD")
+    req <-
+      req_url_path(req, "collection-count") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-database", color = "#1F74AD")
+
+    }, seed = TRUE)
 
   }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
@@ -264,27 +287,22 @@ dataTableOutput("quality_table")
 quality_table <-
   reactive({
 
-    req_url_path(req, "quality-table") |>
-    req_url_query(
-      collection_quality = input$collection_quality,
-      restriction = input$restriction,
-      taxa = input$taxa, 
-      source = input$source
-    ) |>
-    req_perform() |>
-    resp_body_raw() |>
-    unserialize() |>
-    datatable(
-      rownames = FALSE,
-      options = list(
-        bPaginate = FALSE,
-        searching = FALSE,
-        info = FALSE,
-        ordering = FALSE,
-        processing = FALSE
-      ),
-      fillContainer = TRUE
-    )
+    req <-
+      req_url_path(req, "quality-table") |>
+      req_url_query(
+        collection_quality = input$collection_quality,
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize()
+
+    }, seed = TRUE)
 
   }) |>
   bindCache(
@@ -295,7 +313,22 @@ quality_table <-
     input$collection_quality, input$restriction, input$taxa, input$source
   )
 
-output$quality_table <- renderDataTable(quality_table())
+output$quality_table <- renderDataTable({
+
+  quality_table() %...>%
+  datatable(
+    rownames = FALSE,
+    options = list(
+      bPaginate = FALSE,
+      searching = FALSE,
+      info = FALSE,
+      ordering = FALSE,
+      processing = FALSE
+    ),
+    fillContainer = TRUE
+  )
+
+})
 ```
 
 Column {data-width=250 .tabset .tabset-fade}
@@ -311,14 +344,17 @@ plotlyOutput("occurrence_plot")
 occurrence_plot <-
   reactive({
 
-    p <-
+    req <-
       req_url_path(req, "occurrence-plot") |>
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa, 
         source = input$source
-      ) |>
-      req_perform() |>
+      )
+
+    future_promise({
+
+      req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
       mutate(Date = as_date(Date)) |>
@@ -330,14 +366,18 @@ occurrence_plot <-
         labs(x = NULL, y = NULL) +
         theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
 
-
-    ggplotly(p, dynamicTicks = TRUE)
+    }, seed = TRUE)
 
   }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$occurrence_plot <- renderPlotly(occurrence_plot())
+output$occurrence_plot <- renderPlotly({
+
+  occurrence_plot() %...>%
+  ggplotly(dynamicTicks = TRUE)
+
+})
 ```
 
 ### Annotations
@@ -350,14 +390,17 @@ plotlyOutput("annotations_plot")
 annotations_plot <-
   reactive({
 
-    p <-
+    req <-
       req_url_path(req, "annotations-plot") |>
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa, 
         source = input$source
-      ) |>
-      req_perform() |>
+      )
+
+    future_promise({
+
+      req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
       mutate(Date = as_date(Date)) |>
@@ -367,13 +410,18 @@ annotations_plot <-
         scale_y_continuous(label = comma) +
         labs(x = NULL, y = NULL)
 
-    ggplotly(p, dynamicTicks = TRUE)
+    }, seed = TRUE)
 
   }) |>
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$annotations_plot <- renderPlotly(annotations_plot())
+output$annotations_plot <- renderPlotly(
+
+  annotations_plot() %...>%
+  ggplotly(dynamicTicks = TRUE)
+
+)
 ```
 
 Column {data-width=300}
@@ -402,20 +450,23 @@ fillCol(
 municipality_map <-
   reactive({
 
-    n <-
+    level <- input$level
+
+    req <-
       req_url_path(req, "municipality-map") |>
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa, 
         source = input$source
-      ) |>
-      req_perform() |>
-      resp_body_raw() |>
-      unserialize()
+      )
 
-    level <- input$level
+    future_promise({
 
-    p <-
+      n <-
+        req_perform(req) |>
+        resp_body_raw() |>
+        unserialize()
+
       left_join(finland, n, by = join_by(municipality_name_fi)) |>
       group_by(.data[[level]]) |>
       summarise(Records = sum(n_records, na.rm = TRUE)) |>
@@ -425,13 +476,11 @@ municipality_map <-
       st_cast("MULTIPOLYGON") |>
       ggplot() +
         aes(
-          fill = Records,
-          text = text
-        ) +
+          fill = Records, text = text) +
         geom_sf() +
         scale_fill_viridis_c(label = comma)
 
-    ggplotly(p, tooltip = "text")
+    }, seed = TRUE)
 
   }) |>
   bindCache(
@@ -439,7 +488,12 @@ municipality_map <-
   ) |>
   bindEvent(input$level, input$restriction, input$taxa, input$source)
 
-output$municipality_map <- renderPlotly(municipality_map())
+output$municipality_map <- renderPlotly({
+
+  municipality_map() %...>%
+  ggplotly(tooltip = "text")
+
+})
 ```
 
 Users

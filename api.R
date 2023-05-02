@@ -37,7 +37,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -69,7 +69,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -104,7 +104,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -141,7 +141,7 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
   filter[["collection_quality"]] <- sanitise(collection_quality)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -198,7 +198,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -245,7 +245,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   n <- 500L
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 
@@ -306,7 +306,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  future::future({
+  promises::future_promise({
 
     options(op)
 

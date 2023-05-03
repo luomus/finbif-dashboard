@@ -41,8 +41,8 @@ vignettes/*.pdf
 # Logs
 /logs/
 
-# DB
-*.sqlite
+# Sandbox
+/sandbox/
 
 # Prerendered shiny content
 index.html

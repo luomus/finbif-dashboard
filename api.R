@@ -1,10 +1,11 @@
 library(DBI, quietly = TRUE)
 library(dplyr, quietly = TRUE)
 library(finbif, quietly = TRUE)
-library(janitor, quietly = TRUE)
-library(RSQLite, quietly = TRUE)
-library(tidyr, quietly = TRUE)
 library(future, quietly = TRUE)
+library(janitor, quietly = TRUE)
+library(promises, quietly = TRUE)
+library(RPostgres, quietly = TRUE)
+library(tidyr, quietly = TRUE)
 
 plan(multisession)
 
@@ -37,11 +38,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -69,11 +70,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -104,11 +105,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -141,11 +142,11 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
   filter[["collection_quality"]] <- sanitise(collection_quality)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -198,11 +199,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -245,11 +246,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   n <- 500L
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 
@@ -306,11 +307,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
   filter[["collection"]] <- sanitise(source)
 
-  promises::future_promise({
+  future_promise({
 
     options(op)
 
-    db <- dbConnect(SQLite(), "db-cache.sqlite")
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
 

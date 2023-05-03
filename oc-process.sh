@@ -23,6 +23,9 @@ if [ "$BRANCH" != "main" ]; then
 
 HOST=$HOST_DEV
 FINBIF_PRIVATE_API="dev"
+DB_USER_PASSWORD=$DEV_DB_USER_PASSWORD
+DB_PRIMARY_PASSWORD=$DEV_DB_PRIMARY_PASSWORD
+DB_SUPER_PASSWORD=$DEV_DB_SUPER_PASSWORD
 
 fi
 
@@ -42,17 +45,29 @@ elif [ $i = "deploy-api" ]; then
 
 ITEM=".items[3]"
 
-elif [ $i = "service-app" ]; then
+elif [ $i = "deploy-db" ]; then
 
 ITEM=".items[4]"
 
-elif [ $i = "service-api" ]; then
+elif [ $i = "service-app" ]; then
 
 ITEM=".items[5]"
 
-elif [ $i = "route" ]; then
+elif [ $i = "service-api" ]; then
 
 ITEM=".items[6]"
+
+elif [ $i = "service-db" ]; then
+
+ITEM=".items[7]"
+
+elif [ $i = "volume-db" ]; then
+
+ITEM=".items[8]"
+
+elif [ $i = "route" ]; then
+
+ITEM=".items[9]"
 
 else
 
@@ -64,4 +79,12 @@ oc process -f $f \
 -p BRANCH=$BRANCH \
 -p HOST=$HOST \
 -p FINBIF_PRIVATE_API=$FINBIF_PRIVATE_API \
+-p DB_NAME=$DB_NAME \
+-p DB_USER=$DB_USER \
+-p DB_PORT=$DB_PORT \
+-p DB_PRIMARY_USER=$DB_PRIMARY_USER \
+-p DB_SUPER_USER=$DB_SUPER_USER \
+-p DB_USER_PASSWORD=$DB_USER_PASSWORD \
+-p DB_PRIMARY_PASSWORD=$DB_PRIMARY_PASSWORD \
+-p DB_SUPER_PASSWORD=$DB_SUPER_PASSWORD \
 | jq $ITEM

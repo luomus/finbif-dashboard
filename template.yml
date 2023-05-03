@@ -30,6 +30,31 @@ parameters:
   - name: API_CMD
     required: true
     value: '["Rscript", "--vanilla", "init.R"]'
+  - name: DB
+    required: true
+    value: postgres
+  - name: DB_IMAGE
+    required: true
+    value: crunchydata/crunchy-postgres:centos8-13.6-4.7.5
+  - name: DB_PORT
+    required: true
+  - name: DB_MODE
+    required: true
+    value: primary
+  - name: DB_NAME
+    required: true
+  - name: DB_USER
+    required: true
+  - name: DB_PRIMARY_USER
+    required: true
+  - name: DB_SUPER_USER
+    required: true
+  - name: DB_USER_PASSWORD
+    required: true
+  - name: DB_PRIMARY_PASSWORD
+    required: true
+  - name: DB_SUPER_PASSWORD
+    required: true
   - name: FINBIF_PRIVATE_API
     required: true
   - name: HOST
@@ -133,6 +158,16 @@ objects:
           env:
           - name: FINBIF_PRIVATE_API
             value: ${FINBIF_PRIVATE_API}
+          - name: PGHOST
+            value: ${DB}-${BRANCH}
+          - name: PGPORT
+            value: ${DB_PORT}
+          - name: PGUSER
+            value: ${DB_SUPER_USER}
+          - name: PGPASSWORD
+            value: ${DB_SUPER_PASSWORD}
+          - name: DB_NAME
+            value: ${DB_NAME}
           ports:
           - containerPort: ${API_PORT}
     triggers:
@@ -145,6 +180,58 @@ objects:
         from:
           kind: ImageStreamTag
           name: ${APP}-${BRANCH}:${TAG}
+- kind: DeploymentConfig
+  apiVersion: v1
+  metadata:
+    name: ${DB}-${BRANCH}
+    labels:
+      app: ${APP}
+  spec:
+    replicas: 1
+    selector:
+      app: ${APP}
+      deploymentconfig: ${DB}-${BRANCH}
+    strategy:
+      type: Recreate
+    template:
+      metadata:
+        labels:
+          app: ${APP}
+          deploymentconfig: ${DB}-${BRANCH}
+      spec:
+        containers:
+        - image: ${DB_IMAGE}
+          name: ${DB}-${BRANCH}
+          volumeMounts:
+          - mountPath: /pgdata
+            name: ${DB}-${BRANCH}
+          ports:
+            - containerPort: ${DB_PORT}
+          env:
+          - name: MODE
+            value: ${DB}
+          - name: PG_MODE
+            value: ${DB_MODE}
+          - name: PG_PRIMARY_PORT
+            value: ${DB_PORT}
+          - name: PG_DATABASE
+            value: ${DB_NAME}
+          - name: PG_USER
+            value: ${DB_USER}
+          - name: PG_PRIMARY_USER
+            value: ${DB_PRIMARY_USER}
+          - name: PG_PASSWORD
+            value: ${DB_USER_PASSWORD}
+          - name: PG_PRIMARY_PASSWORD
+            value: ${DB_PRIMARY_PASSWORD}
+          - name: PG_ROOT_PASSWORD
+            value: ${DB_SUPER_PASSWORD}
+        volumes:
+        - name: ${DB}-${BRANCH}
+          persistentVolumeClaim:
+            claimName: ${DB}-${BRANCH}
+    triggers:
+    - type: ConfigChange
 - kind: Service
   apiVersion: v1
   metadata:
@@ -173,6 +260,32 @@ objects:
     selector:
       app: ${APP}
       deploymentconfig: ${API}-${BRANCH}
+- kind: Service
+  apiVersion: v1
+  metadata:
+    name: ${DB}-${BRANCH}
+    labels:
+      app: ${APP}
+  spec:
+    ports:
+    - name: ${DB_PORT}
+      port: ${DB_PORT}
+      targetPort: ${{DB_PORT}}
+    selector:
+      app: ${APP}
+      deploymentconfig: ${DB}-${BRANCH}
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+   name: ${DB}-${BRANCH}
+  spec:
+    storageClassName: "standard-rwo"
+    accessModes:
+    - ReadWriteOnce
+    persistentVolumeReclaimPolicy: Retain
+    resources:
+      requests:
+        storage: "10Gi"
 - kind: Route
   apiVersion: v1
   metadata:

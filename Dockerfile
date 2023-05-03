@@ -22,6 +22,7 @@ RUN apt-get update \
       libgeos-dev \
       libsodium-dev \
       libssl-dev \
+      libpq-dev \
       libproj-dev \
       libudunits2-dev \
       libz-dev \

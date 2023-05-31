@@ -30,7 +30,12 @@ sanitise <- function(x) {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -62,7 +67,12 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -97,7 +107,12 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -132,7 +147,12 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -191,7 +211,12 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -236,7 +261,13 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list(annotated = TRUE)
+  filter <- list(
+    annotated = TRUE,
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -299,7 +330,12 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(
+    record_quality = c(
+      "expert_verified", "community_verified", "unassessed", "uncertain",
+      "erroneous"
+    )
+  )
 
   filter[["restricted"]] <- sanitise(restriction)
 

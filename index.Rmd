@@ -7,7 +7,7 @@ output:
       version: 5
       fg: "#FDF7F7"
       bg: "#2C3E50"
-      primary: "#1F74AD"
+      primary: "#2691D9"
       base_font:
         google: Roboto
       code_font:
@@ -42,7 +42,7 @@ library(waiter)
 plan(multisession)
 
 thematic_shiny(
-  font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#1F74AD"
+  font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#2691D9"
 )
 
 api <- Sys.getenv("DASHBOARD_API")
@@ -197,7 +197,7 @@ record_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-pen", color = "#1F74AD")
+      valueBox(icon = "fa-pen", color = "#2691D9")
 
     }, seed = TRUE)
 
@@ -231,7 +231,7 @@ species_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-dove", color = "#1F74AD")
+      valueBox(icon = "fa-dove", color = "#2691D9")
 
     }, seed = TRUE)
 
@@ -265,7 +265,7 @@ collection_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-database", color = "#1F74AD")
+      valueBox(icon = "fa-database", color = "#2691D9")
 
     }, seed = TRUE)
 

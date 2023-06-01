@@ -50,6 +50,18 @@ api <- Sys.getenv("DASHBOARD_API")
 req <- request(api)
 
 finland <- get_municipalities()
+
+bio_province_zip <- "FI_FMNH_BGR_20161118.zip"
+
+url <- "https://cdn.laji.fi/files/biogeographical-province/%s"
+
+url <- sprintf(url, bio_province_zip)
+
+download.file(url, bio_province_zip)
+
+unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
+
+bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -437,8 +449,9 @@ fillCol(
     "level",
     NULL,
     c(
-      "Region" = "maakunta_name_en",
-      "Municipality" = "municipality_name_en"
+      "Region" = "maakunta_name_fi",
+      "Biogeographical Province" = "MAAKUNTA_FI",
+      "Municipality" = "municipality_name_fi"
     ),
     width = "100%"
   ),
@@ -452,8 +465,12 @@ municipality_map <-
 
     level <- input$level
 
+    endpoint <- switch(
+      level, MAAKUNTA_FI = "bio-province-map", "municipality-map"
+    )
+
     req <-
-      req_url_path(req, "municipality-map") |>
+      req_url_path(req, endpoint) |>
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa, 
@@ -467,16 +484,21 @@ municipality_map <-
         resp_body_raw() |>
         unserialize()
 
-      left_join(finland, n, by = join_by(municipality_name_fi)) |>
-      group_by(.data[[level]]) |>
+      map_data <-
+        switch(
+          level,
+          MAAKUNTA_FI = left_join(bio_provinces, n, by = join_by(MAAKUNTA_FI)),
+          left_join(finland, n, by = join_by(municipality_name_fi))
+        )
+
+      group_by(map_data, .data[[level]]) |>
       summarise(Records = sum(n_records, na.rm = TRUE)) |>
       mutate(
         text = paste0(.data[[level]], ": " , Records),
       ) |>
       st_cast("MULTIPOLYGON") |>
       ggplot() +
-        aes(
-          fill = Records, text = text) +
+        aes(fill = Records, text = text) +
         geom_sf() +
         scale_fill_viridis_c(label = comma)
 

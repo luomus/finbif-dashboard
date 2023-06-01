@@ -330,3 +330,39 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
   }, seed = TRUE)
 
 }
+
+#* @get /bio-province-map
+#* @serializer rds
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+
+  filter <- list()
+
+  filter[["restricted"]] <- sanitise(restriction)
+
+  filter[["informal_groups"]] <- sanitise(taxa)
+
+  filter[["collection"]] <- sanitise(source)
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = filter,
+        select = c(MAAKUNTA_FI = "bio_province"),
+        aggregate = "records",
+        n = "all", locale = "fi"
+      )
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}

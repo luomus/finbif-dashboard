@@ -446,7 +446,7 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "c14f7c57f00a97c07d5ebbc4f81fd8212a2d77d3",
+      "RemoteSha": "5f521f06815531a93f73a7a96c04f79bb1870e38",
       "Requirements": [
         "R",
         "digest",
@@ -455,7 +455,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "60955a60c63059e47f78e9982364c3ec"
+      "Hash": "1796129995bcfe445d0c70a65ca653d2"
     },
     "flexdashboard": {
       "Package": "flexdashboard",
@@ -1164,7 +1164,7 @@
     },
     "rmarkdown": {
       "Package": "rmarkdown",
-      "Version": "2.21",
+      "Version": "2.22",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1184,7 +1184,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "493df4ae51e2e984952ea4d5c75786a3"
+      "Hash": "75a01be060d800ceb14e32c666cacac9"
     },
     "rstudioapi": {
       "Package": "rstudioapi",

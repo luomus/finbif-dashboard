@@ -216,7 +216,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
       ) |>
       mutate(
         Type = case_match(
-          Type, "PRESERVED_SPECIMEN" ~ "Specimens", .default = "Observations"
+          Type, "Specimen" ~ "Specimens", .default = "Observations"
         )
       ) |>
       group_by(Type, Date) |>
@@ -362,6 +362,299 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     dbDisconnect(db)
 
     ans
+
+  }, seed = TRUE)
+
+}
+
+#* @get /specimen-collections
+#* @serializer rds
+function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
+
+  spec_source <- sanitise(spec_source)
+
+  discipline <- sanitise(discipline)
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    get_children <- function(x, y = character()) {
+
+      is_part_of <- cols$is_part_of
+
+      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
+
+      y <- c(y, children)
+
+      has_children <- cols[children, "has_children"]
+
+      if (!any(has_children, na.rm = TRUE)) {
+
+        y
+
+      } else {
+
+        get_children(children[has_children], y)
+
+      }
+
+    }
+
+    collection_size <- function(x) {
+
+      row <- cols[x, ]
+
+      size <- row[["collection_size"]]
+
+      if (is.na(size)) {
+
+        size
+
+      } else {
+
+        has_children <- row[["has_children"]]
+
+        if (!has_children) {
+
+          size
+
+        } else {
+
+          is_part_of <- cols[["is_part_of"]]
+
+          children <- get_children(x)
+
+          children_size <- cols[children, "collection_size"]
+
+          if (!all(is.na(children_size))) {
+
+            NA_integer_
+
+          } else {
+
+            size
+
+          }
+
+        }
+
+      }
+
+    }
+
+    has_specimens <- function(x) {
+
+      row <- cols[x, ]
+
+      size <- row[["n_records"]]
+
+      if (!is.na(size)) {
+
+        TRUE
+
+      } else {
+
+        has_children <- isTRUE(row[["has_children"]])
+
+        if (!has_children) {
+
+          FALSE
+
+        } else {
+
+          is_part_of <- cols[["is_part_of"]]
+
+          children <- get_children(x)
+
+          children_size <- cols[children, "n_records"]
+
+          if (all(is.na(children_size))) {
+
+            FALSE
+
+          } else {
+
+            TRUE
+
+          }
+
+        }
+
+      }
+
+    }
+
+    child_is <- function(x, which) {
+
+      children <- get_children(x)
+
+      lgl <- cols[children, which]
+
+      any(lgl)
+
+    }
+
+    botany <- c(
+      "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
+      "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
+      "kastikka"
+    )
+
+    zoology <- c(
+      "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
+      "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
+      "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
+      "aves"
+    )
+
+    geology <- c("the geological collections", "fossil ", "fossils ")
+
+    text <- c("long_name", "description", "methods", "taxonomic_coverage")
+
+    specimen_count <- fb_occurrence(
+      filter = list(superrecord_basis = "specimen", subcollections = FALSE),
+      select = c(id = "collection_id"),
+      aggregate = "records",
+      n = "all"
+    )
+
+    specimen_count[["id"]] <- sub("http://tun.fi/", "", specimen_count[["id"]])
+
+    cols <- fb_collections(
+      select = c(
+        id,
+        long_name,
+        has_children,
+        description,
+        is_part_of,
+        methods,
+        notes,
+        taxonomic_coverage,
+        types_size,
+        owner,
+        collection_size,
+        digitized_size,
+        count
+      ),
+      supercollection = TRUE,
+      nmin = NA
+    )
+
+    cols <- transform(cols, digitized_size = as.integer(digitized_size))
+
+    cols <- transform(
+      cols,
+      collection_size = ifelse(
+        is.na(collection_size),
+        round(count / digitized_size * 100),
+        as.integer(collection_size)
+      )
+    )
+
+    cols$n_specimens <- vapply(cols$id, collection_size, 0)
+
+    cols <- merge(cols, specimen_count, all.x = TRUE)
+
+    rownames(cols) <- cols$id
+
+    cols$has_specimens <- vapply(cols$id, has_specimens, NA)
+
+    cols <- subset(cols, has_specimens, -has_specimens)
+
+    cols <- transform(
+      cols,
+      n_specimens_digitised = ifelse(is.na(n_records), 0L, n_records),
+      n_records = NULL
+    )
+
+    cols <- transform(cols, prop_spec = n_specimens_digitised / count)
+
+    cols <- transform(cols, prop_spec = ifelse(is.nan(prop_spec), 1, prop_spec))
+
+    cols <- transform(
+      cols, n_specimens = ifelse(prop_spec < .5, NA, n_specimens)
+    )
+
+    cols <- transform(
+      cols,
+      n_specimens = ifelse(
+        is.na(n_specimens),
+        round(n_specimens_digitised / digitized_size * 100),
+        n_specimens
+      )
+    )
+
+    cols <- transform(
+      cols,
+      n_specimens = ifelse(
+        is.na(n_specimens) | is.nan(n_specimens),
+        n_specimens_digitised,
+        pmax(n_specimens, n_specimens_digitised)
+      )
+    )
+
+    text <- tolower(do.call(paste, cols[, text]))
+
+    cols$is_botany <- grepl(paste(botany, collapse = "|"), text)
+
+    cols$is_zoology <- grepl(paste(zoology, collapse = "|"), text)
+
+    cols$is_geology <- grepl(paste(geology, collapse = "|"), text)
+
+    cols$is_botany <- cols$is_botany & !cols$is_zoology & !cols$is_geology
+
+    cols$is_zoology <- cols$is_zoology & !cols$is_botany & !cols$is_geology
+
+    cols <- transform(
+      cols, is_botany = is_botany | vapply(id, child_is, NA, "is_botany")
+    )
+
+    cols <- transform(
+      cols, is_zoology = is_zoology | vapply(id, child_is, NA, "is_zoology")
+    )
+
+    cols <- transform(
+      cols, is_geology = is_geology | vapply(id, child_is, NA, "is_geology")
+    )
+
+    cols <- transform(cols, NULL = TRUE)
+
+
+    if (!is.null(discipline)) {
+
+      cols <- filter(cols, .data[[discipline]])
+
+    }
+
+    if (!is.null(spec_source)) {
+
+      children <- get_children(spec_source)
+
+      cols <- filter(cols, id %in% children)
+
+    }
+
+    n_specimens <- pull(cols, n_specimens)
+
+    n_specimens <- sum(n_specimens)
+
+    n_specimens_digitised <- pull(cols, n_specimens_digitised)
+
+    n_specimens_digitised <- sum(n_specimens_digitised)
+
+    dbDisconnect(db)
+
+    switch(
+      stat,
+      n_specimens = n_specimens,
+      n_specimens_digitised = n_specimens_digitised,
+      percent_digitised = round(n_specimens_digitised / n_specimens * 100)
+    )
 
   }, seed = TRUE)
 

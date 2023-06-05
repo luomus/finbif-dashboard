@@ -125,7 +125,7 @@ selectInput(
     "All Taxa" = "NULL",
     "Algae" = "Algae",
     "Bryophytes" = "Bryophytes",
-    "Vascular Plants",
+    "Vascular Plants"= "Vascular Plants",
     "Fungi & Lichen" = "Fungi and lichens",
     "Worms" = "Worms",
     "Molluscs" = "Molluscs",
@@ -154,13 +154,13 @@ selectInput(
 
 ####
 
-```{r reset, context = "render", echo = FALSE}
-actionButton("reset", "Reset", width = "100%", class = "btn-primary")
+```{r reset1, context = "render", echo = FALSE}
+actionButton("reset1", "Reset", width = "100%", class = "btn-primary")
 ```
 
-```{r reset_render, context = "server"}
+```{r reset_render1, context = "server"}
 observeEvent(
-  input$reset,
+  input$reset1,
   {
     reset("source")
     reset("taxa")
@@ -518,11 +518,172 @@ output$municipality_map <- renderPlotly({
 })
 ```
 
-Users
+Specimen Collections/Digitisation
 ================================================================================
 
-Column {data-width=600 .tabset}
+Column {data-width=150}
 --------------------------------------------------------------------------------
 
-Column {data-width=400}
+### {data-height=250}
+
+####
+
+```{r spec_sources, context = "render", echo = FALSE}
+selectInput(
+  "spec_source",
+  NULL,
+  c(
+    "Data Source   " = "",
+    "All Sources" = "NULL",
+    "Iisalmi Museum" = "HR.4911",
+    "Kieppi, Kokkola Museum" = "HR.121",
+    "Kuopio Museum" = "HR.1127",
+    "Luomus" = "HR.128",
+    "Porvoo Museum" = "HR.4171",
+    "Tampere Museum" = "HR.3811",
+    "University of Jyväskylä " = "HR.1247",
+    "University of Oulu" = "HR.1207",
+    "University of Turku" = "HR.1627"
+  ),
+  width = "100%"
+)
+selectInput(
+  "discipline",
+  NULL,
+  c(
+    "Discipline   " = "",
+    "All Disciplines" = "NULL",
+    "Botany" = "is_botany",
+    "Zoology" = "is_zoology",
+    "Geology" = "is_geology"
+  ),
+  width = "100%"
+)
+```
+
+####
+
+```{r reset2, context = "render", echo = FALSE}
+actionButton("reset2", "Reset", width = "100%", class = "btn-primary")
+```
+
+```{r reset_render2, context = "server"}
+observeEvent(
+  input$reset2,
+  {
+    reset("spec_source")
+    reset("discipline")
+  }
+)
+```
+
+
+Column {data-width=200}
+--------------------------------------------------------------------------------
+
+### Specimens
+
+```{r fb_specimen_count_output, context = "render", echo = FALSE}
+valueBoxOutput("specimen_count")
+```
+
+```{r fb_specimen_count_render, context = "server"}
+specimen_count <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-pen", color = "#2691D9")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$specimen_count <- renderValueBox(specimen_count())
+```
+
+### Digitised
+
+```{r fb_digitised_count_output, context = "render", echo = FALSE}
+valueBoxOutput("digitised_count")
+```
+
+```{r fb_digitised_count_render, context = "server"}
+digitised_count <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source,
+        stat = "n_specimens_digitised"
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-pen", color = "#2691D9")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$digitised_count <- renderValueBox(digitised_count())
+```
+
+### Percent Digitised
+
+```{r fb_digitised_percent_output, context = "render", echo = FALSE}
+gaugeOutput("digitised_percent")
+```
+
+```{r fb_digitised_percent_render, context = "server"}
+digitised_percent <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source,
+        stat = "percent_digitised"
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      gauge(min = 0, max = 100, symbol = "%")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$digitised_percent <- renderGauge(digitised_percent())
+```
+
+Column {data-width=250}
+--------------------------------------------------------------------------------
+
+Column {data-width=300}
 --------------------------------------------------------------------------------

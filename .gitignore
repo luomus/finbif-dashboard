@@ -47,3 +47,6 @@ vignettes/*.pdf
 # Prerendered shiny content
 index.html
 /index_files/
+
+# data
+FI_FMNH_BGR_20161118*

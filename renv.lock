@@ -446,7 +446,7 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "5f521f06815531a93f73a7a96c04f79bb1870e38",
+      "RemoteSha": "cecb9a0193766b9ef08f493ea874849fa7a0249a",
       "Requirements": [
         "R",
         "digest",
@@ -455,7 +455,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "1796129995bcfe445d0c70a65ca653d2"
+      "Hash": "8e97e49f9ad11ae782dbc1f0de065b9d"
     },
     "flexdashboard": {
       "Package": "flexdashboard",
@@ -774,13 +774,13 @@
     },
     "jsonlite": {
       "Package": "jsonlite",
-      "Version": "1.8.4",
+      "Version": "1.8.5",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "methods"
       ],
-      "Hash": "a4269a09a9b865579b2635c77e572374"
+      "Hash": "3ee4d9899e4db3e976fc82b98d24a31a"
     },
     "knitr": {
       "Package": "knitr",

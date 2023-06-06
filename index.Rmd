@@ -782,7 +782,7 @@ collection_plot <-
       resp_body_raw() |>
       unserialize() |>
       ggplot() +
-        aes(long_name, n, fill = Status) +
+        aes(Collection, n, fill = Status) +
         geom_bar(stat = "identity") +
         coord_flip() +
         scale_fill_viridis_d() +

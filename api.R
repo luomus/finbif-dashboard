@@ -670,29 +670,43 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     n_specimens_imaged <- sum(n_specimens_imaged)
 
-    tbl_data <-
-      cols |>
-      mutate(long_name = paste0(trimws(substr(long_name, 1, 45)), "\u2026")) |>
-      arrange(-n_specimens_digitised) |>
-      mutate(Undigitised = n_specimens - n_specimens_digitised) |>
-      mutate(`Digitised Only` = n_specimens_digitised - n_specimens_imaged) |>
-      mutate(Imaged = n_specimens_imaged) |>
-      select(long_name, Undigitised, `Digitised Only`, Imaged) |>
-      split(cummax(rep(0:1, each = 24L, length.out = nrow(cols))))
-
-    tbl_data[[2L]] <- summarise(
-      tbl_data[[2L]], long_name = "Other", across(!long_name, sum)
+    tbl_data <- data.frame(
+      Collection = character(), Status = character(), n = integer()
     )
 
-    tbl_data <-
-      do.call(rbind, tbl_data) |>
-      mutate(long_name = factor(long_name, levels = rev(long_name))) |>
-      pivot_longer(!long_name, names_to = "Status", values_to = "n") |>
-      mutate(
-        Status = factor(
-          Status, levels = c("Imaged", "Digitised Only", "Undigitised")
+    if (nrow(cols) > 0L) {
+
+      tbl_data <-
+        cols |>
+        mutate(
+          Collection = paste0(trimws(substr(long_name, 1, 45)), "\u2026")
+        ) |>
+        arrange(-n_specimens_digitised) |>
+        mutate(Undigitised = n_specimens - n_specimens_digitised) |>
+        mutate(`Digitised Only` = n_specimens_digitised - n_specimens_imaged) |>
+        mutate(Imaged = n_specimens_imaged) |>
+        select(Collection, Undigitised, `Digitised Only`, Imaged) |>
+        split(cummax(rep(0:1, each = 24L, length.out = nrow(cols))))
+
+      if (length(tbl_data) > 1L) {
+
+        tbl_data[[2L]] <- summarise(
+          tbl_data[[2L]], Collection = "Other", across(!Collection, sum)
         )
-      )
+
+      }
+
+      tbl_data <-
+        do.call(rbind, tbl_data) |>
+        mutate(Collection = factor(Collection, levels = rev(Collection))) |>
+        pivot_longer(!Collection, names_to = "Status", values_to = "n") |>
+        mutate(
+          Status = factor(
+            Status, levels = c("Imaged", "Digitised Only", "Undigitised")
+          )
+        )
+
+    }
 
     dbDisconnect(db)
 

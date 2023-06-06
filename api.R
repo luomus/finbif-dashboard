@@ -132,7 +132,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @serializer rds
 function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
 
-  filter <- list()
+  filter <- list(exclude_missing_levels = FALSE)
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -158,7 +158,7 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
         n = "all"
       ) |>
       mutate(
-        record_quality = replace_na(`Verification Status`, "Unnassesed")
+        `Verification Status` = replace_na(`Verification Status`, "Unassessed")
       ) |>
       group_by(`Verification Status`) |>
       summarise(n_records = sum(n_records), .groups = "drop") |>

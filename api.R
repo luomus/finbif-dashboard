@@ -674,12 +674,18 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
       Collection = character(), Status = character(), n = integer()
     )
 
+    cols <- filter(cols, n_specimens > 0L)
+
     if (nrow(cols) > 0L) {
 
       tbl_data <-
         cols |>
         mutate(
-          Collection = paste0(trimws(substr(long_name, 1, 45)), "\u2026")
+          Collection = ifelse(
+            nchar(long_name) > 44L,
+            paste0(trimws(substr(long_name, 1L, 45L)), "\u2026"),
+            long_name
+          )
         ) |>
         arrange(-n_specimens_digitised) |>
         mutate(Undigitised = n_specimens - n_specimens_digitised) |>

@@ -533,12 +533,17 @@ selectInput(
   "spec_source",
   NULL,
   c(
-    "Data Source   " = "",
-    "All Sources" = "NULL",
+    "Institution   " = "",
+    "All Institutions" = "NULL",
+    "Ark Nature Centre" = "HR.1587",
+    "Forssa Museum" = "HR.217",
     "Iisalmi Museum" = "HR.4911",
     "Kieppi, Kokkola Museum" = "HR.121",
     "Kuopio Museum" = "HR.1127",
     "Luomus" = "HR.128",
+    "Museum of Lapland" = "HR.2249",
+    "Nairobi National Museum" = "HR.3133",
+    "Ostrobothnian Museum" = "HR.1727",
     "Porvoo Museum" = "HR.4171",
     "Tampere Museum" = "HR.3811",
     "University of Jyväskylä " = "HR.1247",
@@ -603,7 +608,7 @@ specimen_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-pen", color = "#2691D9")
+      valueBox(icon = "fa-mosquito", color = "#2691D9")
 
     }, seed = TRUE)
 
@@ -637,7 +642,7 @@ digitised_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-pen", color = "#2691D9")
+      valueBox(icon = "fa-computer", color = "#2691D9")
 
     }, seed = TRUE)
 
@@ -682,8 +687,122 @@ digitised_percent <-
 output$digitised_percent <- renderGauge(digitised_percent())
 ```
 
-Column {data-width=250}
+### Imaged
+
+```{r fb_imaged_count_output, context = "render", echo = FALSE}
+valueBoxOutput("imaged_count")
+```
+
+```{r fb_imaged_count_render, context = "server"}
+imaged_count <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source,
+        stat = "n_specimens_imaged"
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-camera", color = "#2691D9")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$imaged_count <- renderValueBox(imaged_count())
+```
+
+### Percent Imaged
+
+```{r fb_imaged_percent_output, context = "render", echo = FALSE}
+gaugeOutput("imaged_percent")
+```
+
+```{r fb_imaged_percent_render, context = "server"}
+imaged_percent <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source,
+        stat = "percent_imaged"
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      gauge(min = 0, max = 100, symbol = "%")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$imaged_percent <- renderGauge(imaged_percent())
+```
+
+Column {data-width=550}
 --------------------------------------------------------------------------------
 
-Column {data-width=300}
---------------------------------------------------------------------------------
+### Collections
+
+```{r collection_plot_output, context = "render", echo = FALSE}
+plotlyOutput("collection_plot")
+```
+
+```{r collection_plot_render, context = "server"}
+collection_plot <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        spec_source = input$spec_source,
+        stat = "table"
+      )
+    
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      ggplot() +
+        aes(long_name, n, fill = Status) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        scale_fill_viridis_d() +
+        labs(x = NULL, y = NULL)
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$spec_source, cache = "session") |>
+  bindEvent(input$discipline, input$spec_source)
+
+output$collection_plot <- renderPlotly({
+
+  collection_plot() %...>%
+  ggplotly(dynamicTicks = TRUE) %...>%
+  layout(
+    legend = list(
+      x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
+    )
+  )
+
+})
+```

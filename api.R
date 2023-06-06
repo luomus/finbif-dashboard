@@ -516,15 +516,6 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     text <- c("long_name", "description", "methods", "taxonomic_coverage")
 
-    specimen_count <- fb_occurrence(
-      filter = list(superrecord_basis = "specimen", subcollections = FALSE),
-      select = c(id = "collection_id"),
-      aggregate = "records",
-      n = "all"
-    )
-
-    specimen_count[["id"]] <- sub("http://tun.fi/", "", specimen_count[["id"]])
-
     cols <- fb_collections(
       select = c(
         id,
@@ -558,19 +549,48 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     cols$n_specimens <- vapply(cols$id, collection_size, 0)
 
+    specimen_count <- fb_occurrence(
+      filter = list(superrecord_basis = "specimen", subcollections = FALSE),
+      select = c(id = "collection_id"),
+      aggregate = "records",
+      n = "all"
+    )
+
+    specimen_count[["id"]] <- sub("http://tun.fi/", "", specimen_count[["id"]])
+
     cols <- merge(cols, specimen_count, all.x = TRUE)
 
     rownames(cols) <- cols$id
 
-    cols$has_specimens <- vapply(cols$id, has_specimens, NA)
-
-    cols <- subset(cols, has_specimens, -has_specimens)
+    cols <- subset(cols, vapply(cols$id, has_specimens, NA))
 
     cols <- transform(
       cols,
       n_specimens_digitised = ifelse(is.na(n_records), 0L, n_records),
       n_records = NULL
     )
+
+    imaged_count <- fb_occurrence(
+      filter = list(
+        has_record_images = TRUE, superrecord_basis = "specimen",
+        subcollections = FALSE
+      ),
+      select = c(id = "collection_id"),
+      aggregate = "records",
+      n = "all"
+    )
+
+    imaged_count[["id"]] <- sub("http://tun.fi/", "", imaged_count[["id"]])
+
+    cols <- merge(cols, imaged_count, all.x = TRUE)
+
+    cols <- transform(
+      cols,
+      n_specimens_imaged = ifelse(is.na(n_records), 0L, n_records),
+      n_records = NULL
+    )
+
+    rownames(cols) <- cols$id
 
     cols <- transform(cols, prop_spec = n_specimens_digitised / count)
 
@@ -624,7 +644,6 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     cols <- transform(cols, NULL = TRUE)
 
-
     if (!is.null(discipline)) {
 
       cols <- filter(cols, .data[[discipline]])
@@ -647,13 +666,44 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     n_specimens_digitised <- sum(n_specimens_digitised)
 
+    n_specimens_imaged <- pull(cols, n_specimens_imaged)
+
+    n_specimens_imaged <- sum(n_specimens_imaged)
+
+    tbl_data <-
+      cols |>
+      mutate(long_name = paste0(trimws(substr(long_name, 1, 45)), "\u2026")) |>
+      arrange(-n_specimens_digitised) |>
+      mutate(Undigitised = n_specimens - n_specimens_digitised) |>
+      mutate(`Digitised Only` = n_specimens_digitised - n_specimens_imaged) |>
+      mutate(Imaged = n_specimens_imaged) |>
+      select(long_name, Undigitised, `Digitised Only`, Imaged) |>
+      split(cummax(rep(0:1, each = 24L, length.out = nrow(cols))))
+
+    tbl_data[[2L]] <- summarise(
+      tbl_data[[2L]], long_name = "Other", across(!long_name, sum)
+    )
+
+    tbl_data <-
+      do.call(rbind, tbl_data) |>
+      mutate(long_name = factor(long_name, levels = rev(long_name))) |>
+      pivot_longer(!long_name, names_to = "Status", values_to = "n") |>
+      mutate(
+        Status = factor(
+          Status, levels = c("Imaged", "Digitised Only", "Undigitised")
+        )
+      )
+
     dbDisconnect(db)
 
     switch(
       stat,
       n_specimens = n_specimens,
       n_specimens_digitised = n_specimens_digitised,
-      percent_digitised = round(n_specimens_digitised / n_specimens * 100)
+      n_specimens_imaged = n_specimens_imaged,
+      percent_digitised = round(n_specimens_digitised / n_specimens * 100),
+      percent_imaged = round(n_specimens_imaged / n_specimens * 100),
+      table = tbl_data
     )
 
   }, seed = TRUE)

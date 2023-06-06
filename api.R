@@ -3,8 +3,10 @@ library(dplyr, quietly = TRUE)
 library(finbif, quietly = TRUE)
 library(future, quietly = TRUE)
 library(janitor, quietly = TRUE)
+library(maps, quietly = TRUE)
 library(promises, quietly = TRUE)
 library(RPostgres, quietly = TRUE)
+library(sf, quietly = TRUE)
 library(tidyr, quietly = TRUE)
 
 plan(multisession)
@@ -960,3 +962,48 @@ function(spec_source = "NULL", discipline = "NULL") {
 
 }
 
+#* @get /specimen-map
+#* @serializer rds
+function() {
+
+  filter = list(superrecord_basis = "specimen")
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    countries <- finbif_metadata("country")
+
+    records <- fb_occurrence(
+      filter = c(superrecord_basis = "specimen"),
+      select = "country_id", aggregate = "records", n = "all"
+    )
+
+    records <- transform(
+      records,
+      code = countries[sub("http://tun.fi/", "", country_id), "code"],
+      Specimens = n_records,
+      country_id = NULL,
+      n_records = NULL
+    )
+
+    records <- na.omit(records)
+
+    ans <-
+      map("world", plot = FALSE, fill = TRUE) |>
+      st_as_sf() |>
+      mutate(code = ifelse(ID == "Namibia", "NA", iso.alpha(ID))) |>
+      left_join(records) |>
+      mutate(text = paste0(ID, ": " , Specimens))
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}

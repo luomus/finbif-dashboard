@@ -851,3 +851,38 @@ output$progress_plot <- renderPlotly({
 
 })
 ```
+
+Specimens Map
+================================================================================
+
+```{r specimen_map_output, context = "render", echo = FALSE}
+plotlyOutput("specimen_map")
+```
+
+```{r specimen_map_render, context = "server"}
+specimen_map <-
+  reactive({
+
+    req <- req_url_path(req, "specimen-map")
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      ggplot() +
+      aes(fill = Specimens, text = text) +
+      geom_sf(lwd = .1) +
+      scale_fill_viridis_c(label = comma, trans = "log")
+
+    }, seed = TRUE)
+
+  })
+
+output$specimen_map <- renderPlotly({
+
+  specimen_map() %...>%
+  ggplotly(tooltip = "text")
+
+})
+```

@@ -699,7 +699,8 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
       if (length(tbl_data) > 1L) {
 
         tbl_data[[2L]] <- summarise(
-          tbl_data[[2L]], Collection = "Other", across(!Collection, sum)
+          tbl_data[[2L]], Collection = "Other", across(!Collection, sum),
+          .groups = "drop_last"
         )
 
       }
@@ -934,7 +935,7 @@ function(spec_source = "NULL", discipline = "NULL") {
           ),
           Date
         ) |>
-        summarise(n_records = sum(n_records)) |>
+        summarise(n_records = sum(n_records), .groups = "drop_last") |>
         group_by(Status, Date) |>
         summarise(Specimens = sum(n_records), .groups = "drop_last") |>
         arrange(Date) |>

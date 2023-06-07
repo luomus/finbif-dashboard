@@ -1149,7 +1149,10 @@ function(spec_source = "NULL", discipline = "NULL") {
       countries <- finbif_metadata("country")
 
       records <- fb_occurrence(
-        filter = list(collection = collections, superrecord_basis = "specimen"),
+        filter = list(
+          collection = collections, superrecord_basis = "specimen",
+          subcollections = FALSE
+        ),
         select = "country_id", aggregate = "records", n = "all"
       )
 

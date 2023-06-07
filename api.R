@@ -656,7 +656,7 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
       children <- get_children(spec_source)
 
-      cols <- filter(cols, id %in% children)
+      cols <- filter(cols, id %in% c(spec_source, children))
 
     }
 
@@ -908,7 +908,7 @@ function(spec_source = "NULL", discipline = "NULL") {
 
       children <- get_children(spec_source)
 
-      cols <- filter(cols, id %in% children)
+      cols <- filter(cols, id %in% c(spec_source, children))
 
       collections <- cols$id
 
@@ -1138,7 +1138,7 @@ function(spec_source = "NULL", discipline = "NULL") {
 
       children <- get_children(spec_source)
 
-      cols <- filter(cols, id %in% children)
+      cols <- filter(cols, id %in% c(spec_source, children))
 
       collections <- cols$id
 

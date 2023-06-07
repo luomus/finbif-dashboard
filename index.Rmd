@@ -528,7 +528,7 @@ Column {data-width=150}
 
 ####
 
-```{r spec_sources, context = "render", echo = FALSE}
+```{r spec_sources1, context = "render", echo = FALSE}
 selectInput(
   "spec_source",
   NULL,
@@ -581,7 +581,6 @@ observeEvent(
   }
 )
 ```
-
 
 Column {data-width=200}
 --------------------------------------------------------------------------------
@@ -855,15 +854,86 @@ output$progress_plot <- renderPlotly({
 Specimens Map
 ================================================================================
 
+Column {data-width=150}
+--------------------------------------------------------------------------------
+
+### {data-height=250}
+
+####
+
+```{r spec_sources2, context = "render", echo = FALSE}
+selectInput(
+  "spec_map_source",
+  NULL,
+  c(
+    "Institution   " = "",
+    "All Institutions" = "NULL",
+    "Ark Nature Centre" = "HR.1587",
+    "Forssa Museum" = "HR.217",
+    "Iisalmi Museum" = "HR.4911",
+    "Kieppi, Kokkola Museum" = "HR.121",
+    "Kuopio Museum" = "HR.1127",
+    "Luomus" = "HR.128",
+    "Museum of Lapland" = "HR.2249",
+    "Nairobi National Museum" = "HR.3133",
+    "Ostrobothnian Museum" = "HR.1727",
+    "Porvoo Museum" = "HR.4171",
+    "Tampere Museum" = "HR.3811",
+    "University of Jyväskylä " = "HR.1247",
+    "University of Oulu" = "HR.1207",
+    "University of Turku" = "HR.1627"
+  ),
+  width = "100%"
+)
+selectInput(
+  "map_discipline",
+  NULL,
+  c(
+    "Discipline   " = "",
+    "All Disciplines" = "NULL",
+    "Botany" = "is_botany",
+    "Zoology" = "is_zoology",
+    "Geology" = "is_geology"
+  ),
+  width = "100%"
+)
+```
+
+####
+
+```{r reset3, context = "render", echo = FALSE}
+actionButton("reset3", "Reset", width = "100%", class = "btn-primary")
+```
+
+```{r reset_render3, context = "server"}
+observeEvent(
+  input$reset3,
+  {
+    reset("spec_map_source")
+    reset("map_discipline")
+  }
+)
+```
+
+Column {data-width=750}
+--------------------------------------------------------------------------------
+
+###
+
 ```{r specimen_map_output, context = "render", echo = FALSE}
-plotlyOutput("specimen_map")
+fillCol(plotlyOutput("specimen_map"))
 ```
 
 ```{r specimen_map_render, context = "server"}
 specimen_map <-
   reactive({
 
-    req <- req_url_path(req, "specimen-map")
+    req <- 
+      req_url_path(req, "specimen-map") |>
+      req_url_query(
+        discipline = input$map_discipline,
+        spec_source = input$spec_map_source
+      )
 
     future_promise({
 
@@ -877,7 +947,9 @@ specimen_map <-
 
     }, seed = TRUE)
 
-  })
+  }) |>
+  bindCache(input$map_discipline, input$spec_map_source, cache = "session") |>
+  bindEvent(input$map_discipline, input$spec_map_source)
 
 output$specimen_map <- renderPlotly({
 

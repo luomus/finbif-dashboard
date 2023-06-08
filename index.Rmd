@@ -493,13 +493,11 @@ municipality_map <-
 
       group_by(map_data, .data[[level]]) |>
       summarise(Records = sum(n_records, na.rm = TRUE)) |>
-      mutate(
-        text = paste0(.data[[level]], ": " , Records),
-      ) |>
+      mutate(text = paste0(.data[[level]], ": " , Records)) |>
       st_cast("MULTIPOLYGON") |>
       ggplot() +
         aes(fill = Records, text = text) +
-        geom_sf() +
+        geom_sf(lwd = .1) +
         scale_fill_viridis_c(label = comma)
 
     }, seed = TRUE)
@@ -941,9 +939,9 @@ specimen_map <-
       resp_body_raw() |>
       unserialize() |>
       ggplot() +
-      aes(fill = Specimens, text = text) +
-      geom_sf(lwd = .1) +
-      scale_fill_viridis_c(label = comma, trans = "pseudo_log")
+        aes(fill = Specimens, text = text) +
+        geom_sf(lwd = .1) +
+        scale_fill_viridis_c(label = comma, trans = "pseudo_log")
 
     }, seed = TRUE)
 

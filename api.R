@@ -28,6 +28,32 @@ sanitise <- function(x) {
 
 }
 
+cit_sci_projects <- c(
+  "Bird Feeder Monitoring" = "HR.60",
+  "Bird Ringing" = "HR.48",
+  "Breeding Bird Survey (points)" = "HR.157",
+  "Breeding Bird Survey (transects)" = "HR.61",
+  "Winter Bird Survey" = "HR.39",
+  "Bird Atlas 2022-2025 (BirdLife)" = "HR.4412",
+  "Bird Atlas 2022–2025 (FinBIF)" = "HR.4471",
+  "Ebird" = "HR.3691",
+  "National Butterfly Monitoring" = "HR.175",
+  "Glow Worm Monitoring" = "HR.3531",
+  "Fungi Atlas" = "HR.2129",
+  "Invasives Portal" = "HR.3791",
+  "Löydös (invasives)" = "HR.435",
+  "Pori Estuary Invasives" = "HR.4631",
+  "VieKas Invasives" = "HR.3051",
+  "Dairy Farm Monitoring" = "HR.3071",
+  "FinBIF Notebook" = "HR.1747",
+  "Hatikka" = "HR.447",
+  "INaturalist" = "HR.3211",
+  "Löydös" = "HR.203",
+  "Retkikasvio" = "HR.4091",
+  "School Collection Contest" = "HR.2629",
+  "Spring Monitoring" = "HR.206"
+)
+
 #* @get /record-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -1186,6 +1212,97 @@ function(spec_source = "NULL", discipline = "NULL") {
         mutate(text = paste0(ID, ": " , Specimens))
 
     }
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}
+
+#* @get /cit-sci-species-count
+#* @serializer rds
+function(projects = "NULL") {
+
+  filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
+
+  filter[["collection"]] <- sanitise(projects)
+
+  if (is.null(filter[["collection"]])) {
+
+    filter[["collection"]] <- unname(cit_sci_projects)
+
+  }
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = filter, select = c(Year = "year"), aggregate = "species",
+        n = "all"
+      ) |>
+      rename(Species = n_species)
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}
+
+#* @get /cit-sci-user-count
+#* @serializer rds
+function(projects = "NULL") {
+
+  filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
+
+  filter[["collection"]] <- sanitise(projects)
+
+  if (is.null(filter[["collection"]])) {
+
+    filter[["collection"]] <- unname(cit_sci_projects)
+
+  }
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    n_user_years <- fb_occurrence(
+      filter = filter, select = c("team_member", Year = "year"),
+      aggregate = "records", count_only = TRUE
+    )
+
+    record_years <- fb_occurrence(
+      filter = filter, select = c(Year = "year"), aggregate = "records",
+      n = "all"
+    )
+
+    ans <-
+      fb_occurrence(
+        filter = filter, select = c("team", Year = "year"), sample = TRUE,
+        n = 3000L
+      ) |>
+      unnest(team) |>
+      count(Year) |>
+      right_join(record_years, by = join_by(Year)) |>
+      mutate(
+        n_star = n_records * mean(n / n_records, na.rm = TRUE),
+        Users = round(1 + n_star * ((n_user_years - n()) / sum(n_star)))
+      ) |>
+      select(Year, Users)
 
     dbDisconnect(db)
 

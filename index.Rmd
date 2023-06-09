@@ -1096,7 +1096,7 @@ project_species_plot <-
 output$project_species_plot <- renderPlotly({
 
   project_species_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly()
 
 })
 ```
@@ -1133,7 +1133,7 @@ project_users_plot <-
 output$project_users_plot <- renderPlotly({
 
   project_users_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly()
 
 })
 ```

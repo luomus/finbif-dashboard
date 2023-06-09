@@ -260,6 +260,44 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#* @get /species-plot
+#* @serializer rds
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+
+  filter <- list()
+
+  filter[["restricted"]] <- sanitise(restriction)
+
+  filter[["informal_groups"]] <- sanitise(taxa)
+
+  filter[["collection"]] <- sanitise(source)
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = filter, select = c(Species = "species_scientific_name"),
+        aggregate = "records", n = 10L
+      ) |>
+      arrange(n_records) |>
+      mutate(Species = sprintf("<i>%s</i>", Species)) |>
+      mutate(Species = factor(Species, levels = Species, ordered = TRUE)) |>
+      rename(Records = n_records)
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}
+
 #* @get /annotations-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {

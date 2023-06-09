@@ -87,7 +87,7 @@ cit_sci_projects <- c(
   "Retkikasvio" = "HR.4091",
   "School Collection Contest" = "HR.2629",
   "Spring Monitoring" = "HR.206"
-  )
+)
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -416,6 +416,49 @@ output$occurrence_plot <- renderPlotly({
   ggplotly(dynamicTicks = TRUE)
 
 })
+```
+
+### Species
+
+```{r species_plot_output, context = "render", echo = FALSE}
+plotlyOutput("species_plot")
+```
+
+```{r species_plot_render, context = "server"}
+species_plot <-
+  reactive({
+
+    req <-
+      req_url_path(req, "species-plot") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      ggplot() +
+        aes(Species, Records) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(x = NULL, y = "Records")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
+  bindEvent(input$restriction, input$taxa, input$source)
+
+output$species_plot <- renderPlotly(
+
+  species_plot() %...>%
+  ggplotly(dynamicTicks = TRUE)
+
+)
 ```
 
 ### Annotations
@@ -809,7 +852,7 @@ collection_plot <-
         geom_bar(stat = "identity") +
         coord_flip() +
         scale_fill_viridis_d() +
-        labs(x = NULL, y = NULL)
+        labs(x = NULL, y = "Specimens")
 
     }, seed = TRUE)
 

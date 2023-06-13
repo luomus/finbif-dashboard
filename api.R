@@ -228,6 +228,16 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
       arrange(Date) |>
       mutate(Records = cumsum(Records))
 
+    if (nrow(ans) < 1L) {
+
+      ans <- data.frame(
+        Type = c("Observations", "Specimens"),
+        Date = as.character(Sys.Date()),
+        Records = 0
+      )
+
+    }
+
     dbDisconnect(db)
 
     ans

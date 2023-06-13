@@ -439,14 +439,14 @@
     },
     "finbif": {
       "Package": "finbif",
-      "Version": "0.9.0.9000",
+      "Version": "0.9.0.9001",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "cecb9a0193766b9ef08f493ea874849fa7a0249a",
+      "RemoteSha": "dd62038c53b0cda4c13c77e0b4795a0017973914",
       "Requirements": [
         "R",
         "digest",
@@ -455,7 +455,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "8e97e49f9ad11ae782dbc1f0de065b9d"
+      "Hash": "ef9fc9e4f7fa5cab8d85fc1682b4d5c5"
     },
     "flexdashboard": {
       "Package": "flexdashboard",

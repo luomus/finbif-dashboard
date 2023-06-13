@@ -28,31 +28,7 @@ sanitise <- function(x) {
 
 }
 
-cit_sci_projects <- c(
-  "Bird Feeder Monitoring" = "HR.60",
-  "Bird Ringing" = "HR.48",
-  "Breeding Bird Survey (points)" = "HR.157",
-  "Breeding Bird Survey (transects)" = "HR.61",
-  "Winter Bird Survey" = "HR.39",
-  "Bird Atlas 2022-2025 (BirdLife)" = "HR.4412",
-  "Bird Atlas 2022–2025 (FinBIF)" = "HR.4471",
-  "Ebird" = "HR.3691",
-  "National Butterfly Monitoring" = "HR.175",
-  "Glow Worm Monitoring" = "HR.3531",
-  "Fungi Atlas" = "HR.2129",
-  "Invasives Portal" = "HR.3791",
-  "Löydös (invasives)" = "HR.435",
-  "Pori Estuary Invasives" = "HR.4631",
-  "VieKas Invasives" = "HR.3051",
-  "Dairy Farm Monitoring" = "HR.3071",
-  "FinBIF Notebook" = "HR.1747",
-  "Hatikka" = "HR.447",
-  "INaturalist" = "HR.3211",
-  "Löydös" = "HR.203",
-  "Retkikasvio" = "HR.4091",
-  "School Collection Contest" = "HR.2629",
-  "Spring Monitoring" = "HR.206"
-)
+source("collections.R")
 
 #* @get /record-count
 #* @serializer rds
@@ -1269,7 +1245,7 @@ function(projects = "NULL") {
 
   if (is.null(filter[["collection"]])) {
 
-    filter[["collection"]] <- unname(cit_sci_projects)
+    filter[["collection"]] <- unname(collections$cit_sci_projects)
 
   }
 
@@ -1306,7 +1282,7 @@ function(projects = "NULL") {
 
   if (is.null(filter[["collection"]])) {
 
-    filter[["collection"]] <- unname(cit_sci_projects)
+    filter[["collection"]] <- unname(collections$cit_sci_projects)
 
   }
 

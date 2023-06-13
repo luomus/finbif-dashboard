@@ -63,31 +63,7 @@ unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
 
 bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
 
-cit_sci_projects <- c(
-  "Bird Feeder Monitoring" = "HR.60",
-  "Bird Ringing" = "HR.48",
-  "Breeding Bird Survey (points)" = "HR.157",
-  "Breeding Bird Survey (transects)" = "HR.61",
-  "Winter Bird Survey" = "HR.39",
-  "Bird Atlas 2022-2025 (BirdLife)" = "HR.4412",
-  "Bird Atlas 2022–2025 (FinBIF)" = "HR.4471",
-  "Ebird" = "HR.3691",
-  "National Butterfly Monitoring" = "HR.175",
-  "Glow Worm Monitoring" = "HR.3531",
-  "Fungi Atlas" = "HR.2129",
-  "Invasives Portal" = "HR.3791",
-  "Löydös (invasives)" = "HR.435",
-  "Pori Estuary Invasives" = "HR.4631",
-  "VieKas Invasives" = "HR.3051",
-  "Dairy Farm Monitoring" = "HR.3071",
-  "FinBIF Notebook" = "HR.1747",
-  "Hatikka" = "HR.447",
-  "INaturalist" = "HR.3211",
-  "Löydös" = "HR.203",
-  "Retkikasvio" = "HR.4091",
-  "School Collection Contest" = "HR.2629",
-  "Spring Monitoring" = "HR.206"
-)
+source("collections.R")
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -127,19 +103,7 @@ selectInput(
   c(
     "Data Source   " = "",
     "All Sources" = "NULL",
-    "FinBIF" = "HR.1989",
-    "Iisalmi Museum" = "HR.4911",
-    "Kieppi, Kokkola Museum" = "HR.121",
-    "Kuopio Museum" = "HR.1127",
-    "Luke" = "HR.1915",
-    "Luomus" = "HR.128",
-    "Metsähallitus" = "HR.3551",
-    "Porvoo Museum" = "HR.4171",
-    "SYKE" = "HR.3552",
-    "Tampere Museum" = "HR.3811",
-    "University of Jyväskylä " = "HR.1247",
-    "University of Oulu" = "HR.1207",
-    "University of Turku" = "HR.1627"
+    collections$sources
   ),
   width = "100%"
 )
@@ -602,20 +566,7 @@ selectInput(
   c(
     "Institution   " = "",
     "All Institutions" = "NULL",
-    "Ark Nature Centre" = "HR.1587",
-    "Forssa Museum" = "HR.217",
-    "Iisalmi Museum" = "HR.4911",
-    "Kieppi, Kokkola Museum" = "HR.121",
-    "Kuopio Museum" = "HR.1127",
-    "Luomus" = "HR.128",
-    "Museum of Lapland" = "HR.2249",
-    "Nairobi National Museum" = "HR.3133",
-    "Ostrobothnian Museum" = "HR.1727",
-    "Porvoo Museum" = "HR.4171",
-    "Tampere Museum" = "HR.3811",
-    "University of Jyväskylä " = "HR.1247",
-    "University of Oulu" = "HR.1207",
-    "University of Turku" = "HR.1627"
+    collections$institutions
   ),
   width = "100%"
 )
@@ -935,20 +886,7 @@ selectInput(
   c(
     "Institution   " = "",
     "All Institutions" = "NULL",
-    "Ark Nature Centre" = "HR.1587",
-    "Forssa Museum" = "HR.217",
-    "Iisalmi Museum" = "HR.4911",
-    "Kieppi, Kokkola Museum" = "HR.121",
-    "Kuopio Museum" = "HR.1127",
-    "Luomus" = "HR.128",
-    "Museum of Lapland" = "HR.2249",
-    "Nairobi National Museum" = "HR.3133",
-    "Ostrobothnian Museum" = "HR.1727",
-    "Porvoo Museum" = "HR.4171",
-    "Tampere Museum" = "HR.3811",
-    "University of Jyväskylä " = "HR.1247",
-    "University of Oulu" = "HR.1207",
-    "University of Turku" = "HR.1627"
+    collections$institutions
   ),
   width = "100%"
 )
@@ -1043,7 +981,7 @@ selectInput(
   c(
     "Project   " = "",
     "All Projects" = "NULL",
-    cit_sci_projects
+    collections$cit_sci_projects
   ),
   width = "100%"
 )
@@ -1077,7 +1015,7 @@ valueBoxOutput("project_count")
 project_count <-
   reactive({
 
-    n <- length(cit_sci_projects)
+    n <- length(collections$cit_sci_projects)
 
     caption <- "Projects"
 

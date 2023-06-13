@@ -48,6 +48,7 @@ COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 COPY index.Rmd /home/user/index.Rmd
 COPY api.R /home/user/api.R
 COPY init.R /home/user/init.R
+COPY collections.R /home/user/collections.R
 COPY robots.txt /home/user/robots.txt
 COPY favicon.ico /home/user/favicon.ico
 

@@ -1,5 +1,6 @@
 FROM ghcr.io/luomus/base-r-image:main
 
+COPY renv.lock /home/user/renv.lock
 COPY index.Rmd /home/user/index.Rmd
 COPY api.R /home/user/api.R
 COPY collections.R /home/user/collections.R

@@ -1,4 +1,4 @@
-FROM ghcr.io/luomus/base-r-image
+FROM ghcr.io/luomus/base-r-image:main
 
 COPY index.Rmd /home/user/index.Rmd
 COPY api.R /home/user/api.R

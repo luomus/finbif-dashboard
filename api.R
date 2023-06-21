@@ -30,6 +30,8 @@ sanitise <- function(x) {
 
 source("collections.R")
 
+if (!dir.exists("logs")) dir.create("logs")
+
 #* @get /record-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {

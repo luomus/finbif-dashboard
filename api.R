@@ -1,13 +1,17 @@
-library(DBI, quietly = TRUE)
-library(dplyr, quietly = TRUE)
-library(finbif, quietly = TRUE)
-library(future, quietly = TRUE)
-library(janitor, quietly = TRUE)
-library(maps, quietly = TRUE)
-library(promises, quietly = TRUE)
-library(RPostgres, quietly = TRUE)
-library(sf, quietly = TRUE)
-library(tidyr, quietly = TRUE)
+suppressPackageStartupMessages({
+
+  library(DBI, quietly = TRUE)
+  library(dplyr, quietly = TRUE)
+  library(finbif, quietly = TRUE)
+  library(future, quietly = TRUE)
+  library(janitor, quietly = TRUE)
+  library(maps, quietly = TRUE)
+  library(promises, quietly = TRUE)
+  library(RPostgres, quietly = TRUE)
+  library(sf, quietly = TRUE)
+  library(tidyr, quietly = TRUE)
+
+})
 
 plan(multisession)
 

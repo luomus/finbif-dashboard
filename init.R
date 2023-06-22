@@ -1,7 +1,11 @@
 suppressPackageStartupMessages({
-  library(logger, quietly = TRUE)
-  library(plumber, quietly = TRUE)
-  library(tictoc, quietly = TRUE)
+
+  for (pkg in c("logger", "plumber", "tictoc")) {
+
+    library(pkg, quietly = TRUE, character.only = TRUE)
+
+  }
+
 })
 
 options(plumber.maxRequestSize = 1e8L)

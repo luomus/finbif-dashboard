@@ -4,7 +4,7 @@ output:
   flexdashboard::flex_dashboard:
     favicon: favicon.ico
     theme:
-      version: 5
+      version: 4
       fg: "#FDF7F7"
       bg: "#2C3E50"
       primary: "#2691D9"

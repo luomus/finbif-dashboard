@@ -5,6 +5,7 @@ COPY index.Rmd /home/user/index.Rmd
 COPY api.R /home/user/api.R
 COPY collections.R /home/user/collections.R
 COPY favicon.ico /home/user/favicon.ico
+COPY plausible.html /home/user/plausible.html
 
 RUN  R -e "renv::restore()" \
   && chgrp -R 0 /home/user \

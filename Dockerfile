@@ -1,4 +1,4 @@
-FROM ghcr.io/luomus/base-r-image@sha256:1284c451bd7c894bc77aa728087648562a9c10a203e688cf81a317aaa6f93de5
+FROM ghcr.io/luomus/base-r-image@sha256:5d18cfef40c2a5180ee4819f6da689b3b63f3df567340ee49439965363d0b695
 
 COPY renv.lock /home/user/renv.lock
 COPY index.Rmd /home/user/index.Rmd

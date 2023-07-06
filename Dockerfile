@@ -7,9 +7,10 @@ COPY collections.R /home/user/collections.R
 COPY favicon.ico /home/user/favicon.ico
 COPY plausible.html /home/user/plausible.html
 
-RUN  chgrp -R 0 /home/user $R_HOME \
-  && chmod -R g=u /home/user $R_HOME /etc/passwd \
-  && R -e "renv::restore()"
+RUN  chgrp -R 0 /home/user \
+  && chmod -R g=u /home/user /etc/passwd
+
+RUN  R -e "renv::restore()"
 
 ENV FINBIF_USER_AGENT=https://github.com/luomus/finbif-dashboard
 ENV FINBIF_USE_PRIVATE_API=true

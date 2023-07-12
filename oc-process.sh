@@ -29,7 +29,7 @@ DB_SUPER_PASSWORD=$DEV_DB_SUPER_PASSWORD
 
 fi
 
-if [ $i = "build" ]; then
+if [ $i = "volume" ]; then
 
 ITEM=".items[0]"
 
@@ -37,31 +37,31 @@ elif [ $i = "image" ]; then
 
 ITEM=".items[1]"
 
-elif [ $i = "deploy-app" ]; then
+elif [ $i = "build" ]; then
 
 ITEM=".items[2]"
 
-elif [ $i = "deploy-api" ]; then
+elif [ $i = "deploy-app" ]; then
 
 ITEM=".items[3]"
 
-elif [ $i = "deploy-db" ]; then
+elif [ $i = "deploy-api" ]; then
 
 ITEM=".items[4]"
 
-elif [ $i = "service-app" ]; then
+elif [ $i = "deploy-db" ]; then
 
 ITEM=".items[5]"
 
-elif [ $i = "service-api" ]; then
+elif [ $i = "service-app" ]; then
 
 ITEM=".items[6]"
 
-elif [ $i = "service-db" ]; then
+elif [ $i = "service-api" ]; then
 
 ITEM=".items[7]"
 
-elif [ $i = "volume-db" ]; then
+elif [ $i = "service-db" ]; then
 
 ITEM=".items[8]"
 

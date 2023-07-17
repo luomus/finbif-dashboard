@@ -17,7 +17,7 @@ parameters:
     value: "8000"
   - name: APP_CMD
     required: true
-    value: '["render.r"]'
+    value: '["/home/user/render.r"]'
   - name: DB
     required: true
     value: postgres

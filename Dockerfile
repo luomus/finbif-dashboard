@@ -1,4 +1,4 @@
-FROM ghcr.io/luomus/base-r-image@sha256:b28f78a79dd9593323f5783c449a8060ddc0149d4a010002f25fef3f8e213a69
+FROM ghcr.io/luomus/base-r-image@sha256:b61f78d380e35c41b4161a55b56b4ba2c6ba9baeb5837df9504d141e1a8cdce7
 
 ENV FINBIF_USER_AGENT=https://github.com/luomus/finbif-dashboard
 ENV FINBIF_USE_PRIVATE_API=true

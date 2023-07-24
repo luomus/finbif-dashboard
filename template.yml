@@ -24,6 +24,14 @@ parameters:
   - name: DB_IMAGE
     required: true
     value: crunchydata/crunchy-postgres:centos8-13.6-4.7.5
+  - name: DB_HEALTHCHECK
+    required: true
+    value: '[
+      "sh",
+      "-c",
+      "PGPASSWORD=$PG_PASSWORD
+        psql -h 0.0.0.0 -U $PG_USER -d $PG_DATABASE -c \"SELECT 1\""
+    ]'
   - name: DB_PORT
     required: true
   - name: DB_MODE
@@ -228,6 +236,16 @@ objects:
             name: ${DB}-${BRANCH}
           ports:
             - containerPort: ${{DB_PORT}}
+          livenessProbe:
+            exec:
+              command: ${{DB_HEALTHCHECK}}
+            failureThreshold: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              command: ${{DB_HEALTHCHECK}}
+            initialDelaySeconds: 5
+            periodSeconds: 5
           env:
           - name: MODE
             value: ${DB}

@@ -124,6 +124,16 @@ objects:
             value: ${API}-${BRANCH}.${APP}.svc:${API_PORT}
           ports:
           - containerPort: ${{APP_PORT}}
+          livenessProbe:
+            httpGet:
+              port: ${{APP_PORT}}
+            failureThreshold: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: ${{APP_PORT}}
+            initialDelaySeconds: 5
+            periodSeconds: 5
     triggers:
     - type: ConfigChange
     - type: ImageChange
@@ -169,6 +179,18 @@ objects:
             value: ${DB_NAME}
           ports:
           - containerPort: ${{API_PORT}}
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: ${{API_PORT}}
+            failureThreshold: 5
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: ${{API_PORT}}
+            initialDelaySeconds: 5
+            periodSeconds: 5
     triggers:
     - type: ConfigChange
     - type: ImageChange

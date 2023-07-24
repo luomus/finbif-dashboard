@@ -36,6 +36,15 @@ source("collections.R")
 
 if (!dir.exists("logs")) dir.create("logs")
 
+#* @get /healthz
+#* @head /healthz
+#* @serializer unboxedJSON
+function() {
+
+  ""
+
+}
+
 #* @get /record-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {

@@ -134,11 +134,13 @@ objects:
           - containerPort: ${{APP_PORT}}
           livenessProbe:
             httpGet:
+              path: /robots.txt
               port: ${{APP_PORT}}
             failureThreshold: 5
             periodSeconds: 30
           readinessProbe:
             httpGet:
+              path: /robots.txt
               port: ${{APP_PORT}}
             initialDelaySeconds: 5
             periodSeconds: 5

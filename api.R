@@ -982,6 +982,8 @@ function(spec_source = "NULL", discipline = "NULL") {
 
     if (is.null(collections) || length(collections) > 0L) {
 
+      options(finbif_max_page_size = 1000L)
+
       ans <-
         fb_occurrence(
           filter = list(
@@ -1005,6 +1007,8 @@ function(spec_source = "NULL", discipline = "NULL") {
         summarise(Specimens = sum(n_records), .groups = "drop_last") |>
         arrange(Date) |>
         mutate(Specimens = cumsum(Specimens))
+
+      options(finbif_max_page_size = op[["finbif_max_page_size"]])
 
     } else {
 

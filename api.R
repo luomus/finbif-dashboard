@@ -1240,7 +1240,7 @@ function(spec_source = "NULL", discipline = "NULL") {
         map("world", plot = FALSE, fill = TRUE) |>
         st_as_sf() |>
         mutate(code = ifelse(ID == "Namibia", "NA", iso.alpha(ID))) |>
-        left_join(records) |>
+        left_join(records, by = join_by(code)) |>
         mutate(Specimens = replace_na(Specimens, 0L)) |>
         mutate(text = paste0(ID, ": " , Specimens))
 

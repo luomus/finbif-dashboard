@@ -66,6 +66,8 @@ unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
 bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
 
 source("collections.R")
+
+enableBookmarking("url")
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -74,9 +76,114 @@ addResourcePath("shinyjs", system.file("srcjs", package = "shinyjs"))
 
 ```{r resources, context = "server"}
 useShinyjs(html = TRUE)
+
+observe({
+  reactiveValuesToList(input)
+  session$doBookmark()
+})
+
+onBookmarked(function(url) updateQueryString(url))
+
+setBookmarkExclude(
+  c(
+    "reset1", "reset2", "reset3", "reset4",
+    ".clientValue-default-plotlyCrosstalkOpts", "plotly_afterplot-A",
+    "plotly_hover-A", "plotly_relayout-A","quality_table_cell_clicked", 
+    "quality_table_cells_selected", "quality_table_columns_selected", 
+    "quality_table_rows_all", "quality_table_rows_current",
+    "quality_table_rows_selected", "quality_table_search", "quality_table_state"
+  )
+)
+
+observe({
+  
+  query <- parseQueryString(session$clientData$url_search)
+  
+  if (!is.null(query[["occurrence_data_plot_active"]])) {
+    
+    removeCssClass(
+      class = "active", selector = "#section-occurrence-data-plots li"
+    )
+    
+    addCssClass(
+      class = "active",
+      selector = sprintf(
+        "#section-occurrence-data-plots li:nth-child(%s)",
+        as.integer(query[["occurrence_data_plot_active"]]) + 1L
+      )
+    )
+  
+  }
+  
+  if (!is.null(query[["collections_data_plot_active"]])) {
+    
+    removeCssClass(
+      class = "active", selector = "#section-collection-data-plots li"
+    )
+    
+    addCssClass(
+      class = "active",
+      selector = sprintf(
+        "##section-collection-data-plots li:nth-child(%s)",
+        as.integer(query[["collections_data_plot_active"]]) + 1L
+      )
+    )
+
+  }
+  
+  if (!is.null(query[["citsci_data_plot_active"]])) {
+    
+    removeCssClass(
+      class = "active", selector = "#section-citsci-data-plots li"
+    )
+    
+    addCssClass(
+      class = "active",
+      selector = sprintf(
+        "##section-citsci-data-plots li:nth-child(%s)",
+        as.integer(query[["citsci_data_plot_active"]]) + 1L
+      )
+    )
+
+  }
+
+})
 ```
 
 <script src="shinyjs/inject.js"></script>
+
+<script>
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='occ-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "occurrence_data_plot_active",
+      $(e.target).parent().index()
+    );
+  }
+)
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='col-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "collections_data_plot_active",
+      $(e.target).parent().index()
+    );
+  }
+)
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='cit-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "citsci_data_plot_active",
+      $(e.target).parent().index()
+    );
+  }
+)
+</script>
 
 ```{r waiter, context = "render", echo = FALSE}
 addResourcePath("robots.txt", "robots.txt")
@@ -335,10 +442,10 @@ output$quality_table <- renderDataTable({
 })
 ```
 
-Column {data-width=250 .tabset .tabset-fade}
+Column {#occurrence-data-plots data-width=250 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
-### Occurrences
+### Occurrences {#occurrences-occ-plot}
 
 ```{r occurrence_plot_output, context = "render", echo = FALSE}
 plotlyOutput("occurrence_plot")
@@ -384,7 +491,7 @@ output$occurrence_plot <- renderPlotly({
 })
 ```
 
-### Species
+### Species {#species-occ-plot}
 
 ```{r species_plot_output, context = "render", echo = FALSE}
 plotlyOutput("species_plot")
@@ -427,7 +534,7 @@ output$species_plot <- renderPlotly(
 )
 ```
 
-### Annotations
+### Annotations {#annotations-occ-plot}
 
 ```{r annotations_plot_output, context = "render", echo = FALSE}
 plotlyOutput("annotations_plot")
@@ -774,10 +881,10 @@ imaged_percent <-
 output$imaged_percent <- renderGauge(imaged_percent())
 ```
 
-Column {data-width=550 .tabset .tabset-fade}
+Column {#collection-data-plots data-width=550 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
-### Collections
+### Collections {#collections-col-plot}
 
 ```{r collection_plot_output, context = "render", echo = FALSE}
 plotlyOutput("collection_plot")
@@ -826,7 +933,7 @@ output$collection_plot <- renderPlotly({
 })
 ```
 
-### Progress
+### Progress {#progress-col-plot}
 
 ```{r progress_plot_output, context = "render", echo = FALSE}
 plotlyOutput("progress_plot")
@@ -1044,10 +1151,10 @@ project_count <-
 output$project_count <- renderValueBox(project_count())
 ```
 
-Column {data-width=550 .tabset .tabset-fade}
+Column {#citsci-data-plots data-width=550 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
-### Species
+### Species {#species-cit-plot}
 
 ```{r project_species_plot_output, context = "render", echo = FALSE}
 plotlyOutput("project_species_plot")
@@ -1084,7 +1191,7 @@ output$project_species_plot <- renderPlotly({
 })
 ```
 
-### Users
+### Users {#users-cit-plot}
 
 ```{r project_users_plot_output, context = "render", echo = FALSE}
 plotlyOutput("project_users_plot")

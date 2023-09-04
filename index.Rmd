@@ -1,5 +1,5 @@
 ---
-title: "LAJI.FI"
+title: "Dashboard | LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
     includes:

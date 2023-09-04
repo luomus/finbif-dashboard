@@ -124,7 +124,7 @@ observe({
     addCssClass(
       class = "active",
       selector = sprintf(
-        "##section-collection-data-plots li:nth-child(%s)",
+        "#section-collection-data-plots li:nth-child(%s)",
         as.integer(query[["collections_data_plot_active"]]) + 1L
       )
     )
@@ -140,7 +140,7 @@ observe({
     addCssClass(
       class = "active",
       selector = sprintf(
-        "##section-citsci-data-plots li:nth-child(%s)",
+        "#section-citsci-data-plots li:nth-child(%s)",
         as.integer(query[["citsci_data_plot_active"]]) + 1L
       )
     )

@@ -578,18 +578,18 @@ output$annotations_plot <- renderPlotly(
 )
 ```
 
-### Collections {#collections-occ-plot}
+### Datasets {#datasets-occ-plot}
 
-```{r collection_occ_plot_output, context = "render", echo = FALSE}
-plotlyOutput("collection_occ_plot")
+```{r datasets_plot_output, context = "render", echo = FALSE}
+plotlyOutput("datasets_plot")
 ```
 
-```{r collection_occ_plot_render, context = "server"}
-collection_occ_plot <-
+```{r datasets_plot_render, context = "server"}
+datasets_plot <-
   reactive({
 
     req <-
-      req_url_path(req, "collections-plot") |>
+      req_url_path(req, "datasets-plot") |>
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa, 
@@ -602,7 +602,7 @@ collection_occ_plot <-
       resp_body_raw() |>
       unserialize() |>
       ggplot() +
-        aes(Collection, n, fill = Type) +
+        aes(Datasets, n, fill = Type) +
         geom_bar(stat = "identity") +
         coord_flip() +
         scale_fill_viridis_d() +
@@ -614,9 +614,9 @@ collection_occ_plot <-
   bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
   bindEvent(input$restriction, input$taxa, input$source)
 
-output$collection_occ_plot <- renderPlotly({
+output$datasets_plot <- renderPlotly({
 
-  collection_occ_plot() %...>%
+  datasets_plot() %...>%
   ggplotly(dynamicTicks = TRUE) %...>%
   layout(
     legend = list(

@@ -362,7 +362,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
-#* @get /collections-plot
+#* @get /datasets-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
@@ -423,7 +423,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
         filter = filter,
         select = c(
           Type = "superrecord_basis",
-          Collection = "collection",
+          Dataset = "collection",
           id = "collection_id"
         ),
         aggregate = "records",
@@ -433,23 +433,23 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
         Type = case_match(
           Type, "Specimen" ~ "Specimens", .default = "Observations"
         ),
-        Collection = ifelse(
-          nchar(Collection) > 23L,
-          paste0(trimws(substr(Collection, 1L, 24L)), "\u2026"),
-          Collection
+        Dataset = ifelse(
+          nchar(Dataset) > 23L,
+          paste0(trimws(substr(Dataset, 1L, 24L)), "\u2026"),
+          Dataset
         ),
-        Collection = paste0(
-          Collection, " (", sub("http://tun.fi/", "", id), ")"
+        Dataset = paste0(
+          Dataset, " (", sub("http://tun.fi/", "", id), ")"
         ),
         id = NULL
       ) |>
-      group_by(Type, Collection) |>
+      group_by(Type, Dataset) |>
       summarise(across(n_records, sum), .groups = "keep") |>
       ungroup() |>
-      complete(Type, Collection, fill = list(n_records= 0L)) |>
-      group_by(Collection) |>
+      complete(Type, Dataset, fill = list(n_records= 0L)) |>
+      group_by(Dataset) |>
       mutate(total_records = sum(n_records)) |>
-      arrange(-total_records, Collection) |>
+      arrange(-total_records, Dataset) |>
       select(!total_records)
 
     if (nrow(ans) > 50L) {
@@ -461,7 +461,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
       ans[[2L]] <-
         ans[[2L]] |>
         group_by(Type) |>
-        summarise(Collection = "Other", across(n_records, sum))
+        summarise(Dataset = "Other", across(n_records, sum))
 
       ans <- do.call(rbind, ans)
 
@@ -469,11 +469,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     levels <-
       filter(ans, Type == "Observations") |>
-      pull(Collection) |>
+      pull(Dataset) |>
       rev()
 
     ans <-
-      mutate(ans, Collection = factor(Collection, levels = levels)) |>
+      mutate(ans, Dataset = factor(Dataset, levels = levels)) |>
       rename(n = n_records)
 
     dbDisconnect(db)

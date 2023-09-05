@@ -578,6 +578,55 @@ output$annotations_plot <- renderPlotly(
 )
 ```
 
+### Collections {#collections-occ-plot}
+
+```{r collection_occ_plot_output, context = "render", echo = FALSE}
+plotlyOutput("collection_occ_plot")
+```
+
+```{r collection_occ_plot_render, context = "server"}
+collection_occ_plot <-
+  reactive({
+
+    req <-
+      req_url_path(req, "collections-plot") |>
+      req_url_query(
+        restriction = input$restriction,
+        taxa = input$taxa, 
+        source = input$source
+      )
+    
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      ggplot() +
+        aes(Collection, n, fill = Type) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        scale_fill_viridis_d() +
+        labs(x = NULL, y = NULL)
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
+  bindEvent(input$restriction, input$taxa, input$source)
+
+output$collection_occ_plot <- renderPlotly({
+
+  collection_occ_plot() %...>%
+  ggplotly(dynamicTicks = TRUE) %...>%
+  layout(
+    legend = list(
+      x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
+    )
+  )
+
+})
+```
+
 Column {data-width=300}
 --------------------------------------------------------------------------------
 

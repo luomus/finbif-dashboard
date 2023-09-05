@@ -362,6 +362,128 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#* @get /collections-plot
+#* @serializer rds
+function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+
+  filter <- list(subcollections = FALSE)
+
+  filter[["restricted"]] <- sanitise(restriction)
+
+  filter[["informal_groups"]] <- sanitise(taxa)
+
+  collection_source <- sanitise(source)
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    get_children <- function(x, y = character()) {
+
+      is_part_of <- cols$is_part_of
+
+      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
+
+      y <- c(y, children)
+
+      has_children <- cols[children, "has_children"]
+
+      if (!any(has_children, na.rm = TRUE)) {
+
+        y
+
+      } else {
+
+        get_children(children[has_children], y)
+
+      }
+
+    }
+
+    cols <- fb_collections(
+      select = c(id, has_children, is_part_of),
+      supercollection = TRUE,
+      nmin = NA
+    )
+
+    filter[["collection"]] <- NULL
+
+    if (!is.null(collection_source)) {
+
+      filter[["collection"]] <- get_children(collection_source)
+
+    }
+
+    ans <-
+      fb_occurrence(
+        filter = filter,
+        select = c(
+          Type = "superrecord_basis",
+          Collection = "collection",
+          id = "collection_id"
+        ),
+        aggregate = "records",
+        n = "all"
+      ) |>
+      mutate(
+        Type = case_match(
+          Type, "Specimen" ~ "Specimens", .default = "Observations"
+        ),
+        Collection = ifelse(
+          nchar(Collection) > 23L,
+          paste0(trimws(substr(Collection, 1L, 24L)), "\u2026"),
+          Collection
+        ),
+        Collection = paste0(
+          Collection, " (", sub("http://tun.fi/", "", id), ")"
+        ),
+        id = NULL
+      ) |>
+      group_by(Type, Collection) |>
+      summarise(across(n_records, sum), .groups = "keep") |>
+      ungroup() |>
+      complete(Type, Collection, fill = list(n_records= 0L)) |>
+      group_by(Collection) |>
+      mutate(total_records = sum(n_records)) |>
+      arrange(-total_records, Collection) |>
+      select(!total_records)
+
+    if (nrow(ans) > 50L) {
+
+      ans <-
+        ans |>
+        split(cummax(rep(0:1, each = 48L, length.out = nrow(ans))))
+
+      ans[[2L]] <-
+        ans[[2L]] |>
+        group_by(Type) |>
+        summarise(Collection = "Other", across(n_records, sum))
+
+      ans <- do.call(rbind, ans)
+
+    }
+
+    levels <-
+      filter(ans, Type == "Observations") |>
+      pull(Collection) |>
+      rev()
+
+    ans <-
+      mutate(ans, Collection = factor(Collection, levels = levels)) |>
+      rename(n = n_records)
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}
+
 #* @get /municipality-map
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {

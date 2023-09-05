@@ -1227,3 +1227,42 @@ output$project_users_plot <- renderPlotly({
 
 })
 ```
+
+### Occurrences {#occurrences-cit-plot}
+
+```{r occurrence_cit_plot_output, context = "render", echo = FALSE}
+plotlyOutput("occurrence_cit_plot")
+```
+
+```{r occurrence_cit_plot_render, context = "server"}
+occurrence_cit_plot <-
+  reactive({
+    
+    req <-
+      req_url_path(req, "occurrence_citsci") |>
+      req_url_query(projects = input$projects)
+    
+    future_promise({
+      
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      ggplot() +
+        aes(Project, Occurrences) +
+        geom_bar(stat = "identity") +
+        coord_flip() +
+        labs(x = NULL, y = "Occurrences")
+
+    }, seed = TRUE)
+    
+  }) |>
+  bindCache(input$projects, cache = "session") |>
+  bindEvent(input$projects)
+
+output$occurrence_cit_plot <- renderPlotly({
+  
+  occurrence_cit_plot() %...>%
+    ggplotly(dynamicTicks = TRUE)
+  
+})
+```

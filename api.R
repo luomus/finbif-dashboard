@@ -1354,3 +1354,55 @@ function(projects = "NULL") {
   }, seed = TRUE)
 
 }
+
+#* @get /occurrence_citsci
+#* @serializer rds
+function(projects = "NULL") {
+
+  filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
+
+  filter[["collection"]] <- sanitise(projects)
+
+  if (is.null(filter[["collection"]])) {
+
+    filter[["collection"]] <- unname(collections$cit_sci_projects)
+
+  }
+
+  future_promise({
+
+    options(op)
+
+    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
+
+    options(finbif_cache_path = db)
+
+    ans <-
+      fb_occurrence(
+        filter = filter,
+        select = c(Project = "collection_id"),
+        aggregate = "records",
+        n = "all"
+      ) |>
+      mutate(
+        Project = names(
+          collections$cit_sci_projects[
+            match(
+              sub("http://tun.fi/", "", Project),
+              collections$cit_sci_projects
+            )
+          ]
+        )
+      ) |>
+      arrange(-n_records) |>
+      rename(Occurrences = n_records) |>
+      mutate(Project = factor(Project, levels = rev(Project)))
+
+    dbDisconnect(db)
+
+    ans
+
+  }, seed = TRUE)
+
+}
+

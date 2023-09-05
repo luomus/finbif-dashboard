@@ -749,10 +749,11 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
         cols |>
         mutate(
           Collection = ifelse(
-            nchar(long_name) > 44L,
-            paste0(trimws(substr(long_name, 1L, 45L)), "\u2026"),
+            nchar(long_name) > 37L,
+            paste0(trimws(substr(long_name, 1L, 38L)), "\u2026"),
             long_name
-          )
+          ),
+          Collection = paste0(Collection, " (", id, ")")
         ) |>
         arrange(-n_specimens_digitised) |>
         mutate(Undigitised = n_specimens - n_specimens_digitised) |>

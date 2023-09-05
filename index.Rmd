@@ -602,7 +602,7 @@ datasets_plot <-
       resp_body_raw() |>
       unserialize() |>
       ggplot() +
-        aes(Datasets, n, fill = Type) +
+        aes(Dataset, n, fill = Type) +
         geom_bar(stat = "identity") +
         coord_flip() +
         scale_fill_viridis_d() +

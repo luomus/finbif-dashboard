@@ -9,6 +9,9 @@ COPY api.R /home/user/api.R
 COPY collections.R /home/user/collections.R
 COPY favicon.ico /home/user/favicon.ico
 COPY plausible.html /home/user/plausible.html
+COPY translation.json /home/user/translation.json
+COPY lang-selector.html /home/user/lang-selector.html
+COPY styles.css /home/user/styles.css
 COPY render.r /home/user/render.r
 
 RUN  R -e "renv::restore()" \

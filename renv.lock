@@ -206,6 +206,25 @@
       ],
       "Hash": "283015ddfbb9d7bf15ea9f0b5698f0d9"
     },
+    "bsplus": {
+      "Package": "bsplus",
+      "Version": "0.1.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "glue",
+        "htmltools",
+        "jsonlite",
+        "lubridate",
+        "magrittr",
+        "methods",
+        "purrr",
+        "rmarkdown",
+        "stringr"
+      ],
+      "Hash": "2b1c662ff3624ddb37fcb07c6449e55b"
+    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.0.8",
@@ -232,7 +251,7 @@
     },
     "classInt": {
       "Package": "classInt",
-      "Version": "0.4-9",
+      "Version": "0.4-10",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -244,7 +263,7 @@
         "graphics",
         "stats"
       ],
-      "Hash": "bee651a42a89633eccb36dca9d9ab413"
+      "Hash": "f5a40793b1ae463a7ffb3902a95bf864"
     },
     "cli": {
       "Package": "cli",
@@ -1272,6 +1291,25 @@
         "xtable"
       ],
       "Hash": "438b99792adbe82a8329ad8697d45afe"
+    },
+    "shiny.i18n": {
+      "Package": "shiny.i18n",
+      "Version": "0.3.0",
+      "Source": "Repository",
+      "Repository": "CRAN",
+      "Requirements": [
+        "R",
+        "R6",
+        "glue",
+        "jsonlite",
+        "methods",
+        "rstudioapi",
+        "shiny",
+        "stringr",
+        "utils",
+        "yaml"
+      ],
+      "Hash": "fb1b47e69750065a4f3c8c4ef24e4891"
     },
     "shinyjs": {
       "Package": "shinyjs",

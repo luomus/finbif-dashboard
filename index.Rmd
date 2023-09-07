@@ -3,7 +3,8 @@ title: "Dashboard | LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
     includes:
-      in_header: plausible.html
+      in_header: [plausible.html, lang-selector.html]
+    css: styles.css
     favicon: favicon.ico
     theme:
       version: 4
@@ -25,8 +26,9 @@ document.querySelector(".navbar-header").innerHTML =
 ```
 
 ```{r setup, context = "setup", include = FALSE}
-library(DT)
+library(bsplus)
 library(dplyr)
+library(DT)
 library(flexdashboard)
 library(future)
 library(geofi)
@@ -36,8 +38,9 @@ library(lubridate)
 library(plotly)
 library(promises)
 library(scales)
-library(shinyjs)
 library(sf)
+library(shiny.i18n)
+library(shinyjs)
 library(thematic)
 library(waiter)
 
@@ -68,6 +71,8 @@ bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
 source("collections.R")
 
 enableBookmarking("url")
+
+translator <- Translator$new(translation_json_path = "translation.json")
 ```
 
 ```{r shinyjs, context = "render", echo = FALSE}
@@ -86,7 +91,7 @@ onBookmarked(function(url) updateQueryString(url))
 
 setBookmarkExclude(
   c(
-    "reset1", "reset2", "reset3", "reset4",
+    "reset1", "reset2", "reset3", "reset4", "lang_link",
     ".clientValue-default-plotlyCrosstalkOpts", "plotly_afterplot-A",
     "plotly_hover-A", "plotly_relayout-A","quality_table_cell_clicked", 
     "quality_table_cells_selected", "quality_table_columns_selected", 
@@ -146,13 +151,34 @@ observe({
     )
 
   }
-
+  
 })
+
+observeEvent(
+  input$lang_link,
+  {
+    updateSelectInput(session, "lang", selected = input[["lang_link"]])
+  }
+)
 ```
 
 <script src="shinyjs/inject.js"></script>
 
 <script>
+$("body").on(
+  "click",
+  "a[href='#en-lang']",
+  function(e) {
+    Shiny.setInputValue("lang_link", "en");
+  }
+)
+$("body").on(
+  "click",
+  "a[href='#fi-lang']",
+  function(e) {
+    Shiny.setInputValue("lang_link", "fi");
+  }
+)
 $("body").on(
   "shown.bs.tab",
   "a[href$='occ-plot']",
@@ -268,6 +294,40 @@ observeEvent(
     reset("level")
   }
 )
+```
+
+```{r info_output, context = "render", echo = FALSE}
+hr()
+uiOutput("info")
+```
+
+####
+
+```{r info_output_render, context = "server"}
+info <-
+  reactive({
+    
+    translator$set_translation_language(input$lang)
+    tagList(
+      bs_embed_popover(
+        shiny_iconlink(), 
+        content = translator$t("Select filter"),
+        placement = "right"
+      ),
+      tags$script("$(function () {$('[data-toggle=\"popover\"]').popover()})")
+    )
+    
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$info <- renderUI(info())
+```
+
+#### {.invisible}
+
+```{r select_lang, context = "render", echo = FALSE}
+selectInput("lang", NULL, choices = c("en", "fi"))
 ```
 
 Column {data-width=200}

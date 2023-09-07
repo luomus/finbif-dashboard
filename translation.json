@@ -1,0 +1,7 @@
+{
+  "cultural_date_format": "%d-%m-%Y",
+  "languages": ["en", "fi"],
+  "translation": [
+     {"en": "Select filters", "fi": "Select filters in Finnish"}
+  ]
+}

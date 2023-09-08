@@ -3,7 +3,7 @@ title: "Dashboard | LAJI.FI"
 output: 
   flexdashboard::flex_dashboard:
     includes:
-      in_header: [plausible.html, lang-selector.html]
+      in_header: [plausible.html, navbar.html]
     css: styles.css
     favicon: favicon.ico
     theme:
@@ -178,6 +178,22 @@ observeEvent(
 <script>
 $("body").on(
   "click",
+  "a[href='#share-link']",
+  function(e) {
+    var url = window.location.href;
+    var hash = document.querySelector("a.nav-link.active").getAttribute("href");
+    navigator.clipboard
+      .writeText(url + hash)
+      .then(() => {
+        alert("A link to the current dashboard view has been copied to the clipboard");
+      })
+      .catch(() => {
+        alert("Error");
+      });
+  }
+)
+$("body").on(
+  "click",
   "a[href='#en-lang']",
   function(e) {
     Shiny.setInputValue("lang_link", "en");
@@ -232,7 +248,7 @@ autoWaiter(
 )
 ```
 
-Occurrence Data
+Occurrence Data {#occurrence-page}
 ================================================================================
 
 Column {data-width=150}
@@ -778,7 +794,7 @@ output$municipality_map <- renderPlotly({
 })
 ```
 
-Specimen Collections/Digitisation
+Specimen Collections/Digitisation {#specimen-collection-page}
 ================================================================================
 
 Column {data-width=150}
@@ -1098,7 +1114,7 @@ output$progress_plot <- renderPlotly({
 })
 ```
 
-Specimens Map
+Specimens Map {#specimen-map-page}
 ================================================================================
 
 Column {data-width=150}
@@ -1193,7 +1209,7 @@ output$specimen_map <- renderPlotly({
 })
 ```
 
-Citizen Science
+Citizen Science {#citsci-page}
 ================================================================================
 
 Column {data-width=150}

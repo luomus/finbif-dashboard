@@ -10,7 +10,7 @@ COPY collections.R /home/user/collections.R
 COPY favicon.ico /home/user/favicon.ico
 COPY plausible.html /home/user/plausible.html
 COPY translation.json /home/user/translation.json
-COPY lang-selector.html /home/user/lang-selector.html
+COPY navbar.html /home/user/navbar.html
 COPY styles.css /home/user/styles.css
 COPY render.r /home/user/render.r
 

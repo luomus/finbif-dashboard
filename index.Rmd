@@ -96,7 +96,18 @@ setBookmarkExclude(
     "plotly_hover-A", "plotly_relayout-A","quality_table_cell_clicked", 
     "quality_table_cells_selected", "quality_table_columns_selected", 
     "quality_table_rows_all", "quality_table_rows_current",
-    "quality_table_rows_selected", "quality_table_search", "quality_table_state"
+    "quality_table_rows_selected", "quality_table_search", 
+    "quality_table_state", "info_waiter_hidden", "record_count_waiter_hidden", 
+    "species_count_waiter_hidden", "collection_count_waiter_hidden",
+    "quality_table_waiter_hidden", "occurrence_plot_waiter_hidden",
+    "species_plot_waiter_hidden", "annotations_plot_waiter_hidden",
+    "datasets_plot_waiter_hidden", "municipality_map_waiter_hidden",
+    "specimen_count_waiter_hidden", "digitised_count_waiter_hidden",
+    "digitised_percent_waiter_hidden", "imaged_count_waiter_hidden",
+    "imaged_percent_waiter_hidden", "collection_plot_waiter_hidden",
+    "progress_plot_waiter_hidden", "specimen_map_waiter_hidden",
+    "project_count_waiter_hidden", "project_species_plot_waiter_hidden",
+    "project_users_plot_waiter_hidden", "occurrence_cit_plot_waiter_hidden"
   )
 )
 

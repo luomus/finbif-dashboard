@@ -146,7 +146,9 @@ $("body").on(
     navigator.clipboard
       .writeText(url + hash)
       .then(() => {
-        alert("A link to the current dashboard view has been copied to the clipboard");
+        alert(
+          "A link to the current dashboard has been copied to your clipboard"
+        );
       })
       .catch(() => {
         alert("Error");

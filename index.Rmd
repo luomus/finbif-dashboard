@@ -225,6 +225,7 @@ autoWaiter(
   color = "transparent",
   fadeout = TRUE
 )
+use_bs_tooltip()
 ```
 
 Occurrence Data {#occurrence-page}
@@ -286,7 +287,11 @@ selectInput(
 ####
 
 ```{r reset1, context = "render", echo = FALSE}
-actionButton("reset1", "Reset", width = "100%", class = "btn-primary")
+actionButton("reset1", "Reset", width = "100%", class = "btn-primary") |>
+div() |>
+bs_embed_tooltip(
+  title = "Reset inputs to their default values", placement = "right"
+)
 ```
 
 ```{r reset_render1, context = "server"}

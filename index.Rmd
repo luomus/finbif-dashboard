@@ -92,84 +92,30 @@ onBookmarked(function(url) updateQueryString(url))
 setBookmarkExclude(
   c(
     "reset1", "reset2", "reset3", "reset4", "lang_link",
-    ".clientValue-default-plotlyCrosstalkOpts", "plotly_afterplot-A",
-    "plotly_hover-A", "plotly_relayout-A","quality_table_cell_clicked", 
-    "quality_table_cells_selected", "quality_table_columns_selected", 
-    "quality_table_rows_all", "quality_table_rows_current",
-    "quality_table_rows_selected", "quality_table_search", 
-    "quality_table_state", "info_waiter_hidden", "record_count_waiter_hidden", 
-    "species_count_waiter_hidden", "collection_count_waiter_hidden",
-    "quality_table_waiter_hidden", "occurrence_plot_waiter_hidden",
-    "species_plot_waiter_hidden", "annotations_plot_waiter_hidden",
-    "datasets_plot_waiter_hidden", "municipality_map_waiter_hidden",
-    "specimen_count_waiter_hidden", "digitised_count_waiter_hidden",
-    "digitised_percent_waiter_hidden", "imaged_count_waiter_hidden",
-    "imaged_percent_waiter_hidden", "collection_plot_waiter_hidden",
-    "progress_plot_waiter_hidden", "specimen_map_waiter_hidden",
-    "project_count_waiter_hidden", "project_species_plot_waiter_hidden",
-    "project_users_plot_waiter_hidden", "occurrence_cit_plot_waiter_hidden"
+    "occurrence_data_plot_active_link", "collections_data_plot_active_link",
+    "citsci_data_plot_active_link", ".clientValue-default-plotlyCrosstalkOpts",
+    "plotly_afterplot-A", "plotly_hover-A", "plotly_relayout-A",
+    "quality_table_cell_clicked", "quality_table_cells_selected",
+    "quality_table_columns_selected", "quality_table_rows_all",
+    "quality_table_rows_current", "quality_table_rows_selected",
+    "quality_table_search", "quality_table_state", "info_waiter_hidden",
+    "record_count_waiter_hidden", "species_count_waiter_hidden",
+    "collection_count_waiter_hidden", "quality_table_waiter_hidden",
+    "occurrence_plot_waiter_hidden", "species_plot_waiter_hidden",
+    "annotations_plot_waiter_hidden", "datasets_plot_waiter_hidden",
+    "municipality_map_waiter_hidden", "specimen_count_waiter_hidden",
+    "digitised_count_waiter_hidden", "digitised_percent_waiter_hidden",
+    "imaged_count_waiter_hidden", "imaged_percent_waiter_hidden",
+    "collection_plot_waiter_hidden", "progress_plot_waiter_hidden",
+    "specimen_map_waiter_hidden", "project_count_waiter_hidden",
+    "project_species_plot_waiter_hidden", "project_users_plot_waiter_hidden",
+    "occurrence_cit_plot_waiter_hidden"
   )
 )
 
-observe({
-  
-  query <- parseQueryString(session$clientData$url_search)
-  
-  if (!is.null(query[["occurrence_data_plot_active"]])) {
-    
-    removeCssClass(
-      class = "active", selector = "#section-occurrence-data-plots li"
-    )
-    
-    addCssClass(
-      class = "active",
-      selector = sprintf(
-        "#section-occurrence-data-plots li:nth-child(%s)",
-        as.integer(query[["occurrence_data_plot_active"]]) + 1L
-      )
-    )
-  
-  }
-  
-  if (!is.null(query[["collections_data_plot_active"]])) {
-    
-    removeCssClass(
-      class = "active", selector = "#section-collection-data-plots li"
-    )
-    
-    addCssClass(
-      class = "active",
-      selector = sprintf(
-        "#section-collection-data-plots li:nth-child(%s)",
-        as.integer(query[["collections_data_plot_active"]]) + 1L
-      )
-    )
-
-  }
-  
-  if (!is.null(query[["citsci_data_plot_active"]])) {
-    
-    removeCssClass(
-      class = "active", selector = "#section-citsci-data-plots li"
-    )
-    
-    addCssClass(
-      class = "active",
-      selector = sprintf(
-        "#section-citsci-data-plots li:nth-child(%s)",
-        as.integer(query[["citsci_data_plot_active"]]) + 1L
-      )
-    )
-
-  }
-  
-})
-
 observeEvent(
   input$lang_link,
-  {
-    updateSelectInput(session, "lang", selected = input[["lang_link"]])
-  }
+  updateSelectInput(session, "lang", selected = input[["lang_link"]])
 )
 ```
 
@@ -211,7 +157,7 @@ $("body").on(
   "a[href$='occ-plot']",
   function(e) {
     Shiny.setInputValue(
-      "occurrence_data_plot_active",
+      "occurrence_data_plot_active_link",
       $(e.target).parent().index()
     );
   }
@@ -221,7 +167,7 @@ $("body").on(
   "a[href$='col-plot']",
   function(e) {
     Shiny.setInputValue(
-      "collections_data_plot_active",
+      "collections_data_plot_active_link",
       $(e.target).parent().index()
     );
   }
@@ -231,7 +177,7 @@ $("body").on(
   "a[href$='cit-plot']",
   function(e) {
     Shiny.setInputValue(
-      "citsci_data_plot_active",
+      "citsci_data_plot_active_link",
       $(e.target).parent().index()
     );
   }
@@ -353,8 +299,11 @@ output$info <- renderUI(info())
 
 #### {.invisible}
 
-```{r select_lang, context = "render", echo = FALSE}
+```{r hidden_inputs, context = "render", echo = FALSE}
 selectInput("lang", NULL, choices = c("en", "fi"))
+selectInput("occurrence_data_plot_active", NULL, choices = 0:3)
+selectInput("collections_data_plot_active", NULL, choices = 0:1)
+selectInput("citsci_data_plot_active", NULL, choices = 0:2)
 ```
 
 Column {data-width=200}
@@ -531,6 +480,35 @@ output$quality_table <- renderDataTable({
 
 Column {#occurrence-data-plots data-width=250 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
+
+```{r occurrence_plot_observers, context = "server"}
+observeEvent(
+  input$occurrence_data_plot_active_link,
+  {
+    updateSelectInput(
+      session, 
+      "occurrence_data_plot_active",
+      selected = input[["occurrence_data_plot_active_link"]]
+    )
+  }
+)
+
+observe({
+  
+  removeCssClass(
+    class = "active", selector = "#section-occurrence-data-plots li"
+  )
+  
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-occurrence-data-plots li:nth-child(%s)",
+      as.integer(input$occurrence_data_plot_active) + 1L
+    )
+  )
+  
+})
+```
 
 ### Occurrences {#occurrences-occ-plot}
 
@@ -1020,6 +998,35 @@ output$imaged_percent <- renderGauge(imaged_percent())
 Column {#collection-data-plots data-width=550 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
 
+```{r collections_plot_observers, context = "server"}
+observeEvent(
+  input$collections_data_plot_active_link,
+  {
+    updateSelectInput(
+      session, 
+      "collections_data_plot_active",
+      selected = input[["collections_data_plot_active_link"]]
+    )
+  }
+)
+
+observe({
+  
+  removeCssClass(
+    class = "active", selector = "#section-collection-data-plots li"
+  )
+  
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-collection-data-plots li:nth-child(%s)",
+      as.integer(input$collections_data_plot_active) + 1L
+    )
+  )
+  
+})
+```
+
 ### Collections {#collections-col-plot}
 
 ```{r collection_plot_output, context = "render", echo = FALSE}
@@ -1289,6 +1296,35 @@ output$project_count <- renderValueBox(project_count())
 
 Column {#citsci-data-plots data-width=550 .tabset .tabset-fade}
 --------------------------------------------------------------------------------
+
+```{r citsci_data_plot_observers, context = "server"}
+observeEvent(
+  input$citsci_data_plot_active_link,
+  {
+    updateSelectInput(
+      session, 
+      "citsci_data_plot_active",
+      selected = input[["citsci_data_plot_active_link"]]
+    )
+  }
+)
+
+observe({
+  
+  removeCssClass(
+    class = "active", selector = "#section-citsci-data-plots li"
+  )
+  
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-citsci-data-plots li:nth-child(%s)",
+      as.integer(input$citsci_data_plot_active) + 1L
+    )
+  )
+  
+})
+```
 
 ### Species {#species-cit-plot}
 

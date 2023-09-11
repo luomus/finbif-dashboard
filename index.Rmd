@@ -83,50 +83,46 @@ addResourcePath("shinyjs", system.file("srcjs", package = "shinyjs"))
 useShinyjs(html = TRUE)
 
 observe({
-  reactiveValuesToList(input)
+
+  inputs <- reactiveValuesToList(input)
+  
+  defaults <- c("", "NULL", "0", "en", "maakunta_name_fi")
+  
+  inputs_with_default_values <-
+    names(inputs)[unlist(inputs) %in% defaults]
+  
+  includes <- c(
+    "lang",
+    "source",
+    "taxa",
+    "restriction",
+    "occurrence_tab",
+    "collections_tab",
+    "citsci_tab",
+    "collection_quality",
+    "level",
+    "spec_source",
+    "discipline",
+    "spec_map_source",
+    "map_discipline",
+    "projects"
+  )
+  
+  excluded_ids <- setdiff(names(inputs), includes)
+  
+  setBookmarkExclude(
+    c(
+      inputs_with_default_values,
+      excluded_ids,
+      ".clientValue-default-plotlyCrosstalkOpts"
+    )
+  )
+
   session$doBookmark()
+
 })
 
 onBookmarked(function(url) updateQueryString(url))
-
-setBookmarkExclude(
-  c(
-    "reset1",
-    "reset2",
-    "reset3",
-    "reset4",
-    "lang_link",
-    "occurrence_data_plot_active_link",
-    "collections_data_plot_active_link",
-    "citsci_data_plot_active_link",
-    ".clientValue-default-plotlyCrosstalkOpts",
-    "plotly_afterplot-A",
-    "plotly_hover-A",
-    "plotly_relayout-A",
-    "quality_table_cell_clicked",
-    "quality_table_cells_selected",
-    "quality_table_columns_selected",
-    "quality_table_rows_all",
-    "quality_table_rows_current",
-    "quality_table_rows_selected",
-    "quality_table_search", 
-    "quality_table_state",
-    "quality_table_waiter_hidden", 
-    "occurrence_plot_waiter_hidden",
-    "species_plot_waiter_hidden",
-    "annotations_plot_waiter_hidden",
-    "datasets_plot_waiter_hidden",
-    "municipality_map_waiter_hidden",
-    "digitised_percent_waiter_hidden",
-    "imaged_percent_waiter_hidden",
-    "collection_plot_waiter_hidden",
-    "progress_plot_waiter_hidden",
-    "specimen_map_waiter_hidden", 
-    "project_species_plot_waiter_hidden",
-    "project_users_plot_waiter_hidden",
-    "occurrence_cit_plot_waiter_hidden"
-  )
-)
 
 observeEvent(
   input$lang_link,
@@ -174,7 +170,7 @@ $("body").on(
   "a[href$='occ-plot']",
   function(e) {
     Shiny.setInputValue(
-      "occurrence_data_plot_active_link",
+      "occurrence_tab_link",
       $(e.target).parent().index()
     );
   }
@@ -184,7 +180,7 @@ $("body").on(
   "a[href$='col-plot']",
   function(e) {
     Shiny.setInputValue(
-      "collections_data_plot_active_link",
+      "collections_tab_link",
       $(e.target).parent().index()
     );
   }
@@ -194,7 +190,7 @@ $("body").on(
   "a[href$='cit-plot']",
   function(e) {
     Shiny.setInputValue(
-      "citsci_data_plot_active_link",
+      "citsci_tab_link",
       $(e.target).parent().index()
     );
   }
@@ -225,7 +221,6 @@ autoWaiter(
   color = "transparent",
   fadeout = TRUE
 )
-use_bs_tooltip()
 ```
 
 Occurrence Data {#occurrence-page}
@@ -287,11 +282,7 @@ selectInput(
 ####
 
 ```{r reset1, context = "render", echo = FALSE}
-actionButton("reset1", "Reset", width = "100%", class = "btn-primary") |>
-div() |>
-bs_embed_tooltip(
-  title = "Reset inputs to their default values", placement = "right"
-)
+actionButton("reset1", "Reset", width = "100%", class = "btn-primary")
 ```
 
 ```{r reset_render1, context = "server"}
@@ -307,41 +298,13 @@ observeEvent(
 )
 ```
 
-```{r info_output, context = "render", echo = FALSE}
-hr()
-uiOutput("info")
-```
-
-####
-
-```{r info_output_render, context = "server"}
-info <-
-  reactive({
-    
-    translator$set_translation_language(input$lang)
-    tagList(
-      bs_embed_popover(
-        shiny_iconlink(), 
-        content = translator$t("Select filter"),
-        placement = "right"
-      ),
-      tags$script("$(function () {$('[data-toggle=\"popover\"]').popover()})")
-    )
-    
-  })|>
-  bindCache(input$lang, cache = "session") |>
-  bindEvent(input$lang)
-
-output$info <- renderUI(info())
-```
-
 #### {.invisible}
 
 ```{r hidden_inputs, context = "render", echo = FALSE}
 selectInput("lang", NULL, choices = c("en", "fi"))
-selectInput("occurrence_data_plot_active", NULL, choices = 0:3)
-selectInput("collections_data_plot_active", NULL, choices = 0:1)
-selectInput("citsci_data_plot_active", NULL, choices = 0:2)
+selectInput("occurrence_tab", NULL, choices = 0:3)
+selectInput("collections_tab", NULL, choices = 0:1)
+selectInput("citsci_tab", NULL, choices = 0:2)
 ```
 
 Column {data-width=200}
@@ -521,12 +484,12 @@ Column {#occurrence-data-plots data-width=250 .tabset .tabset-fade}
 
 ```{r occurrence_plot_observers, context = "server"}
 observeEvent(
-  input$occurrence_data_plot_active_link,
+  input$occurrence_tab_link,
   {
     updateSelectInput(
       session, 
-      "occurrence_data_plot_active",
-      selected = input[["occurrence_data_plot_active_link"]]
+      "occurrence_tab",
+      selected = input[["occurrence_tab_link"]]
     )
   }
 )
@@ -541,7 +504,7 @@ observe({
     class = "active",
     selector = sprintf(
       "#section-occurrence-data-plots li:nth-child(%s)",
-      as.integer(input$occurrence_data_plot_active) + 1L
+      as.integer(input$occurrence_tab) + 1L
     )
   )
   
@@ -1038,12 +1001,12 @@ Column {#collection-data-plots data-width=550 .tabset .tabset-fade}
 
 ```{r collections_plot_observers, context = "server"}
 observeEvent(
-  input$collections_data_plot_active_link,
+  input$collections_tab_link,
   {
     updateSelectInput(
       session, 
-      "collections_data_plot_active",
-      selected = input[["collections_data_plot_active_link"]]
+      "collections_tab",
+      selected = input[["collections_tab_link"]]
     )
   }
 )
@@ -1058,7 +1021,7 @@ observe({
     class = "active",
     selector = sprintf(
       "#section-collection-data-plots li:nth-child(%s)",
-      as.integer(input$collections_data_plot_active) + 1L
+      as.integer(input$collections_tab) + 1L
     )
   )
   
@@ -1337,12 +1300,12 @@ Column {#citsci-data-plots data-width=550 .tabset .tabset-fade}
 
 ```{r citsci_data_plot_observers, context = "server"}
 observeEvent(
-  input$citsci_data_plot_active_link,
+  input$citsci_tab_link,
   {
     updateSelectInput(
       session, 
-      "citsci_data_plot_active",
-      selected = input[["citsci_data_plot_active_link"]]
+      "citsci_tab",
+      selected = input[["citsci_tab_link"]]
     )
   }
 )
@@ -1357,7 +1320,7 @@ observe({
     class = "active",
     selector = sprintf(
       "#section-citsci-data-plots li:nth-child(%s)",
-      as.integer(input$citsci_data_plot_active) + 1L
+      as.integer(input$citsci_tab) + 1L
     )
   )
   

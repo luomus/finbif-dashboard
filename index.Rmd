@@ -86,7 +86,7 @@ observe({
 
   inputs <- reactiveValuesToList(input)
   
-  defaults <- c("", "NULL", "0", "en", "maakunta_name_fi")
+  defaults <- c("", "NULL", "0", "maakunta_name_fi")
   
   inputs_with_default_values <-
     names(inputs)[unlist(inputs) %in% defaults]

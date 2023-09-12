@@ -238,6 +238,13 @@ observe(
   )
 ) |>
 bindEvent(input$restriction_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "collection_quality", selected = input[["collection_quality_link"]]
+  )
+) |>
+bindEvent(input$collection_quality_link, ignoreInit = TRUE)
 ```
 
 ```{r waiter, context = "render", echo = FALSE}
@@ -450,7 +457,7 @@ observe(
     updateSelectInput(session, "source_link", selected = "")
     updateSelectInput(session, "taxa_link", selected = "")
     updateSelectInput(session, "restriction_link", selected = "")
-    updateSelectInput(session, "collection_quality", selected = "")
+    updateSelectInput(session, "collection_quality_link", selected = "")
     updateSelectInput(session, "level", selected = "maakunta_name_fi")
   }
 ) |>
@@ -487,6 +494,11 @@ selectInput(
   )
 )
 selectInput("restriction", NULL, choices = c("", "NULL", "true", "false"))
+selectInput(
+  "collection_quality",
+  NULL, 
+  choices = c("", "NULL", "professional", "hobbyist", "amateur")
+)
 ```
 
 Column {data-width=200}
@@ -626,20 +638,52 @@ output$collection_count <- renderValueBox(collection_count())
 
 ###
 
-```{r quality_table_output, context = "render", echo = FALSE}
-selectInput(
-  "collection_quality",
-  NULL,
-  c(
-    "Dataset Quality Level   " = "",
-    "All Levels" = "NULL",
-    "Professionals" = "professional",
-    "Specialists" = "hobbyist",
-    "Citizen Scientists" = "amateur"
-  ),
-  width = "100%"
-)
+```{r quality_table_ui_output, context = "render", echo = FALSE}
+uiOutput("collection_quality", inline = TRUE)
+```
 
+```{r quality_table_render_ui, context = "server"}
+collection_quality <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    choices <- c(
+      "",
+      "NULL",
+      "professional",
+      "hobbyist",
+      "amateur"
+    )
+
+    names(choices) <- c(
+      paste0(translator$t("Dataset Quality Level"), "   "),
+      translator$t(
+        c(
+          "All Levels",
+          "Professionals",
+          "Specialists",
+          "Citizen Scientists"
+        )
+      )
+    )
+
+    selectInput(
+      "collection_quality_link",
+      NULL,
+      choices,
+      input$collection_quality,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$collection_quality <- renderUI(collection_quality())
+```
+
+```{r quality_table_output, context = "render", echo = FALSE}
 dataTableOutput("quality_table")
 ```
 

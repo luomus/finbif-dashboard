@@ -40,6 +40,11 @@
     {"en": "Reset", "fi": "Nollaa"},
     {"en": "Records", "fi": "Tapahtumatiedot"},
     {"en": "Species", "fi": "Lajit"},
-    {"en": "Datasets", "fi": "Tietojoukot"}
+    {"en": "Datasets", "fi": "Tietojoukot"},
+    {"en": "Dataset Quality Level", "fi": "Tietojoukon laatutaso"},
+    {"en": "All Levels", "fi": "Kaikki tasot"},
+    {"en": "Professionals", "fi": "Ammattilaiset"},
+    {"en": "Specialists", "fi": "Asiantuntijat"},
+    {"en": "Citizen Scientists", "fi": "Kansalaiset Tiedemiehet"}
   ]
 }

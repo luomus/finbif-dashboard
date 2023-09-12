@@ -20,11 +20,6 @@ output:
 runtime: shiny_prerendered
 ---
 
-```{js, echo = FALSE}
-document.querySelector(".navbar-header").innerHTML =
-  '<a href="https://laji.fi" class="navbar-brand">LAJI.FI</a>'
-```
-
 ```{r setup, context = "setup", include = FALSE}
 library(bsplus)
 library(dplyr)
@@ -77,6 +72,78 @@ translator <- Translator$new(translation_json_path = "translation.json")
 
 ```{r shinyjs, context = "render", echo = FALSE}
 addResourcePath("shinyjs", system.file("srcjs", package = "shinyjs"))
+```
+
+<script src="shinyjs/inject.js"></script>
+
+```{js javascript, echo = FALSE}
+document.querySelector(".navbar-header").innerHTML =
+  '<a href="https://laji.fi" class="navbar-brand">LAJI.FI</a>'
+
+$("body").on(
+  "click",
+  "a[href='#share-link']",
+  function(e) {
+    var url = window.location.href.split('#')[0];
+    var hash = document.querySelector("a.nav-link.active").getAttribute("href");
+    navigator.clipboard
+      .writeText(url + hash)
+      .then(() => {
+        alert(
+          "A link to the current dashboard has been copied to your clipboard"
+        );
+      })
+      .catch(() => {
+        alert("Error");
+      });
+  }
+)
+
+$("body").on(
+  "click",
+  "a[href='#en-lang']",
+  function(e) {
+    Shiny.setInputValue("lang_link", "en");
+  }
+)
+
+$("body").on(
+  "click",
+  "a[href='#fi-lang']",
+  function(e) {
+    Shiny.setInputValue("lang_link", "fi");
+  }
+)
+
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='occ-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "occurrence_tab_link", $(e.target).parent().index()
+    );
+  }
+)
+
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='col-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "collections_tab_link", $(e.target).parent().index()
+    );
+  }
+)
+
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='cit-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "citsci_tab_link", $(e.target).parent().index()
+    );
+  }
+)
 ```
 
 ```{r resources, context = "server"}
@@ -173,73 +240,6 @@ observe(
 ) |>
 bindEvent(input$restriction_link, ignoreInit = TRUE)
 ```
-
-<script src="shinyjs/inject.js"></script>
-
-<script>
-$("body").on(
-  "click",
-  "a[href='#share-link']",
-  function(e) {
-    var url = window.location.href.split('#')[0];
-    var hash = document.querySelector("a.nav-link.active").getAttribute("href");
-    navigator.clipboard
-      .writeText(url + hash)
-      .then(() => {
-        alert(
-          "A link to the current dashboard has been copied to your clipboard"
-        );
-      })
-      .catch(() => {
-        alert("Error");
-      });
-  }
-)
-$("body").on(
-  "click",
-  "a[href='#en-lang']",
-  function(e) {
-    Shiny.setInputValue("lang_link", "en");
-  }
-)
-$("body").on(
-  "click",
-  "a[href='#fi-lang']",
-  function(e) {
-    Shiny.setInputValue("lang_link", "fi");
-  }
-)
-$("body").on(
-  "shown.bs.tab",
-  "a[href$='occ-plot']",
-  function(e) {
-    Shiny.setInputValue(
-      "occurrence_tab_link",
-      $(e.target).parent().index()
-    );
-  }
-)
-$("body").on(
-  "shown.bs.tab",
-  "a[href$='col-plot']",
-  function(e) {
-    Shiny.setInputValue(
-      "collections_tab_link",
-      $(e.target).parent().index()
-    );
-  }
-)
-$("body").on(
-  "shown.bs.tab",
-  "a[href$='cit-plot']",
-  function(e) {
-    Shiny.setInputValue(
-      "citsci_tab_link",
-      $(e.target).parent().index()
-    );
-  }
-)
-</script>
 
 ```{r waiter, context = "render", echo = FALSE}
 addResourcePath("robots.txt", "robots.txt")

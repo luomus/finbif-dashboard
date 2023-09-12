@@ -37,6 +37,9 @@
     {"en": "All Data", "fi": "Kaikki tiedot"},
     {"en": "Restricted Only", "fi": "Vain rajoitettu"},
     {"en": "Unrestricted Only", "fi": "Vain rajoittamaton"},
-    {"en": "Reset", "fi": "Nollaa"}
+    {"en": "Reset", "fi": "Nollaa"},
+    {"en": "Records", "fi": "Tapahtumatiedot"},
+    {"en": "Species", "fi": "Lajit"},
+    {"en": "Datasets", "fi": "Tietojoukot"}
   ]
 }

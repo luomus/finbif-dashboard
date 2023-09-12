@@ -151,12 +151,12 @@ useShinyjs(html = TRUE)
 observe({
 
   inputs <- reactiveValuesToList(input)
-  
+
   defaults <- c("", "NULL", "0", "maakunta_name_fi")
-  
+
   inputs_with_default_values <-
     names(inputs)[unlist(inputs) %in% defaults]
-  
+
   includes <- c(
     "lang",
     "source",
@@ -173,9 +173,9 @@ observe({
     "map_discipline",
     "projects"
   )
-  
+
   excluded_ids <- setdiff(names(inputs), includes)
-  
+
   setBookmarkExclude(
     c(
       inputs_with_default_values,
@@ -293,18 +293,18 @@ uiOutput("restriction")
 ```
 
 ```{r source_render, context = "server"}
-sources <- 
+sources <-
   reactive({
-    
+
     translator$set_translation_language(input$lang)
-    
+
     choices <- c("", "NULL", collections$sources)
-    
+
     names(choices) <- c(
       paste0(translator$t("Data Source"), "   "),
       translator$t(c("All Sources", names(collections$sources)))
     )
-  
+
     selectInput(
       "source_link",
       NULL,
@@ -312,7 +312,7 @@ sources <-
       input$source,
       width = "100%"
     )
-    
+
   }) |>
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
@@ -321,11 +321,11 @@ output$sources <- renderUI(sources())
 ```
 
 ```{r taxa_render, context = "server"}
-taxa <- 
+taxa <-
   reactive({
-    
+
     translator$set_translation_language(input$lang)
-    
+
     choices <- c(
       "",
       "NULL",
@@ -343,7 +343,7 @@ taxa <-
       "Birds",
       "Mammals"
     )
-    
+
     names(choices) <- c(
       paste0(translator$t("Taxa"), "   "),
       translator$t(
@@ -365,7 +365,7 @@ taxa <-
         )
       )
     )
-  
+
     selectInput(
       "taxa_link",
       NULL,
@@ -382,18 +382,18 @@ output$taxa <- renderUI(taxa())
 ```
 
 ```{r restriction_render, context = "server"}
-restriction <- 
+restriction <-
   reactive({
-    
+
     translator$set_translation_language(input$lang)
-    
+
     choices <- c(
       "",
       "NULL",
       "true",
       "false"
     )
-    
+
     names(choices) <- c(
       paste0(translator$t("Data Restriction"), "   "),
       translator$t(
@@ -404,7 +404,7 @@ restriction <-
         )
       )
     )
-    
+
     selectInput(
       "restriction_link",
       NULL,
@@ -427,18 +427,18 @@ uiOutput("reset1")
 ```
 
 ```{r reset_render1, context = "server"}
-reset1 <- 
+reset1 <-
   reactive({
-    
+
     translator$set_translation_language(input$lang)
-    
+
     actionButton(
       "reset1",
       translator$t("Reset"),
       width = "100%",
       class = "btn-primary"
     )
-    
+
   }) |>
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
@@ -447,14 +447,11 @@ output$reset1 <- renderUI(reset1())
 
 observe(
   {
-    reset("source_link")
-    reset("source")
-    reset("taxa_link")
-    reset("taxa")
-    reset("restriction_link")
-    reset("restriction")
-    reset("collection_quality")
-    reset("level")
+    updateSelectInput(session, "source_link", selected = "")
+    updateSelectInput(session, "taxa_link", selected = "")
+    updateSelectInput(session, "restriction_link", selected = "")
+    updateSelectInput(session, "collection_quality", selected = "")
+    updateSelectInput(session, "level", selected = "maakunta_name_fi")
   }
 ) |>
 bindEvent(input$reset1)
@@ -495,13 +492,23 @@ selectInput("restriction", NULL, choices = c("", "NULL", "true", "false"))
 Column {data-width=200}
 --------------------------------------------------------------------------------
 
-### Records
+### `r textOutput("record_count_title")`
 
 ```{r fb_record_count_output, context = "render", echo = FALSE}
 valueBoxOutput("record_count")
 ```
 
 ```{r fb_record_count_render, context = "server"}
+record_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Records")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$record_count_title <- renderText(record_count_title())
+
 record_count <-
   reactive({
 
@@ -529,13 +536,23 @@ record_count <-
 output$record_count <- renderValueBox(record_count())
 ```
 
-### Species
+### `r textOutput("species_count_title")`
 
 ```{r fb_species_count_output, context = "render", echo = FALSE}
 valueBoxOutput("species_count")
 ```
 
 ```{r fb_species_count_render, context = "server"}
+species_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Species")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$species_count_title <- renderText(species_count_title())
+
 species_count <-
   reactive({
 
@@ -563,13 +580,23 @@ species_count <-
 output$species_count <- renderValueBox(species_count())
 ```
 
-### Datasets
+### `r textOutput("collection_count_title")`
 
 ```{r fb_collection_count_output, context = "render", echo = FALSE}
 valueBoxOutput("collection_count")
 ```
 
 ```{r fb_collection_count_render, context = "server"}
+collection_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Datasets")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$collection_count_title <- renderText(collection_count_title())
+
 collection_count <-
   reactive({
 
@@ -625,7 +652,7 @@ quality_table <-
       req_url_query(
         collection_quality = input$collection_quality,
         restriction = input$restriction,
-        taxa = input$taxa, 
+        taxa = input$taxa,
         source = input$source
       )
 
@@ -672,7 +699,7 @@ observeEvent(
   input$occurrence_tab_link,
   {
     updateSelectInput(
-      session, 
+      session,
       "occurrence_tab",
       selected = input[["occurrence_tab_link"]]
     )
@@ -680,11 +707,11 @@ observeEvent(
 )
 
 observe({
-  
+
   removeCssClass(
     class = "active", selector = "#section-occurrence-data-plots li"
   )
-  
+
   addCssClass(
     class = "active",
     selector = sprintf(
@@ -692,7 +719,7 @@ observe({
       as.integer(input$occurrence_tab) + 1L
     )
   )
-  
+
 })
 ```
 
@@ -846,7 +873,7 @@ datasets_plot <-
         taxa = input$taxa, 
         source = input$source
       )
-    
+
     future_promise({
 
       req_perform(req) |>
@@ -1209,11 +1236,11 @@ observeEvent(
 )
 
 observe({
-  
+
   removeCssClass(
     class = "active", selector = "#section-collection-data-plots li"
   )
-  
+
   addCssClass(
     class = "active",
     selector = sprintf(
@@ -1221,7 +1248,7 @@ observe({
       as.integer(input$collections_tab) + 1L
     )
   )
-  
+
 })
 ```
 
@@ -1242,7 +1269,7 @@ collection_plot <-
         spec_source = input$spec_source,
         stat = "table"
       )
-    
+
     future_promise({
 
       req_perform(req) |>
@@ -1532,11 +1559,11 @@ observeEvent(
 )
 
 observe({
-  
+
   removeCssClass(
     class = "active", selector = "#section-citsci-data-plots li"
   )
-  
+
   addCssClass(
     class = "active",
     selector = sprintf(
@@ -1544,7 +1571,7 @@ observe({
       as.integer(input$citsci_tab) + 1L
     )
   )
-  
+
 })
 ```
 
@@ -1631,13 +1658,13 @@ plotlyOutput("occurrence_cit_plot")
 ```{r occurrence_cit_plot_render, context = "server"}
 occurrence_cit_plot <-
   reactive({
-    
+
     req <-
       req_url_path(req, "occurrence-citsci") |>
       req_url_query(projects = input$projects)
-    
+
     future_promise({
-      
+
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
@@ -1648,15 +1675,15 @@ occurrence_cit_plot <-
         labs(x = NULL, y = "Occurrences")
 
     }, seed = TRUE)
-    
+
   }) |>
   bindCache(input$projects, cache = "session") |>
   bindEvent(input$projects)
 
 output$occurrence_cit_plot <- renderPlotly({
-  
+
   occurrence_cit_plot() %...>%
     ggplotly(dynamicTicks = TRUE)
-  
+
 })
 ```

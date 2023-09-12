@@ -259,7 +259,7 @@ autoWaiter(
     "project_users_plot",
     "occurrence_cit_plot"
   ),
-  html = spin_ring(),
+  html = bs4_spinner(),
   color = "transparent",
   fadeout = TRUE
 )

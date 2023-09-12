@@ -45,6 +45,7 @@ function() {
 
 }
 
+#----record-count----
 #* @get /record-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -77,6 +78,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----species-count----
 #* @get /species-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -112,6 +114,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----collection-count----
 #* @get /collection-count
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -147,6 +150,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----quality-table----
 #* @get /quality-table
 #* @serializer rds
 function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -206,6 +210,7 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
 }
 
+#----occurrence-plot----
 #* @get /occurrence-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -261,6 +266,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----species-plot----
 #* @get /species-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -299,6 +305,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----annotations-plot----
 #* @get /annotations-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -362,6 +369,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----datasets-plot----
 #* @get /datasets-plot
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -484,6 +492,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----municipality-map----
 #* @get /municipality-map
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -520,6 +529,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----bio-province-map----
 #* @get /bio-province-map
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL") {
@@ -556,6 +566,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
 }
 
+#----specimen-collections----
 #* @get /specimen-collections
 #* @serializer rds
 function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
@@ -921,6 +932,7 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
 }
 
+#----progress-plot----
 #* @get /progress-plot
 #* @serializer rds
 function(spec_source = "NULL", discipline = "NULL") {
@@ -1155,6 +1167,7 @@ function(spec_source = "NULL", discipline = "NULL") {
 
 }
 
+#----specimen-map----
 #* @get /specimen-map
 #* @serializer rds
 function(spec_source = "NULL", discipline = "NULL") {
@@ -1387,6 +1400,7 @@ function(spec_source = "NULL", discipline = "NULL") {
 
 }
 
+#----cit-sci-species-count----
 #* @get /cit-sci-species-count
 #* @serializer rds
 function(projects = "NULL") {
@@ -1424,6 +1438,7 @@ function(projects = "NULL") {
 
 }
 
+#----cit-sci-user-count----
 #* @get /cit-sci-user-count
 #* @serializer rds
 function(projects = "NULL") {
@@ -1478,7 +1493,8 @@ function(projects = "NULL") {
 
 }
 
-#* @get /occurrence_citsci
+#----occurrence-citsci----
+#* @get /occurrence-citsci
 #* @serializer rds
 function(projects = "NULL") {
 
@@ -1528,4 +1544,3 @@ function(projects = "NULL") {
   }, seed = TRUE)
 
 }
-

@@ -1633,7 +1633,7 @@ occurrence_cit_plot <-
   reactive({
     
     req <-
-      req_url_path(req, "occurrence_citsci") |>
+      req_url_path(req, "occurrence-citsci") |>
       req_url_query(projects = input$projects)
     
     future_promise({

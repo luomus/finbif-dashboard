@@ -206,25 +206,6 @@
       ],
       "Hash": "283015ddfbb9d7bf15ea9f0b5698f0d9"
     },
-    "bsplus": {
-      "Package": "bsplus",
-      "Version": "0.1.4",
-      "Source": "Repository",
-      "Repository": "CRAN",
-      "Requirements": [
-        "R",
-        "glue",
-        "htmltools",
-        "jsonlite",
-        "lubridate",
-        "magrittr",
-        "methods",
-        "purrr",
-        "rmarkdown",
-        "stringr"
-      ],
-      "Hash": "2b1c662ff3624ddb37fcb07c6449e55b"
-    },
     "cachem": {
       "Package": "cachem",
       "Version": "1.0.8",
@@ -803,7 +784,7 @@
     },
     "knitr": {
       "Package": "knitr",
-      "Version": "1.43",
+      "Version": "1.44",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -815,7 +796,7 @@
         "xfun",
         "yaml"
       ],
-      "Hash": "9775eb076713f627c07ce41d8199d8f6"
+      "Hash": "60885b9f746c9dfaef110d070b5f7dc0"
     },
     "labeling": {
       "Package": "labeling",

@@ -19,7 +19,6 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup, context = "setup", include = FALSE}
-library(bsplus)
 library(dplyr)
 library(DT)
 library(flexdashboard)
@@ -68,8 +67,10 @@ enableBookmarking("url")
 translator <- Translator$new(translation_json_path = "translation.json")
 ```
 
-```{r shinyjs, context = "render", echo = FALSE}
+```{r resources, context = "render", echo = FALSE}
 addResourcePath("shinyjs", system.file("srcjs", package = "shinyjs"))
+addResourcePath("robots.txt", "robots.txt")
+addResourcePath("favicon.ico", "favicon.ico")
 ```
 
 <script src="shinyjs/inject.js"></script>
@@ -144,7 +145,7 @@ $("body").on(
 )
 ```
 
-```{r resources, context = "server"}
+```{r server, context = "server"}
 useShinyjs(html = TRUE)
 
 observe({
@@ -240,8 +241,6 @@ bindEvent(input$restriction_link, ignoreInit = TRUE)
 ```
 
 ```{r waiter, context = "render", echo = FALSE}
-addResourcePath("robots.txt", "robots.txt")
-addResourcePath("favicon.ico", "favicon.ico")
 autoWaiter(
   c(
     "quality_table", 

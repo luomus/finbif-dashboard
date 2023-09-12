@@ -423,10 +423,28 @@ output$restriction <- renderUI(restriction())
 ####
 
 ```{r reset1, context = "render", echo = FALSE}
-actionButton("reset1", "Reset", width = "100%", class = "btn-primary")
+uiOutput("reset1")
 ```
 
 ```{r reset_render1, context = "server"}
+reset1 <- 
+  reactive({
+    
+    translator$set_translation_language(input$lang)
+    
+    actionButton(
+      "reset1",
+      translator$t("Reset"),
+      width = "100%",
+      class = "btn-primary"
+    )
+    
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$reset1 <- renderUI(reset1())
+
 observe(
   {
     reset("source_link")

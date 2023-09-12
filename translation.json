@@ -36,6 +36,7 @@
     {"en": "Data Restriction", "fi": "Tietojen rajoitus"},
     {"en": "All Data", "fi": "Kaikki tiedot"},
     {"en": "Restricted Only", "fi": "Vain rajoitettu"},
-    {"en": "Unrestricted Only", "fi": "Vain rajoittamaton"}
+    {"en": "Unrestricted Only", "fi": "Vain rajoittamaton"},
+    {"en": "Reset", "fi": "Nollaa"}
   ]
 }

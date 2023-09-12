@@ -120,14 +120,58 @@ observe({
 
   session$doBookmark()
 
+}) |>
+bindEvent(
+  input$lang,
+  input$source,
+  input$taxa,
+  input$restriction,
+  input$occurrence_tab,
+  input$collections_tab,
+  input$citsci_tab,
+  input$collection_quality,
+  input$level,
+  input$spec_source,
+  input$discipline,
+  input$spec_map_source,
+  input$map_discipline,
+  input$projects,
+  ignoreInit = TRUE
+)
+
+onBookmarked({
+  function(url) {
+    updateQueryString(url)
+    runjs('
+      parent.location.hash = 
+        document
+          .querySelector("a.nav-link.active")
+            .getAttribute("href");
+    ')
+  }
 })
 
-onBookmarked(function(url) updateQueryString(url))
-
-observeEvent(
-  input$lang_link,
+observe(
   updateSelectInput(session, "lang", selected = input[["lang_link"]])
-)
+) |>
+bindEvent(input$lang_link)
+
+observe(
+  updateSelectInput(session, "source", selected = input[["source_link"]])
+) |>
+bindEvent(input$source_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(session, "taxa", selected = input[["taxa_link"]])
+) |>
+bindEvent(input$taxa_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "restriction", selected = input[["restriction_link"]]
+  )
+) |>
+bindEvent(input$restriction_link, ignoreInit = TRUE)
 ```
 
 <script src="shinyjs/inject.js"></script>
@@ -223,7 +267,7 @@ autoWaiter(
 )
 ```
 
-Occurrence Data {#occurrence-page}
+`r textOutput("occurrence_title")` {#occurrence-page}
 ================================================================================
 
 Column {data-width=150}
@@ -233,50 +277,150 @@ Column {data-width=150}
 
 ####
 
-```{r sources, context = "render", echo = FALSE}
-selectInput(
-  "source",
-  NULL,
-  c(
-    "Data Source   " = "",
-    "All Sources" = "NULL",
-    collections$sources
-  ),
-  width = "100%"
-)
-selectInput(
-  "taxa",
-  NULL,
-  c(
-    "Taxa   " = "",
-    "All Taxa" = "NULL",
-    "Algae" = "Algae",
-    "Bryophytes" = "Bryophytes",
-    "Vascular Plants"= "Vascular Plants",
-    "Fungi & Lichen" = "Fungi and lichens",
-    "Worms" = "Worms",
-    "Molluscs" = "Molluscs",
-    "Crustaceans" = "Crustaceans",
-    "Myriapods" = "Myriapods",
-    "Insects & Arachnids" = "Insects and arachnids",
-    "Fish" = "Fishes",
-    "Reptiles & Amphibians" = "Reptiles and amphibians",
-    "Birds" = "Birds",
-    "Mammals" = "Mammals"
-  ),
-  width = "100%"
-)
-selectInput(
-  "restriction",
-  NULL,
-  c(
-    "Data Restriction   " = "",
-    "All Data" = "NULL",
-    "Restricted Only" = "true",
-    "Unrestricted Only" = "false"
-  ),
-  width = "100%"
-)
+```{r occurrence_page_title_render, context = "server"}
+occurrence_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Occurrence Data")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$occurrence_title <- renderText(occurrence_title())
+```
+
+```{r occurrence_page_inputs, context = "render", echo = FALSE}
+uiOutput("sources")
+uiOutput("taxa")
+uiOutput("restriction")
+```
+
+```{r source_render, context = "server"}
+sources <- 
+  reactive({
+    
+    translator$set_translation_language(input$lang)
+    
+    choices <- c("", "NULL", collections$sources)
+    
+    names(choices) <- c(
+      paste0(translator$t("Data Source"), "   "),
+      translator$t(c("All Sources", names(collections$sources)))
+    )
+  
+    selectInput(
+      "source_link",
+      NULL,
+      choices,
+      input$source,
+      width = "100%"
+    )
+    
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$sources <- renderUI(sources())
+```
+
+```{r taxa_render, context = "server"}
+taxa <- 
+  reactive({
+    
+    translator$set_translation_language(input$lang)
+    
+    choices <- c(
+      "",
+      "NULL",
+      "Algae",
+      "Bryophytes",
+      "Vascular Plants",
+      "Fungi and lichens",
+      "Worms",
+      "Molluscs",
+      "Crustaceans",
+      "Myriapods",
+      "Insects and arachnids",
+      "Fishes",
+      "Reptiles and amphibians",
+      "Birds",
+      "Mammals"
+    )
+    
+    names(choices) <- c(
+      paste0(translator$t("Taxa"), "   "),
+      translator$t(
+        c(
+          "All Taxa",
+          "Algae",
+          "Bryophytes",
+          "Vascular Plants",
+          "Fungi & lichens",
+          "Worms",
+          "Molluscs",
+          "Crustaceans",
+          "Myriapods",
+          "Insects & arachnids",
+          "Fishes",
+          "Reptiles & amphibians",
+          "Birds",
+          "Mammals"
+        )
+      )
+    )
+  
+    selectInput(
+      "taxa_link",
+      NULL,
+      choices,
+      input$taxa,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$taxa <- renderUI(taxa())
+```
+
+```{r restriction_render, context = "server"}
+restriction <- 
+  reactive({
+    
+    translator$set_translation_language(input$lang)
+    
+    choices <- c(
+      "",
+      "NULL",
+      "true",
+      "false"
+    )
+    
+    names(choices) <- c(
+      paste0(translator$t("Data Restriction"), "   "),
+      translator$t(
+        c(
+          "All Data",
+          "Restricted Only",
+          "Unrestricted Only"
+        )
+      )
+    )
+    
+    selectInput(
+      "restriction_link",
+      NULL,
+      choices,
+      input$restriction,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$restriction <- renderUI(restriction())
 ```
 
 ####
@@ -286,16 +430,19 @@ actionButton("reset1", "Reset", width = "100%", class = "btn-primary")
 ```
 
 ```{r reset_render1, context = "server"}
-observeEvent(
-  input$reset1,
+observe(
   {
+    reset("source_link")
     reset("source")
+    reset("taxa_link")
     reset("taxa")
+    reset("restriction_link")
     reset("restriction")
     reset("collection_quality")
     reset("level")
   }
-)
+) |>
+bindEvent(input$reset1)
 ```
 
 #### {.invisible}
@@ -305,6 +452,29 @@ selectInput("lang", NULL, choices = c("en", "fi"))
 selectInput("occurrence_tab", NULL, choices = 0:3)
 selectInput("collections_tab", NULL, choices = 0:1)
 selectInput("citsci_tab", NULL, choices = 0:2)
+selectInput("source", NULL, choices = c("", "NULL", collections$sources))
+selectInput(
+  "taxa",
+  NULL,
+  choices = c(
+    "",
+    "NULL",
+    "Algae",
+    "Bryophytes",
+    "Vascular Plants",
+    "Fungi and lichens",
+    "Worms",
+    "Molluscs",
+    "Crustaceans",
+    "Myriapods",
+    "Insects and arachnids",
+    "Fishes",
+    "Reptiles and amphibians",
+    "Birds",
+    "Mammals"
+  )
+)
+selectInput("restriction", NULL, choices = c("", "NULL", "true", "false"))
 ```
 
 Column {data-width=200}
@@ -773,7 +943,7 @@ output$municipality_map <- renderPlotly({
 })
 ```
 
-Specimen Collections/Digitisation {#specimen-collection-page}
+`r textOutput("specimen_collection_title")` {#specimen-collection-page}
 ================================================================================
 
 Column {data-width=150}
@@ -782,6 +952,18 @@ Column {data-width=150}
 ### {data-height=250}
 
 ####
+
+```{r specimen_collection_page_title_render, context = "server"}
+specimen_collection_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Specimen Collections/Digitisation")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_collection_title <- renderText(specimen_collection_title())
+```
 
 ```{r spec_sources1, context = "render", echo = FALSE}
 selectInput(
@@ -1122,7 +1304,7 @@ output$progress_plot <- renderPlotly({
 })
 ```
 
-Specimens Map {#specimen-map-page}
+`r textOutput("specimen_map_title")` {#specimen-map-page}
 ================================================================================
 
 Column {data-width=150}
@@ -1131,6 +1313,18 @@ Column {data-width=150}
 ### {data-height=250}
 
 ####
+
+```{r specimen_map_page_title_render, context = "server"}
+specimen_map_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Specimens Map")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_map_title <- renderText(specimen_map_title())
+```
 
 ```{r spec_sources2, context = "render", echo = FALSE}
 selectInput(
@@ -1217,7 +1411,7 @@ output$specimen_map <- renderPlotly({
 })
 ```
 
-Citizen Science {#citsci-page}
+`r textOutput("citsci_title")` {#citsci-page}
 ================================================================================
 
 Column {data-width=150}
@@ -1226,6 +1420,18 @@ Column {data-width=150}
 ### {data-height=250}
 
 ####
+
+```{r citsci_title_render, context = "server"}
+citsci_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Citizen Science")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$citsci_title <- renderText(citsci_title())
+```
 
 ```{r projects, context = "render", echo = FALSE}
 selectInput(

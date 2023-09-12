@@ -8,13 +8,11 @@ output:
     favicon: favicon.ico
     theme:
       version: 4
-      fg: "#FDF7F7"
-      bg: "#2C3E50"
+      fg: "#141B15"
+      bg: "#FFFFFF"
       primary: "#2691D9"
       base_font:
         google: Roboto
-      code_font:
-        google: JetBrains Mono
     orientation: columns
     vertical_layout: fill
 runtime: shiny_prerendered
@@ -42,7 +40,7 @@ library(waiter)
 plan(multisession)
 
 thematic_shiny(
-  font = "Roboto", fg = "#FDF7F7", bg = "#2C3E50", accent = "#2691D9"
+  font = "Roboto", fg = "#141B15", bg = "#FFFFFF", accent = "#2691D9"
 )
 
 api <- Sys.getenv("DASHBOARD_API")

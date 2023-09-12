@@ -1,4 +1,52 @@
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmWUlfBBc4AMP6lQ.woff2);
+}
+
+@font-face {
+  font-family: "Roboto";
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url(https://fonts.gstatic.com/s/roboto/v30/KFOlCnqEu92Fr1MmEU9fBBc4AMP6lQ.woff2);
+}
+
+.navbar {
+  padding: 0 !important;
+}
+
 .navbar .dropdown-menu {
   right: 0;
   left: auto;
+}
+
+.navbar-brand {
+  margin: 0;
+  padding-left: 0px;
+  padding-right: 15px;
+  padding-top: 15px;
+  padding-bottom: 15px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 20px !important;
+}
+
+.nav-link {
+  padding-left: 15px !important;
+  padding-right: 15px !important;
+  padding-top: 15px;
+  padding-bottom: 15px;
+}
+
+a.nav-link div {
+  font-size: 14px;
+  font-weight: 500;
+}
+
+a.nav-link, a.nav-link span, a.nav-link div{
+  line-height: 20px;
 }

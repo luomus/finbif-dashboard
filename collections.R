@@ -32,7 +32,7 @@ collections <- switch(
       "Luomus" = "HR.128",
       "Metsähallitus" = "HR.3551",
       "SYKE" = "HR.3552",
-      "University of Jyväskylä " = "HR.1247",
+      "University of Jyväskylä" = "HR.1247",
       "University of Oulu" = "HR.1207",
       "University of Turku" = "HR.1627"
     ),

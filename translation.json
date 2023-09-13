@@ -45,6 +45,14 @@
     {"en": "All Levels", "fi": "Kaikki tasot"},
     {"en": "Professionals", "fi": "Ammattilaiset"},
     {"en": "Specialists", "fi": "Asiantuntijat"},
-    {"en": "Citizen Scientists", "fi": "Kansalaiset Tiedemiehet"}
+    {"en": "Citizen Scientists", "fi": "Kansalaiset Tiedemiehet"},
+    {"en": "Verification Status", "fi": "Vahvistuksen tila"},
+    {"en": "Number of Records", "fi": "Tietueiden määrä"},
+    {"en": "Expert verified", "fi": "Asiantuntija vahvistanut"},
+    {"en": "Community verified", "fi": "Yhteisö vahvistettu"},
+    {"en": "Unassessed", "fi": "Arvioimaton"},
+    {"en": "Uncertain", "fi": "Epävarma"},
+    {"en": "Erroneous", "fi": "Virheellinen"},
+    {"en": "Total", "fi": "Kaikki yhteensä"}
   ]
 }

@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(RPostgres, quietly = TRUE)
   library(sf, quietly = TRUE)
   library(tidyr, quietly = TRUE)
+  library(shiny.i18n, quietly = TRUE)
 
 })
 
@@ -33,6 +34,8 @@ sanitise <- function(x) {
 }
 
 source("collections.R")
+
+translator <- Translator$new(translation_json_path = "translation.json")
 
 if (!dir.exists("logs")) dir.create("logs")
 
@@ -153,7 +156,13 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----quality-table----
 #* @get /quality-table
 #* @serializer rds
-function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", source = "NULL") {
+function(
+  collection_quality = "NULL",
+  restriction = "NULL",
+  taxa = "NULL",
+  source = "NULL",
+  lang = "en"
+) {
 
   filter <- list(exclude_missing_levels = FALSE)
 
@@ -173,34 +182,38 @@ function(collection_quality = "NULL", restriction = "NULL", taxa = "NULL", sourc
 
     options(finbif_cache_path = db)
 
+    translator$set_translation_language(lang)
+
+    levels = c(
+      "Expert verified",
+      "Community verified",
+      "Unassessed",
+      "Uncertain",
+      "Erroneous"
+    )
+
     ans <-
       fb_occurrence(
         filter = filter,
-        select = c(`Verification Status` = "record_quality"),
+        select = "record_quality",
         aggregate = "records",
         n = "all"
       ) |>
-      mutate(
-        `Verification Status` = replace_na(`Verification Status`, "Unassessed")
-      ) |>
-      group_by(`Verification Status`) |>
+      mutate(record_quality = replace_na(record_quality, "Unassessed")) |>
+      group_by(record_quality) |>
       summarise(n_records = sum(n_records), .groups = "drop") |>
-      rename(`Number of Records` = n_records) |>
       mutate(
-        `Verification Status` = factor(
-          `Verification Status`,
-          levels = c(
-            "Expert verified",
-            "Community verified",
-            "Unassessed",
-            "Uncertain",
-            "Erroneous"
-          ),
+        record_quality = factor(
+          record_quality,
+          levels = levels,
+          labels = translator$t(levels),
           ordered = TRUE
         )
       ) |>
-      arrange(`Verification Status`) |>
-      adorn_totals()
+      arrange(record_quality) |>
+      adorn_totals(name = translator$t("Total"))
+
+    colnames(ans) <- translator$t(c("Verification Status", "Number of Records"))
 
     dbDisconnect(db)
 

@@ -209,7 +209,7 @@ onBookmarked({
   function(url) {
     updateQueryString(url)
     runjs('
-      parent.location.hash = 
+      parent.location.hash =
         document
           .querySelector("a.nav-link.active")
             .getAttribute("href");
@@ -699,7 +699,8 @@ quality_table <-
         collection_quality = input$collection_quality,
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source
+        source = input$source,
+        lang = input$lang
       )
 
     future_promise({
@@ -712,11 +713,19 @@ quality_table <-
 
   }) |>
   bindCache(
-    input$collection_quality, input$restriction, input$taxa, input$source,
+    input$collection_quality,
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
     cache = "session"
   ) |>
   bindEvent(
-    input$collection_quality, input$restriction, input$taxa, input$source
+    input$collection_quality,
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang
   )
 
 output$quality_table <- renderDataTable({

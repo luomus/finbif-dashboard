@@ -8,9 +8,9 @@ output:
     favicon: favicon.ico
     theme:
       version: 4
-      fg: "#141B15"
-      bg: "#FFFFFF"
-      primary: "#2691D9"
+      bg: "#141B15"
+      fg: "#FFFFFF"
+      primary: "#55AAE2"
       base_font:
         google: Roboto
     orientation: columns
@@ -39,7 +39,7 @@ library(waiter)
 plan(multisession)
 
 thematic_shiny(
-  font = "Roboto", fg = "#141B15", bg = "#FFFFFF", accent = "#2691D9"
+  font = "Roboto", bg = "#141B15", fg = "#FFFFFF", accent = "#55AAE2"
 )
 
 api <- Sys.getenv("DASHBOARD_API")
@@ -276,6 +276,8 @@ autoWaiter(
 
 Column {data-width=150}
 --------------------------------------------------------------------------------
+
+<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
 
 ### {data-height=250}
 
@@ -537,7 +539,7 @@ record_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-pen", color = "#2691D9")
+      valueBox(icon = "fa-pen", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -581,7 +583,7 @@ species_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-dove", color = "#2691D9")
+      valueBox(icon = "fa-dove", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -625,7 +627,7 @@ collection_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-database", color = "#2691D9")
+      valueBox(icon = "fa-database", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -1035,6 +1037,8 @@ output$municipality_map <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
+<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+
 ### {data-height=250}
 
 ####
@@ -1117,7 +1121,7 @@ specimen_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-mosquito", color = "#2691D9")
+      valueBox(icon = "fa-mosquito", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -1151,7 +1155,7 @@ digitised_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-computer", color = "#2691D9")
+      valueBox(icon = "fa-computer", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -1219,7 +1223,7 @@ imaged_count <-
       req_perform(req) |>
       resp_body_raw() |>
       unserialize() |>
-      valueBox(icon = "fa-camera", color = "#2691D9")
+      valueBox(icon = "fa-camera", color = "#55AAE2")
 
     }, seed = TRUE)
 
@@ -1396,6 +1400,8 @@ output$progress_plot <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
+<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+
 ### {data-height=250}
 
 ####
@@ -1503,6 +1509,8 @@ output$specimen_map <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
+<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+
 ### {data-height=250}
 
 ####
@@ -1575,7 +1583,7 @@ project_count <-
     future_promise({
 
       valueBox(
-        n, icon = "fa-clipboard-list", color = "#2691D9", caption = caption
+        n, icon = "fa-clipboard-list", color = "#55AAE2", caption = caption
       )
 
     }, seed = TRUE)

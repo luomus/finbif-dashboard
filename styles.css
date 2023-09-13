@@ -52,10 +52,27 @@ a.nav-link, a.nav-link span, a.nav-link div {
   line-height: 20px;
 }
 
-.navbar .nav-link {
-  color:#fff !important;
+.navbar-brand, .navbar .nav-link {
+  color: #141B15 !important;
 }
 
 .navbar-brand:hover, .nav-link:hover, .navbar-left .nav-link.active {
-  background-color: rgb(31, 116, 173);
+  background-color: #3B9DDE;
+}
+
+.site-title {
+  background-color: #55AAE2;
+  padding: 15px;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  line-height: 20px;
+  width: 100%;
+  color: #141B15;
+  display: block;
+}
+
+.site-title-box {
+  margin-right: 8px;
+  display: block;
 }

@@ -65,6 +65,12 @@ source("collections.R")
 enableBookmarking("url")
 
 translator <- Translator$new(translation_json_path = "translation.json")
+
+ggplotly_locale <- function(x, ...) {
+
+  config(ggplotly(x$plot, ...), locale = x$lang)
+
+}
 ```
 
 ```{r resources, context = "render", echo = FALSE}
@@ -245,6 +251,14 @@ observe(
   )
 ) |>
 bindEvent(input$collection_quality_link, ignoreInit = TRUE)
+
+site_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("DASHBOARD")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
 ```
 
 ```{r waiter, context = "render", echo = FALSE}
@@ -274,15 +288,6 @@ autoWaiter(
 `r textOutput("occurrence_title")` {#occurrence-page}
 ================================================================================
 
-Column {data-width=150}
---------------------------------------------------------------------------------
-
-<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
-
-### {data-height=250}
-
-####
-
 ```{r occurrence_page_title_render, context = "server"}
 occurrence_title <-
   reactive({
@@ -294,6 +299,21 @@ occurrence_title <-
 
 output$occurrence_title <- renderText(occurrence_title())
 ```
+
+Column {data-width=150}
+--------------------------------------------------------------------------------
+
+```{r site_title1, context = "render", echo = FALSE}
+span(textOutput("site_title1"), class = "site-title")
+```
+
+```{r site_title1_render, context = "server"}
+output$site_title1 <- renderText(site_title())
+```
+
+### {data-height=250}
+
+####
 
 ```{r occurrence_page_inputs, context = "render", echo = FALSE}
 uiOutput("sources")
@@ -361,14 +381,14 @@ taxa <-
           "Algae",
           "Bryophytes",
           "Vascular Plants",
-          "Fungi & lichens",
+          "Fungi & Lichens",
           "Worms",
           "Molluscs",
           "Crustaceans",
           "Myriapods",
-          "Insects & arachnids",
+          "Insects & Arachnids",
           "Fishes",
-          "Reptiles & amphibians",
+          "Reptiles & Amphibians",
           "Birds",
           "Mammals"
         )
@@ -778,7 +798,19 @@ observe({
 })
 ```
 
-### Occurrences {#occurrences-occ-plot}
+### `r textOutput("occ_occ_plot_title", inline = TRUE)` {#occurrences-occ-plot}
+
+```{r occ_occ_plot_title_render, context = "server"}
+occ_occ_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Occurrences")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$occ_occ_plot_title <- renderText(occ_occ_plot_title())
+```
 
 ```{r occurrence_plot_output, context = "render", echo = FALSE}
 plotlyOutput("occurrence_plot")
@@ -792,39 +824,82 @@ occurrence_plot <-
       req_url_path(req, "occurrence-plot") |>
       req_url_query(
         restriction = input$restriction,
-        taxa = input$taxa, 
-        source = input$source
+        taxa = input$taxa,
+        source = input$source,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      mutate(Date = as_date(Date)) |>
-      ggplot() +
-        aes(x = Date, y = Records) +
-        geom_line() +
-        facet_wrap(~Type, 2) +
-        scale_y_continuous(label = comma) +
-        labs(x = NULL, y = NULL) +
-        theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
 
-    }, seed = TRUE)
+        translator$set_translation_language(lang)
+
+        date <- translator$t("Date")
+
+        records <- translator$t("Records")
+
+        type <- translator$t("Type")
+
+        res[[date]] <- as_date(res[[date]])
+
+        gg <-
+          ggplot(res) +
+          aes(x = .data[[date]], y = .data[[records]]) +
+          geom_line() +
+          facet_wrap(~.data[[type]], 2) +
+          scale_y_continuous(label = comma) +
+          labs(x = NULL, y = NULL) +
+          theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang
+  )
 
 output$occurrence_plot <- renderPlotly({
 
   occurrence_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly_locale(dynamicTicks = TRUE)
 
 })
 ```
 
-### Species {#species-occ-plot}
+### `r textOutput("sp_occ_plot_title", inline = TRUE)` {#species-occ-plot}
+
+```{r sp_occ_plot_title_render, context = "server"}
+sp_occ_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Species")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$sp_occ_plot_title <- renderText(sp_occ_plot_title())
+```
 
 ```{r species_plot_output, context = "render", echo = FALSE}
 plotlyOutput("species_plot")
@@ -838,36 +913,76 @@ species_plot <-
       req_url_path(req, "species-plot") |>
       req_url_query(
         restriction = input$restriction,
-        taxa = input$taxa, 
-        source = input$source
+        taxa = input$taxa,
+        source = input$source,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Species, Records) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        labs(x = NULL, y = "Records")
+        translator$set_translation_language(lang)
 
-    }, seed = TRUE)
+        records <- translator$t("Records")
+
+        species <- translator$t("Species")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[species]], .data[[records]]) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          labs(x = NULL, y = records)
+        
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang
+  )
 
 output$species_plot <- renderPlotly(
 
   species_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly_locale(dynamicTicks = TRUE)
 
 )
 ```
 
-### Annotations {#annotations-occ-plot}
+### `r textOutput("ann_occ_plot_title", inline = TRUE)` {#annotations-occ-plot}
+
+```{r ann_occ_plot_title_render, context = "server"}
+ann_occ_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Annotations")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$ann_occ_plot_title <- renderText(ann_occ_plot_title())
+```
 
 ```{r annotations_plot_output, context = "render", echo = FALSE}
 plotlyOutput("annotations_plot")
@@ -881,37 +996,78 @@ annotations_plot <-
       req_url_path(req, "annotations-plot") |>
       req_url_query(
         restriction = input$restriction,
-        taxa = input$taxa, 
-        source = input$source
+        taxa = input$taxa,
+        source = input$source,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      mutate(Date = as_date(Date)) |>
-      ggplot() +
-        aes(x = Date, y = Annotations) +
-        geom_line() +
-        scale_y_continuous(label = comma) +
-        labs(x = NULL, y = NULL)
+        translator$set_translation_language(lang)
 
-    }, seed = TRUE)
+        date <- translator$t("Date")
+
+        annotations <- translator$t("Annotations")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        res[[date]] <- as_date(res[[date]])
+
+        gg <-
+          ggplot(res) +
+          aes(x = .data[[date]], y = .data[[annotations]]) +
+          geom_line() +
+          scale_y_continuous(label = comma) +
+          labs(x = NULL, y = NULL)
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang
+  )
 
 output$annotations_plot <- renderPlotly(
 
   annotations_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly_locale(dynamicTicks = TRUE)
 
 )
 ```
 
-### Datasets {#datasets-occ-plot}
+### `r textOutput("data_occ_plot_title", inline = TRUE)` {#datasets-occ-plot}
+
+```{r data_occ_plot_title_render, context = "server"}
+data_occ_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Datasets")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$data_occ_plot_title <- renderText(data_occ_plot_title())
+```
 
 ```{r datasets_plot_output, context = "render", echo = FALSE}
 plotlyOutput("datasets_plot")
@@ -925,32 +1081,65 @@ datasets_plot <-
       req_url_path(req, "datasets-plot") |>
       req_url_query(
         restriction = input$restriction,
-        taxa = input$taxa, 
-        source = input$source
+        taxa = input$taxa,
+        source = input$source,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Dataset, n, fill = Type) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        scale_fill_viridis_d() +
-        labs(x = NULL, y = NULL)
+      {
 
-    }, seed = TRUE)
+        translator$set_translation_language(lang)
+
+        dataset <- translator$t("Dataset")
+
+        records <- translator$t("Records")
+
+        type <- translator$t("Type")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        gg <-
+          ggplot(res) +
+          aes(
+            x = .data[[dataset]], y = .data[[records]], fill = .data[[type]]
+          ) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          scale_fill_viridis_d() +
+          labs(x = NULL, y = NULL)
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang
+  )
 
 output$datasets_plot <- renderPlotly({
 
   datasets_plot() %...>%
-  ggplotly(dynamicTicks = TRUE) %...>%
+  ggplotly_locale(dynamicTicks = TRUE) %...>%
   layout(
     legend = list(
       x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
@@ -1046,7 +1235,13 @@ output$municipality_map <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
-<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+```{r site_title2, context = "render", echo = FALSE}
+span(textOutput("site_title2"), class = "site-title")
+```
+
+```{r site_title2_render, context = "server"}
+output$site_title2 <- renderText(site_title())
+```
 
 ### {data-height=250}
 
@@ -1409,7 +1604,13 @@ output$progress_plot <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
-<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+```{r site_title3, context = "render", echo = FALSE}
+span(textOutput("site_title3"), class = "site-title")
+```
+
+```{r site_title3_render, context = "server"}
+output$site_title3 <- renderText(site_title())
+```
 
 ### {data-height=250}
 
@@ -1518,7 +1719,13 @@ output$specimen_map <- renderPlotly({
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
-<span class="site-title-box"><span class="site-title">DASHBOARD</span></span>
+```{r site_title4, context = "render", echo = FALSE}
+span(textOutput("site_title4"), class = "site-title")
+```
+
+```{r site_title4_render, context = "server"}
+output$site_title4 <- renderText(site_title())
+```
 
 ### {data-height=250}
 

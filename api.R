@@ -33,6 +33,28 @@ sanitise <- function(x) {
 
 }
 
+get_children <- function(x, y = character()) {
+
+  is_part_of <- cols$is_part_of
+
+  children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
+
+  y <- c(y, children)
+
+  has_children <- cols[children, "has_children"]
+
+  if (!any(has_children, na.rm = TRUE)) {
+
+    y
+
+  } else {
+
+    get_children(children[has_children], y)
+
+  }
+
+}
+
 source("collections.R")
 
 translator <- Translator$new(translation_json_path = "translation.json")
@@ -226,7 +248,7 @@ function(
 #----occurrence-plot----
 #* @get /occurrence-plot
 #* @serializer rds
-function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
   filter <- list()
 
@@ -243,6 +265,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     ans <-
       fb_occurrence(
@@ -253,7 +277,10 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
       ) |>
       mutate(
         Type = case_match(
-          Type, "Specimen" ~ "Specimens", .default = "Observations"
+          Type,
+          "Specimen" ~ translator$t("Specimens"),
+          "Specimen" ~ translator$t("Specimens"),
+          .default = translator$t("Observations")
         )
       ) |>
       group_by(Type, Date) |>
@@ -264,7 +291,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     if (nrow(ans) < 1L) {
 
       ans <- data.frame(
-        Type = c("Observations", "Specimens"),
+        Type = translator$t(c("Observations", "Specimens")),
         Date = as.character(Sys.Date()),
         Records = 0
       )
@@ -272,6 +299,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     }
 
     dbDisconnect(db)
+
+    names(ans) <- translator$t(names(ans))
 
     ans
 
@@ -282,7 +311,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----species-plot----
 #* @get /species-plot
 #* @serializer rds
-function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
   filter <- list()
 
@@ -299,6 +328,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     ans <-
       fb_occurrence(
@@ -312,6 +343,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     dbDisconnect(db)
 
+    colnames(ans) <- translator$t(names(ans))
+
     ans
 
   }, seed = TRUE)
@@ -321,7 +354,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----annotations-plot----
 #* @get /annotations-plot
 #* @serializer rds
-function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
   filter <- list(annotated = TRUE)
 
@@ -340,6 +373,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     n_annotations <- fb_occurrence(
       filter = filter,
@@ -376,7 +411,11 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     dbDisconnect(db)
 
-    data.frame(Date = Date, Annotations = Annotations)
+    ans <- data.frame(Date = Date, Annotations = Annotations)
+
+    colnames(ans) <- translator$t(names(ans))
+
+    ans
 
   }, seed = TRUE)
 
@@ -385,7 +424,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----datasets-plot----
 #* @get /datasets-plot
 #* @serializer rds
-function(restriction = "NULL", taxa = "NULL", source = "NULL") {
+function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
   filter <- list(subcollections = FALSE)
 
@@ -403,27 +442,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 
     options(finbif_cache_path = db)
 
-    get_children <- function(x, y = character()) {
-
-      is_part_of <- cols$is_part_of
-
-      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
-
-      y <- c(y, children)
-
-      has_children <- cols[children, "has_children"]
-
-      if (!any(has_children, na.rm = TRUE)) {
-
-        y
-
-      } else {
-
-        get_children(children[has_children], y)
-
-      }
-
-    }
+    translator$set_translation_language(lang)
 
     cols <- fb_collections(
       select = c(id, has_children, is_part_of),
@@ -448,11 +467,15 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
           id = "collection_id"
         ),
         aggregate = "records",
-        n = "all"
+        n = "all",
+        locale = lang
       ) |>
       mutate(
         Type = case_match(
-          Type, "Specimen" ~ "Specimens", .default = "Observations"
+          Type,
+          "Specimen" ~ translator$t("Specimens"),
+          "Näyte" ~ translator$t("Specimens"),
+          .default = translator$t("Observations")
         ),
         Dataset = ifelse(
           nchar(Dataset) > 23L,
@@ -489,15 +512,17 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     }
 
     levels <-
-      filter(ans, Type == "Observations") |>
+      filter(ans, Type == translator$t("Observations")) |>
       pull(Dataset) |>
       rev()
 
     ans <-
       mutate(ans, Dataset = factor(Dataset, levels = levels)) |>
-      rename(n = n_records)
+      rename(Records = n_records)
 
     dbDisconnect(db)
+
+    colnames(ans) <- translator$t(names(ans))
 
     ans
 

@@ -60,7 +60,7 @@ a.nav-link, a.nav-link span, a.nav-link div {
   background-color: #3B9DDE;
 }
 
-.site-title {
+.site-title > div {
   background-color: #55AAE2;
   padding: 15px;
   font-size: 18px;
@@ -72,7 +72,8 @@ a.nav-link, a.nav-link span, a.nav-link div {
   display: block;
 }
 
-.site-title-box {
+.site-title {
   margin-right: 8px;
+  margin-bottom: 8px;
   display: block;
 }

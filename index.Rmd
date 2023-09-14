@@ -54,9 +54,12 @@ url <- "https://cdn.laji.fi/files/biogeographical-province/%s"
 
 url <- sprintf(url, bio_province_zip)
 
-download.file(url, bio_province_zip)
+if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
+  
+  download.file(url, bio_province_zip)
 
-unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
+  unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
+}
 
 bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
 
@@ -1472,13 +1475,23 @@ selectInput(
 Column {data-width=200}
 --------------------------------------------------------------------------------
 
-### Specimens
+### `r textOutput("specimen_count_title")`
 
 ```{r fb_specimen_count_output, context = "render", echo = FALSE}
 valueBoxOutput("specimen_count")
 ```
 
 ```{r fb_specimen_count_render, context = "server"}
+specimen_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Specimens")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_count_title <- renderText(specimen_count_title())
+
 specimen_count <-
   reactive({
 
@@ -1505,13 +1518,23 @@ specimen_count <-
 output$specimen_count <- renderValueBox(specimen_count())
 ```
 
-### Digitised
+### `r textOutput("digitised_count_title")`
 
 ```{r fb_digitised_count_output, context = "render", echo = FALSE}
 valueBoxOutput("digitised_count")
 ```
 
 ```{r fb_digitised_count_render, context = "server"}
+digitised_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Digitised")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$digitised_count_title <- renderText(digitised_count_title())
+
 digitised_count <-
   reactive({
 
@@ -1539,13 +1562,23 @@ digitised_count <-
 output$digitised_count <- renderValueBox(digitised_count())
 ```
 
-### Percent Digitised
+### `r textOutput("digitised_percent_title")`
 
 ```{r fb_digitised_percent_output, context = "render", echo = FALSE}
 gaugeOutput("digitised_percent")
 ```
 
 ```{r fb_digitised_percent_render, context = "server"}
+digitised_percent_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Percent Digitised")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$digitised_percent_title <- renderText(digitised_percent_title())
+
 digitised_percent <-
   reactive({
 
@@ -1573,13 +1606,23 @@ digitised_percent <-
 output$digitised_percent <- renderGauge(digitised_percent())
 ```
 
-### Imaged
+### `r textOutput("imaged_count_title")`
 
 ```{r fb_imaged_count_output, context = "render", echo = FALSE}
 valueBoxOutput("imaged_count")
 ```
 
 ```{r fb_imaged_count_render, context = "server"}
+imaged_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Imaged")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$imaged_count_title <- renderText(imaged_count_title())
+
 imaged_count <-
   reactive({
 
@@ -1607,13 +1650,23 @@ imaged_count <-
 output$imaged_count <- renderValueBox(imaged_count())
 ```
 
-### Percent Imaged
+### `r textOutput("imaged_percent_title")`
 
 ```{r fb_imaged_percent_output, context = "render", echo = FALSE}
 gaugeOutput("imaged_percent")
 ```
 
 ```{r fb_imaged_percent_render, context = "server"}
+imaged_percent_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Percent Imaged")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$imaged_percent_title <- renderText(imaged_percent_title())
+
 imaged_percent <-
   reactive({
 
@@ -1673,7 +1726,19 @@ observe({
 })
 ```
 
-### Collections {#collections-col-plot}
+### `r textOutput("col_col_plot_title", inline = TRUE)` {#collections-col-plot}
+
+```{r col_col_plot_title_render, context = "server"}
+col_col_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Collections")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$col_col_plot_title <- renderText(col_col_plot_title())
+```
 
 ```{r collection_plot_output, context = "render", echo = FALSE}
 plotlyOutput("collection_plot")
@@ -1722,7 +1787,19 @@ output$collection_plot <- renderPlotly({
 })
 ```
 
-### Progress {#progress-col-plot}
+### `r textOutput("prog_col_plot_title", inline = TRUE)` {#progress-col-plot}
+
+```{r prog_col_plot_title_render, context = "server"}
+prog_col_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Progress")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$prog_col_plot_title <- renderText(prog_col_plot_title())
+```
 
 ```{r progress_plot_output, context = "render", echo = FALSE}
 plotlyOutput("progress_plot")

@@ -79,6 +79,12 @@
     {"en": "All Disciplines", "fi": "Kaikki Alat"},
     {"en": "Botany", "fi": "Kasvitiede"},
     {"en": "Zoology", "fi": "Eläintiede"},
-    {"en": "Geology", "fi": "Geologia"}
+    {"en": "Geology", "fi": "Geologia"},
+    {"en": "Digitised", "fi": "Digitalisoitu"},
+    {"en": "Percent Digitised", "fi": "Digitoitu Prosentti"},
+    {"en": "Imaged", "fi": "Kuvattu"},
+    {"en": "Percent Imaged", "fi": "Kuvattu Prosentti"},
+    {"en": "Collections", "fi": "Aineistot"},
+    {"en": "Progress", "fi": "Edistyminen"}
   ]
 }

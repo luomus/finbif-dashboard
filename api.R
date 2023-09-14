@@ -608,9 +608,9 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----specimen-collections----
 #* @get /specimen-collections
 #* @serializer rds
-function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
+function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
 
-  spec_source <- sanitise(spec_source)
+  institution <- sanitise(institution)
 
   discipline <- sanitise(discipline)
 
@@ -738,20 +738,20 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     }
 
-    botany <- c(
+    isbotany <- c(
       "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
       "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
       "kastikka"
     )
 
-    zoology <- c(
+    iszoology <- c(
       "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
       "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
       "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
       "aves"
     )
 
-    geology <- c("the geological collections", "fossil ", "fossils ")
+    isgeology <- c("the geological collections", "fossil ", "fossils ")
 
     text <- c("long_name", "description", "methods", "taxonomic_coverage")
 
@@ -859,26 +859,26 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     text <- tolower(do.call(paste, cols[, text]))
 
-    cols$is_botany <- grepl(paste(botany, collapse = "|"), text)
+    cols$botany <- grepl(paste(isbotany, collapse = "|"), text)
 
-    cols$is_zoology <- grepl(paste(zoology, collapse = "|"), text)
+    cols$zoology <- grepl(paste(iszoology, collapse = "|"), text)
 
-    cols$is_geology <- grepl(paste(geology, collapse = "|"), text)
+    cols$geology <- grepl(paste(isgeology, collapse = "|"), text)
 
-    cols$is_botany <- cols$is_botany & !cols$is_zoology & !cols$is_geology
+    cols$botany <- cols$botany & !cols$zoology & !cols$geology
 
-    cols$is_zoology <- cols$is_zoology & !cols$is_botany & !cols$is_geology
+    cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, is_botany = is_botany | vapply(id, child_is, NA, "is_botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany")
     )
 
     cols <- transform(
-      cols, is_zoology = is_zoology | vapply(id, child_is, NA, "is_zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
     )
 
     cols <- transform(
-      cols, is_geology = is_geology | vapply(id, child_is, NA, "is_geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology")
     )
 
     cols <- transform(cols, NULL = TRUE)
@@ -889,11 +889,11 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 
     }
 
-    if (!is.null(spec_source)) {
+    if (!is.null(institution)) {
 
-      children <- get_children(spec_source)
+      children <- get_children(institution)
 
-      cols <- filter(cols, id %in% c(spec_source, children))
+      cols <- filter(cols, id %in% c(institution, children))
 
     }
 
@@ -974,28 +974,28 @@ function(stat = "n_specimens", spec_source = "NULL", discipline = "NULL") {
 #----progress-plot----
 #* @get /progress-plot
 #* @serializer rds
-function(spec_source = "NULL", discipline = "NULL") {
+function(institution = "NULL", discipline = "NULL") {
 
-  spec_source <- sanitise(spec_source)
+  institution <- sanitise(institution)
 
   discipline <- sanitise(discipline)
 
   future_promise({
 
-    botany <- c(
+    isbotany <- c(
       "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
       "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
       "kastikka"
     )
 
-    zoology <- c(
+    iszoology <- c(
       "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
       "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
       "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
       "aves"
     )
 
-    geology <- c("the geological collections", "fossil ", "fossils ")
+    isgeology <- c("the geological collections", "fossil ", "fossils ")
 
     text <- c("long_name", "description", "methods", "taxonomic_coverage")
 
@@ -1110,26 +1110,26 @@ function(spec_source = "NULL", discipline = "NULL") {
 
     text <- tolower(do.call(paste, cols[, text]))
 
-    cols$is_botany <- grepl(paste(botany, collapse = "|"), text)
+    cols$botany <- grepl(paste(isbotany, collapse = "|"), text)
 
-    cols$is_zoology <- grepl(paste(zoology, collapse = "|"), text)
+    cols$zoology <- grepl(paste(iszoology, collapse = "|"), text)
 
-    cols$is_geology <- grepl(paste(geology, collapse = "|"), text)
+    cols$geology <- grepl(paste(isgeology, collapse = "|"), text)
 
-    cols$is_botany <- cols$is_botany & !cols$is_zoology & !cols$is_geology
+    cols$botany <- cols$botany & !cols$zoology & !cols$geology
 
-    cols$is_zoology <- cols$is_zoology & !cols$is_botany & !cols$is_geology
+    cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, is_botany = is_botany | vapply(id, child_is, NA, "is_botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany")
     )
 
     cols <- transform(
-      cols, is_zoology = is_zoology | vapply(id, child_is, NA, "is_zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
     )
 
     cols <- transform(
-      cols, is_geology = is_geology | vapply(id, child_is, NA, "is_geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology")
     )
 
     cols <- transform(cols, NULL = TRUE)
@@ -1144,11 +1144,11 @@ function(spec_source = "NULL", discipline = "NULL") {
 
     }
 
-    if (!is.null(spec_source)) {
+    if (!is.null(institution)) {
 
-      children <- get_children(spec_source)
+      children <- get_children(institution)
 
-      cols <- filter(cols, id %in% c(spec_source, children))
+      cols <- filter(cols, id %in% c(institution, children))
 
       collections <- cols$id
 
@@ -1217,20 +1217,20 @@ function(spec_source = "NULL", discipline = "NULL") {
 
   future_promise({
 
-    botany <- c(
+    isbotany <- c(
       "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
       "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
       "kastikka"
     )
 
-    zoology <- c(
+    iszoology <- c(
       "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
       "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
       "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
       "aves"
     )
 
-    geology <- c("the geological collections", "fossil ", "fossils ")
+    isgeology <- c("the geological collections", "fossil ", "fossils ")
 
     text <- c("long_name", "description", "methods", "taxonomic_coverage")
 
@@ -1345,26 +1345,26 @@ function(spec_source = "NULL", discipline = "NULL") {
 
     text <- tolower(do.call(paste, cols[, text]))
 
-    cols$is_botany <- grepl(paste(botany, collapse = "|"), text)
+    cols$botany <- grepl(paste(isbotany, collapse = "|"), text)
 
-    cols$is_zoology <- grepl(paste(zoology, collapse = "|"), text)
+    cols$zoology <- grepl(paste(iszoology, collapse = "|"), text)
 
-    cols$is_geology <- grepl(paste(geology, collapse = "|"), text)
+    cols$geology <- grepl(paste(isgeology, collapse = "|"), text)
 
-    cols$is_botany <- cols$is_botany & !cols$is_zoology & !cols$is_geology
+    cols$botany <- cols$botany & !cols$zoology & !cols$geology
 
-    cols$is_zoology <- cols$is_zoology & !cols$is_botany & !cols$is_geology
+    cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, is_botany = is_botany | vapply(id, child_is, NA, "is_botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany")
     )
 
     cols <- transform(
-      cols, is_zoology = is_zoology | vapply(id, child_is, NA, "is_zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
     )
 
     cols <- transform(
-      cols, is_geology = is_geology | vapply(id, child_is, NA, "is_geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology")
     )
 
     cols <- transform(cols, NULL = TRUE)

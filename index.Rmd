@@ -172,7 +172,7 @@ observe({
     "citsci_tab",
     "collection_quality",
     "maplevel",
-    "spec_source",
+    "institution",
     "discipline",
     "spec_map_source",
     "map_discipline",
@@ -202,7 +202,7 @@ bindEvent(
   input$citsci_tab,
   input$collection_quality,
   input$maplevel,
-  input$spec_source,
+  input$institution,
   input$discipline,
   input$spec_map_source,
   input$map_discipline,
@@ -257,6 +257,20 @@ observe(
   )
 ) |>
 bindEvent(input$maplevel_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "institution", selected = input[["institution_link"]]
+  )
+) |>
+bindEvent(input$institution_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "discipline", selected = input[["discipline_link"]]
+  )
+) |>
+bindEvent(input$discipline_link, ignoreInit = TRUE)
 
 site_title <-
   reactive({
@@ -494,7 +508,7 @@ bindEvent(input$reset1)
 
 #### {.invisible}
 
-```{r hidden_inputs, context = "render", echo = FALSE}
+```{r hidden_inputs1, context = "render", echo = FALSE}
 selectInput("lang", NULL, choices = c("en", "fi"))
 selectInput("occurrence_tab", NULL, choices = 0:3)
 selectInput("collections_tab", NULL, choices = 0:1)
@@ -1316,6 +1330,18 @@ output$municipality_map <- renderPlotly({
 `r textOutput("specimen_collection_title")` {#specimen-collection-page}
 ================================================================================
 
+```{r specimen_collection_page_title_render, context = "server"}
+specimen_collection_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Specimen Collections/Digitisation")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_collection_title <- renderText(specimen_collection_title())
+```
+
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
@@ -1331,56 +1357,115 @@ output$site_title2 <- renderText(site_title())
 
 ####
 
-```{r specimen_collection_page_title_render, context = "server"}
-specimen_collection_title <-
+```{r specimen_collection_page_inputs, context = "render", echo = FALSE}
+uiOutput("institution")
+uiOutput("discipline")
+```
+
+```{r institution_render, context = "server"}
+institution <-
   reactive({
+
     translator$set_translation_language(input$lang)
-    translator$t("Specimen Collections/Digitisation")
-  })|>
+
+    choices <- c("", "NULL", collections$institutions)
+
+    names(choices) <- c(
+      paste0(translator$t("Institution"), "   "),
+      translator$t(c("All Institutions", names(collections$institutions)))
+    )
+
+    selectInput(
+      "institution_link",
+      NULL,
+      choices,
+      input$institution,
+      width = "100%"
+    )
+
+  }) |>
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$specimen_collection_title <- renderText(specimen_collection_title())
+output$institution <- renderUI(institution())
 ```
 
-```{r spec_sources1, context = "render", echo = FALSE}
-selectInput(
-  "spec_source",
-  NULL,
-  c(
-    "Institution   " = "",
-    "All Institutions" = "NULL",
-    collections$institutions
-  ),
-  width = "100%"
-)
-selectInput(
-  "discipline",
-  NULL,
-  c(
-    "Discipline   " = "",
-    "All Disciplines" = "NULL",
-    "Botany" = "is_botany",
-    "Zoology" = "is_zoology",
-    "Geology" = "is_geology"
-  ),
-  width = "100%"
-)
+```{r discipline_render, context = "server"}
+discipline <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    choices <- c(
+      "",
+      "NULL",
+      "botany",
+      "zoology",
+      "geology"
+    )
+
+    names(choices) <- c(
+      paste0(translator$t("Discipline"), "   "),
+      translator$t(c("All Disciplines", "Botany", "Zoology", "Geology"))
+    )
+
+    selectInput(
+      "discipline_link",
+      NULL,
+      choices,
+      input$discipline,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$discipline <- renderUI(discipline())
 ```
 
 ####
 
 ```{r reset2, context = "render", echo = FALSE}
-actionButton("reset2", "Reset", width = "100%", class = "btn-primary")
+uiOutput("reset2")
 ```
 
 ```{r reset_render2, context = "server"}
-observeEvent(
-  input$reset2,
+reset2 <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    actionButton(
+      "reset2",
+      translator$t("Reset"),
+      width = "100%",
+      class = "btn-primary"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$reset2 <- renderUI(reset2())
+
+observe(
   {
-    reset("spec_source")
-    reset("discipline")
+    updateSelectInput(session, "institution_link", selected = "")
+    updateSelectInput(session, "discipline_link", selected = "")
   }
+) |>
+bindEvent(input$reset2)
+```
+
+#### {.invisible}
+
+```{r hidden_inputs2, context = "render", echo = FALSE}
+selectInput(
+  "institution", NULL, choices = c("", "NULL", collections$institutions)
+)
+selectInput(
+  "discipline", NULL, choices = c("", "NULL", "botany", "zoology", "geology")
 )
 ```
 
@@ -1401,7 +1486,7 @@ specimen_count <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source
+        institution = input$institution
       )
 
     future_promise({
@@ -1414,8 +1499,8 @@ specimen_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$specimen_count <- renderValueBox(specimen_count())
 ```
@@ -1434,7 +1519,7 @@ digitised_count <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source,
+        institution = input$institution,
         stat = "n_specimens_digitised"
       )
 
@@ -1448,8 +1533,8 @@ digitised_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$digitised_count <- renderValueBox(digitised_count())
 ```
@@ -1468,7 +1553,7 @@ digitised_percent <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source,
+        institution = input$institution,
         stat = "percent_digitised"
       )
 
@@ -1482,8 +1567,8 @@ digitised_percent <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$digitised_percent <- renderGauge(digitised_percent())
 ```
@@ -1502,7 +1587,7 @@ imaged_count <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source,
+        institution = input$institution,
         stat = "n_specimens_imaged"
       )
 
@@ -1516,8 +1601,8 @@ imaged_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$imaged_count <- renderValueBox(imaged_count())
 ```
@@ -1536,7 +1621,7 @@ imaged_percent <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source,
+        institution = input$institution,
         stat = "percent_imaged"
       )
 
@@ -1550,8 +1635,8 @@ imaged_percent <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$imaged_percent <- renderGauge(imaged_percent())
 ```
@@ -1602,7 +1687,7 @@ collection_plot <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source,
+        institution = input$institution,
         stat = "table"
       )
 
@@ -1621,8 +1706,8 @@ collection_plot <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$collection_plot <- renderPlotly({
 
@@ -1651,7 +1736,7 @@ progress_plot <-
       req_url_path(req, "progress-plot") |>
       req_url_query(
         discipline = input$discipline,
-        spec_source = input$spec_source
+        institution = input$institution
       )
 
     future_promise({
@@ -1671,8 +1756,8 @@ progress_plot <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$discipline, input$spec_source, cache = "session") |>
-  bindEvent(input$discipline, input$spec_source)
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
 
 output$progress_plot <- renderPlotly({
 

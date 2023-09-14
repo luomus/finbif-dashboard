@@ -18,7 +18,7 @@ collections <- switch(
       "Dairy Farm Monitoring" = "HR.3071",
       "FinBIF Notebook" = "HR.1747",
       "Hatikka" = "HR.447",
-      "INaturalist" = "HR.3211",
+      "iNaturalist" = "HR.3211",
       "Löydös" = "HR.203",
       "Retkikasvio" = "HR.4091",
       "School Collection Contest" = "HR.2629",
@@ -45,7 +45,7 @@ collections <- switch(
       "Museum of Lapland" = "HR.2249",
       "Nairobi National Museum" = "HR.3133",
       "Ostrobothnian Museum" = "HR.1727",
-      "University of Jyväskylä " = "HR.1247",
+      "University of Jyväskylä" = "HR.1247",
       "University of Oulu" = "HR.1207",
       "University of Turku" = "HR.1627"
     )
@@ -70,7 +70,7 @@ collections <- switch(
       "Dairy Farm Monitoring" = "HR.3071",
       "FinBIF Notebook" = "HR.1747",
       "Hatikka" = "HR.447",
-      "INaturalist" = "HR.3211",
+      "iNaturalist" = "HR.3211",
       "Löydös" = "HR.203",
       "Retkikasvio" = "HR.4091",
       "School Collection Contest" = "HR.2629",
@@ -103,7 +103,7 @@ collections <- switch(
       "Ostrobothnian Museum" = "HR.1727",
       "Porvoo Museum" = "HR.4171",
       "Tampere Museum" = "HR.3811",
-      "University of Jyväskylä " = "HR.1247",
+      "University of Jyväskylä" = "HR.1247",
       "University of Oulu" = "HR.1207",
       "University of Turku" = "HR.1627"
     )

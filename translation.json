@@ -60,6 +60,10 @@
     {"en": "Specimens", "fi": "Näytteet"},
     {"en": "Type", "fi": "Typpii"},
     {"en": "Date", "fi": "Päivämäärä"},
-    {"en": "Dataset", "fi": "Tietojoukko"}
+    {"en": "Dataset", "fi": "Tietojoukko"},
+    {"en": "Other", "fi": "Muu"},
+    {"en": "Region", "fi": "Maakunta"},
+    {"en": "Biogeographical Province", "fi": "Eliömaakunnat"},
+    {"en": "Municipality", "fi": "Kunta"}
   ]
 }

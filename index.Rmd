@@ -158,10 +158,9 @@ observe({
 
   inputs <- reactiveValuesToList(input)
 
-  defaults <- c("", "NULL", "0", "maakunta_name_fi")
+  defaults <- c("", "NULL", "0")
 
-  inputs_with_default_values <-
-    names(inputs)[unlist(inputs) %in% defaults]
+  inputs_with_default_values <- names(inputs)[unlist(inputs) %in% defaults]
 
   includes <- c(
     "lang",
@@ -172,7 +171,7 @@ observe({
     "collections_tab",
     "citsci_tab",
     "collection_quality",
-    "level",
+    "maplevel",
     "spec_source",
     "discipline",
     "spec_map_source",
@@ -202,7 +201,7 @@ bindEvent(
   input$collections_tab,
   input$citsci_tab,
   input$collection_quality,
-  input$level,
+  input$maplevel,
   input$spec_source,
   input$discipline,
   input$spec_map_source,
@@ -251,6 +250,13 @@ observe(
   )
 ) |>
 bindEvent(input$collection_quality_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "maplevel", selected = input[["maplevel_link"]]
+  )
+) |>
+bindEvent(input$maplevel_link, ignoreInit = TRUE)
 
 site_title <-
   reactive({
@@ -480,7 +486,7 @@ observe(
     updateSelectInput(session, "taxa_link", selected = "")
     updateSelectInput(session, "restriction_link", selected = "")
     updateSelectInput(session, "collection_quality_link", selected = "")
-    updateSelectInput(session, "level", selected = "maakunta_name_fi")
+    updateSelectInput(session, "maplevel_link", selected = "NULL")
   }
 ) |>
 bindEvent(input$reset1)
@@ -520,6 +526,9 @@ selectInput(
   "collection_quality",
   NULL, 
   choices = c("", "NULL", "professional", "hobbyist", "amateur")
+)
+selectInput(
+  "maplevel", NULL, choices = c("NULL", "bioprovince", "municipality")
 )
 ```
 
@@ -847,12 +856,18 @@ occurrence_plot <-
 
         res[[date]] <- as_date(res[[date]])
 
+        big_mark <- switch(lang, fi = ".", ",")
+
+        dec_mark <-switch(lang, fi = ",", ".")
+
         gg <-
           ggplot(res) +
           aes(x = .data[[date]], y = .data[[records]]) +
           geom_line() +
           facet_wrap(~.data[[type]], 2) +
-          scale_y_continuous(label = comma) +
+          scale_y_continuous(
+            label = label_comma(big.mark = big_mark, decimal.mark = dec_mark)
+          ) +
           labs(x = NULL, y = NULL) +
           theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
 
@@ -1017,11 +1032,17 @@ annotations_plot <-
 
         res[[date]] <- as_date(res[[date]])
 
+        big_mark <- switch(lang, fi = ".", ",")
+
+        dec_mark <-switch(lang, fi = ",", ".")
+
         gg <-
           ggplot(res) +
           aes(x = .data[[date]], y = .data[[annotations]]) +
           geom_line() +
-          scale_y_continuous(label = comma) +
+          scale_y_continuous(
+            label = label_comma(big.mark = big_mark, decimal.mark = dec_mark)
+          ) +
           labs(x = NULL, y = NULL)
 
         list(plot = gg, lang = lang)
@@ -1158,25 +1179,48 @@ Column {data-width=300}
 fillCol(
   height = "100%",
   flex = c(NA, 1),
-  selectInput(
-    "level",
-    NULL,
-    c(
-      "Region" = "maakunta_name_fi",
-      "Biogeographical Province" = "MAAKUNTA_FI",
-      "Municipality" = "municipality_name_fi"
-    ),
-    width = "100%"
-  ),
+  uiOutput("maplevel"),
   plotlyOutput("municipality_map")
 )
 ```
 
 ```{r municipality_map_render, context = "server"}
+maplevel <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    choices <- c("NULL", "bioprovince", "municipality")
+
+    names(choices) <- translator$t(
+      c("Region", "Biogeographical Province", "Municipality")
+    )
+
+    selectInput(
+      "maplevel_link",
+      NULL,
+      choices,
+      input$maplevel,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$maplevel <- renderUI(maplevel())
+
 municipality_map <-
   reactive({
 
-    level <- input$level
+    level <- input$maplevel
+
+    level <- switch(
+      level,
+      bioprovince = "MAAKUNTA_FI",
+      municipality = "municipality_name_fi",
+      paste0("maakunta_name_", input$lang)
+    )
 
     endpoint <- switch(
       level, MAAKUNTA_FI = "bio-province-map", "municipality-map"
@@ -1186,45 +1230,85 @@ municipality_map <-
       req_url_path(req, endpoint) |>
       req_url_query(
         restriction = input$restriction,
-        taxa = input$taxa, 
+        taxa = input$taxa,
         source = input$source
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      n <-
-        req_perform(req) |>
-        resp_body_raw() |>
-        unserialize()
+        translator$set_translation_language(lang)
 
-      map_data <-
-        switch(
-          level,
-          MAAKUNTA_FI = left_join(bio_provinces, n, by = join_by(MAAKUNTA_FI)),
-          left_join(finland, n, by = join_by(municipality_name_fi))
-        )
+        records <- translator$t("Records")
 
-      group_by(map_data, .data[[level]]) |>
-      summarise(Records = sum(n_records, na.rm = TRUE)) |>
-      mutate(text = paste0(.data[[level]], ": " , Records)) |>
-      st_cast("MULTIPOLYGON") |>
-      ggplot() +
-        aes(fill = Records, text = text) +
-        geom_sf(lwd = .1) +
-        scale_fill_viridis_c(label = comma)
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
 
-    }, seed = TRUE)
+        res <-
+          switch(
+            level,
+            MAAKUNTA_FI = left_join(
+              bio_provinces, res, by = join_by(MAAKUNTA_FI)
+            ),
+            left_join(finland, res, by = join_by(municipality_name_fi))
+          ) |>
+          group_by(.data[[level]]) |>
+          summarise(Records = sum(n_records, na.rm = TRUE)) |>
+          mutate(text = paste0(.data[[level]], ": " , Records)) |>
+          st_cast("MULTIPOLYGON")
+
+        names(res)[names(res) == "Records"] <- records
+
+        big_mark <- switch(lang, fi = ".", ",")
+
+        dec_mark <-switch(lang, fi = ",", ".")
+
+        gg <-
+          ggplot(res) +
+          aes(fill = .data[[records]], text = text) +
+          geom_sf(lwd = .1) +
+          scale_fill_viridis_c(
+            label_comma(big.mark = big_mark, decimal.mark = dec_mark)
+          )
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator,
+        req = req,
+        bio_provinces = bio_provinces,
+        finland = finland,
+        lang = input$lang,
+        level = level
+      ),
+      packages = c("dplyr", "ggplot2", "httr2", "scales", "sf", "shiny.i18n")
+    )
 
   }) |>
   bindCache(
-    input$level, input$restriction, input$taxa, input$source, cache = "session"
+    input$maplevel,
+    input$restriction,
+    input$taxa,
+    input$source,
+    input$lang,
+    cache = "session"
   ) |>
-  bindEvent(input$level, input$restriction, input$taxa, input$source)
+  bindEvent(
+    input$maplevel,
+    input$restriction,
+    input$taxa, 
+    input$source,
+    input$lang
+  )
 
 output$municipality_map <- renderPlotly({
 
   municipality_map() %...>%
-  ggplotly(tooltip = "text")
+  ggplotly_locale(tooltip = "text")
 
 })
 ```

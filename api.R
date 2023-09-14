@@ -505,7 +505,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
       ans[[2L]] <-
         ans[[2L]] |>
         group_by(Type) |>
-        summarise(Dataset = "Other", across(n_records, sum))
+        summarise(Dataset = translator$t("Other"), across(n_records, sum))
 
       ans <- do.call(rbind, ans)
 
@@ -556,7 +556,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
         filter = filter,
         select = c(municipality_name_fi = "municipality"),
         aggregate = "records",
-        n = "all", locale = "fi"
+        n = "all",
+        locale = "fi"
       )
 
     dbDisconnect(db)

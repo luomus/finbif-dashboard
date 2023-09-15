@@ -33,7 +33,7 @@ sanitise <- function(x) {
 
 }
 
-get_children <- function(x, y = character()) {
+get_children <- function(x, y = character(), cols) {
 
   is_part_of <- cols$is_part_of
 
@@ -49,11 +49,122 @@ get_children <- function(x, y = character()) {
 
   } else {
 
-    get_children(children[has_children], y)
+    get_children(children[has_children], y, cols)
 
   }
 
 }
+
+collection_size <- function(x, cols) {
+
+  row <- cols[x, ]
+
+  size <- row[["collection_size"]]
+
+  if (is.na(size)) {
+
+    size
+
+  } else {
+
+    has_children <- row[["has_children"]]
+
+    if (!has_children) {
+
+      size
+
+    } else {
+
+      is_part_of <- cols[["is_part_of"]]
+
+      children <- get_children(x, cols = cols)
+
+      children_size <- cols[children, "collection_size"]
+
+      if (!all(is.na(children_size))) {
+
+        NA_integer_
+
+      } else {
+
+        size
+
+      }
+
+    }
+
+  }
+
+}
+
+has_specimens <- function(x, cols) {
+
+  row <- cols[x, ]
+
+  size <- row[["n_records"]]
+
+  if (!is.na(size)) {
+
+    TRUE
+
+  } else {
+
+    has_children <- isTRUE(row[["has_children"]])
+
+    if (!has_children) {
+
+      FALSE
+
+    } else {
+
+      is_part_of <- cols[["is_part_of"]]
+
+      children <- get_children(x, cols = cols)
+
+      children_size <- cols[children, "n_records"]
+
+      if (all(is.na(children_size))) {
+
+        FALSE
+
+      } else {
+
+        TRUE
+
+      }
+
+    }
+
+  }
+
+}
+
+child_is <- function(x, which, cols) {
+
+  children <- get_children(x, cols = cols)
+
+  lgl <- cols[children, which]
+
+  any(lgl)
+
+}
+
+isbotany <- c(
+  "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
+  "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
+  "kastikka"
+)
+
+iszoology <- c(
+  "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
+  "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
+  "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
+  "aves"
+)
+
+isgeology <- c("the geological collections", "fossil ", "fossils ")
+
+text <- c("long_name", "description", "methods", "taxonomic_coverage")
 
 source("collections.R")
 
@@ -235,7 +346,7 @@ function(
       arrange(record_quality) |>
       adorn_totals(name = translator$t("Total"))
 
-    colnames(ans) <- translator$t(c("Verification Status", "Number of Records"))
+    names(ans) <- translator$t(c("Verification Status", "Number of Records"))
 
     dbDisconnect(db)
 
@@ -343,7 +454,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
     dbDisconnect(db)
 
-    colnames(ans) <- translator$t(names(ans))
+    names(ans) <- translator$t(names(ans))
 
     ans
 
@@ -413,7 +524,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
     ans <- data.frame(Date = Date, Annotations = Annotations)
 
-    colnames(ans) <- translator$t(names(ans))
+    names(ans) <- translator$t(names(ans))
 
     ans
 
@@ -454,7 +565,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
     if (!is.null(collection_source)) {
 
-      filter[["collection"]] <- get_children(collection_source)
+      filter[["collection"]] <- get_children(collection_source, cols = cols)
 
     }
 
@@ -522,7 +633,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
     dbDisconnect(db)
 
-    colnames(ans) <- translator$t(names(ans))
+    names(ans) <- translator$t(names(ans))
 
     ans
 
@@ -608,7 +719,12 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #----specimen-collections----
 #* @get /specimen-collections
 #* @serializer rds
-function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
+function(
+  stat = "n_specimens",
+  institution = "NULL",
+  discipline = "NULL",
+  lang = "en"
+) {
 
   institution <- sanitise(institution)
 
@@ -622,138 +738,7 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
 
     options(finbif_cache_path = db)
 
-    get_children <- function(x, y = character()) {
-
-      is_part_of <- cols$is_part_of
-
-      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
-
-      y <- c(y, children)
-
-      has_children <- cols[children, "has_children"]
-
-      if (!any(has_children, na.rm = TRUE)) {
-
-        y
-
-      } else {
-
-        get_children(children[has_children], y)
-
-      }
-
-    }
-
-    collection_size <- function(x) {
-
-      row <- cols[x, ]
-
-      size <- row[["collection_size"]]
-
-      if (is.na(size)) {
-
-        size
-
-      } else {
-
-        has_children <- row[["has_children"]]
-
-        if (!has_children) {
-
-          size
-
-        } else {
-
-          is_part_of <- cols[["is_part_of"]]
-
-          children <- get_children(x)
-
-          children_size <- cols[children, "collection_size"]
-
-          if (!all(is.na(children_size))) {
-
-            NA_integer_
-
-          } else {
-
-            size
-
-          }
-
-        }
-
-      }
-
-    }
-
-    has_specimens <- function(x) {
-
-      row <- cols[x, ]
-
-      size <- row[["n_records"]]
-
-      if (!is.na(size)) {
-
-        TRUE
-
-      } else {
-
-        has_children <- isTRUE(row[["has_children"]])
-
-        if (!has_children) {
-
-          FALSE
-
-        } else {
-
-          is_part_of <- cols[["is_part_of"]]
-
-          children <- get_children(x)
-
-          children_size <- cols[children, "n_records"]
-
-          if (all(is.na(children_size))) {
-
-            FALSE
-
-          } else {
-
-            TRUE
-
-          }
-
-        }
-
-      }
-
-    }
-
-    child_is <- function(x, which) {
-
-      children <- get_children(x)
-
-      lgl <- cols[children, which]
-
-      any(lgl)
-
-    }
-
-    isbotany <- c(
-      "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
-      "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
-      "kastikka"
-    )
-
-    iszoology <- c(
-      "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
-      "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
-      "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
-      "aves"
-    )
-
-    isgeology <- c("the geological collections", "fossil ", "fossils ")
-
-    text <- c("long_name", "description", "methods", "taxonomic_coverage")
+    translator$set_translation_language(lang)
 
     cols <- fb_collections(
       select = c(
@@ -772,7 +757,8 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
         count
       ),
       supercollection = TRUE,
-      nmin = NA
+      nmin = NA,
+      local = lang
     )
 
     cols <- transform(cols, digitized_size = as.integer(digitized_size))
@@ -786,7 +772,7 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
       )
     )
 
-    cols$n_specimens <- vapply(cols$id, collection_size, 0)
+    cols$n_specimens <- vapply(cols$id, collection_size, 0, cols = cols)
 
     specimen_count <- fb_occurrence(
       filter = list(superrecord_basis = "specimen", subcollections = FALSE),
@@ -801,7 +787,7 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
 
     rownames(cols) <- cols$id
 
-    cols <- subset(cols, vapply(cols$id, has_specimens, NA))
+    cols <- subset(cols, vapply(cols$id, has_specimens, NA, cols = cols))
 
     cols <- transform(
       cols,
@@ -870,15 +856,15 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
     cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, botany = botany | vapply(id, child_is, NA, "botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany", cols = cols)
     )
 
     cols <- transform(
-      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology", cols = cols)
     )
 
     cols <- transform(
-      cols, geology = geology | vapply(id, child_is, NA, "geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology", cols = cols)
     )
 
     cols <- transform(cols, NULL = TRUE)
@@ -891,7 +877,7 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
 
     if (!is.null(institution)) {
 
-      children <- get_children(institution)
+      children <- get_children(institution, cols = cols)
 
       cols <- filter(cols, id %in% c(institution, children))
 
@@ -937,11 +923,15 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
       if (length(tbl_data) > 1L) {
 
         tbl_data[[2L]] <- summarise(
-          tbl_data[[2L]], Collection = "Other", across(!Collection, sum),
+          tbl_data[[2L]],
+          Collection = translator$t("Other"),
+          across(!Collection, sum),
           .groups = "drop_last"
         )
 
       }
+
+      statuses <- c("Imaged", "Digitised Only", "Undigitised")
 
       tbl_data <-
         do.call(rbind, tbl_data) |>
@@ -949,9 +939,11 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
         pivot_longer(!Collection, names_to = "Status", values_to = "n") |>
         mutate(
           Status = factor(
-            Status, levels = c("Imaged", "Digitised Only", "Undigitised")
+            Status, levels = statuses, labels = translator$t(statuses)
           )
         )
+
+      names(tbl_data) <- translator$t(c("Collection", "Status", "Specimens"))
 
     }
 
@@ -974,7 +966,7 @@ function(stat = "n_specimens", institution = "NULL", discipline = "NULL") {
 #----progress-plot----
 #* @get /progress-plot
 #* @serializer rds
-function(institution = "NULL", discipline = "NULL") {
+function(institution = "NULL", discipline = "NULL", lang = "en") {
 
   institution <- sanitise(institution)
 
@@ -982,102 +974,13 @@ function(institution = "NULL", discipline = "NULL") {
 
   future_promise({
 
-    isbotany <- c(
-      "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
-      "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
-      "kastikka"
-    )
-
-    iszoology <- c(
-      "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
-      "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
-      "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
-      "aves"
-    )
-
-    isgeology <- c("the geological collections", "fossil ", "fossils ")
-
-    text <- c("long_name", "description", "methods", "taxonomic_coverage")
-
-    get_children <- function(x, y = character()) {
-
-      is_part_of <- cols$is_part_of
-
-      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
-
-      y <- c(y, children)
-
-      has_children <- cols[children, "has_children"]
-
-      if (!any(has_children, na.rm = TRUE)) {
-
-        y
-
-      } else {
-
-        get_children(children[has_children], y)
-
-      }
-
-    }
-
-    has_specimens <- function(x) {
-
-      row <- cols[x, ]
-
-      size <- row[["n_records"]]
-
-      if (!is.na(size)) {
-
-        TRUE
-
-      } else {
-
-        has_children <- isTRUE(row[["has_children"]])
-
-        if (!has_children) {
-
-          FALSE
-
-        } else {
-
-          is_part_of <- cols[["is_part_of"]]
-
-          children <- get_children(x)
-
-          children_size <- cols[children, "n_records"]
-
-          if (all(is.na(children_size))) {
-
-            FALSE
-
-          } else {
-
-            TRUE
-
-          }
-
-        }
-
-      }
-
-    }
-
-    child_is <- function(x, which) {
-
-      children <- get_children(x)
-
-      lgl <- cols[children, which]
-
-      any(lgl)
-
-    }
-
     options(op)
 
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     cols <- fb_collections(
       select = c(
@@ -1106,7 +1009,7 @@ function(institution = "NULL", discipline = "NULL") {
 
     rownames(cols) <- cols$id
 
-    cols <- subset(cols, vapply(cols$id, has_specimens, NA))
+    cols <- subset(cols, vapply(cols$id, has_specimens, NA, cols = cols))
 
     text <- tolower(do.call(paste, cols[, text]))
 
@@ -1121,15 +1024,15 @@ function(institution = "NULL", discipline = "NULL") {
     cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, botany = botany | vapply(id, child_is, NA, "botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany", cols = cols)
     )
 
     cols <- transform(
-      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology", cols = cols)
     )
 
     cols <- transform(
-      cols, geology = geology | vapply(id, child_is, NA, "geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology", cols = cols)
     )
 
     cols <- transform(cols, NULL = TRUE)
@@ -1146,7 +1049,7 @@ function(institution = "NULL", discipline = "NULL") {
 
     if (!is.null(institution)) {
 
-      children <- get_children(institution)
+      children <- get_children(institution, cols = cols)
 
       cols <- filter(cols, id %in% c(institution, children))
 
@@ -1171,8 +1074,8 @@ function(institution = "NULL", discipline = "NULL") {
         group_by(
           Status = ifelse(
             record_image_count > 0L | is.na(record_image_count),
-            "Imaged",
-            "Unimaged"
+            translator$t("Imaged"),
+            translator$t("Unimaged")
           ),
           Date
         ) |>
@@ -1180,7 +1083,8 @@ function(institution = "NULL", discipline = "NULL") {
         group_by(Status, Date) |>
         summarise(Specimens = sum(n_records), .groups = "drop_last") |>
         arrange(Date) |>
-        mutate(Specimens = cumsum(Specimens))
+        mutate(Specimens = cumsum(Specimens)) |>
+        select(Status, Specimens, Date)
 
       options(finbif_max_page_size = op[["finbif_max_page_size"]])
 
@@ -1200,6 +1104,8 @@ function(institution = "NULL", discipline = "NULL") {
 
     dbDisconnect(db)
 
+    names(ans) <- translator$t(names(ans))
+
     ans
 
   }, seed = TRUE)
@@ -1209,110 +1115,21 @@ function(institution = "NULL", discipline = "NULL") {
 #----specimen-map----
 #* @get /specimen-map
 #* @serializer rds
-function(spec_source = "NULL", discipline = "NULL") {
+function(mapinstitution= "NULL", mapdiscipline = "NULL", lang = "en") {
 
-  spec_source <- sanitise(spec_source)
+  mapinstitution <- sanitise(mapinstitution)
 
-  discipline <- sanitise(discipline)
+  mapdiscipline <- sanitise(mapdiscipline)
 
   future_promise({
-
-    isbotany <- c(
-      "fung", "phyt", "botan", "mycota", "lichen", "agaric", "phyll","mycetes",
-      "inales", "bacteria", "herbari", "algae", "virus", "vascular plant",
-      "kastikka"
-    )
-
-    iszoology <- c(
-      "ptera", "animal", "vertebrat", "nymph", "bird", "crustacea", "mammal",
-      "mollusc", "fish", "reptil", "zoolog", "oidea", "idae", "insect",
-      "arachnid", "squirrel", "chaoboridae", "skeleton", "butterfl", "zmut",
-      "aves"
-    )
-
-    isgeology <- c("the geological collections", "fossil ", "fossils ")
-
-    text <- c("long_name", "description", "methods", "taxonomic_coverage")
-
-    get_children <- function(x, y = character()) {
-
-      is_part_of <- cols$is_part_of
-
-      children <- cols[is_part_of %in% x & !is.na(is_part_of), "id"]
-
-      y <- c(y, children)
-
-      has_children <- cols[children, "has_children"]
-
-      if (!any(has_children, na.rm = TRUE)) {
-
-        y
-
-      } else {
-
-        get_children(children[has_children], y)
-
-      }
-
-    }
-
-    has_specimens <- function(x) {
-
-      row <- cols[x, ]
-
-      size <- row[["n_records"]]
-
-      if (!is.na(size)) {
-
-        TRUE
-
-      } else {
-
-        has_children <- isTRUE(row[["has_children"]])
-
-        if (!has_children) {
-
-          FALSE
-
-        } else {
-
-          is_part_of <- cols[["is_part_of"]]
-
-          children <- get_children(x)
-
-          children_size <- cols[children, "n_records"]
-
-          if (all(is.na(children_size))) {
-
-            FALSE
-
-          } else {
-
-            TRUE
-
-          }
-
-        }
-
-      }
-
-    }
-
-    child_is <- function(x, which) {
-
-      children <- get_children(x)
-
-      lgl <- cols[children, which]
-
-      any(lgl)
-
-    }
 
     options(op)
 
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     cols <- fb_collections(
       select = c(
@@ -1341,7 +1158,7 @@ function(spec_source = "NULL", discipline = "NULL") {
 
     rownames(cols) <- cols$id
 
-    cols <- subset(cols, vapply(cols$id, has_specimens, NA))
+    cols <- subset(cols, vapply(cols$id, has_specimens, NA, cols = cols))
 
     text <- tolower(do.call(paste, cols[, text]))
 
@@ -1356,42 +1173,44 @@ function(spec_source = "NULL", discipline = "NULL") {
     cols$zoology <- cols$zoology & !cols$botany & !cols$geology
 
     cols <- transform(
-      cols, botany = botany | vapply(id, child_is, NA, "botany")
+      cols, botany = botany | vapply(id, child_is, NA, "botany", cols = cols)
     )
 
     cols <- transform(
-      cols, zoology = zoology | vapply(id, child_is, NA, "zoology")
+      cols, zoology = zoology | vapply(id, child_is, NA, "zoology", cols = cols)
     )
 
     cols <- transform(
-      cols, geology = geology | vapply(id, child_is, NA, "geology")
+      cols, geology = geology | vapply(id, child_is, NA, "geology", cols = cols)
     )
 
     cols <- transform(cols, NULL = TRUE)
 
     collections <- NULL
 
-    if (!is.null(discipline)) {
+    if (!is.null(mapinstitution)) {
 
-      cols <- filter(cols, .data[[discipline]])
+      children <- get_children(mapinstitution, cols = cols)
+
+      cols <- filter(cols, id %in% c(mapinstitution, children))
+
+      collections <- cols$id
+
+    }
+
+    if (!is.null(mapdiscipline)) {
+
+      cols <- filter(cols, .data[[mapdiscipline]])
 
       collections <- cols$id
 
     }
 
-    if (!is.null(spec_source)) {
+    countries <- finbif_metadata("country", locale = lang)
 
-      children <- get_children(spec_source)
-
-      cols <- filter(cols, id %in% c(spec_source, children))
-
-      collections <- cols$id
-
-    }
+    countries <- countries[!is.na(countries[["code"]]), ]
 
     if (is.null(collections) || length(collections) > 0L) {
-
-      countries <- finbif_metadata("country")
 
       records <- fb_occurrence(
         filter = list(
@@ -1411,15 +1230,20 @@ function(spec_source = "NULL", discipline = "NULL") {
 
       records <- na.omit(records)
 
+      rownames(countries) <- countries[["code"]]
+
       ans <-
         map("world", plot = FALSE, fill = TRUE) |>
         st_as_sf() |>
         mutate(code = ifelse(ID == "Namibia", "NA", iso.alpha(ID))) |>
         left_join(records, by = join_by(code)) |>
+        mutate(ID = countries[code, "name"]) |>
         mutate(Specimens = replace_na(Specimens, 0L)) |>
         mutate(text = paste0(ID, ": " , Specimens))
 
     } else {
+
+      rownames(countries) <- countries[["code"]]
 
       ans <-
         map("world", plot = FALSE, fill = TRUE) |>
@@ -1427,11 +1251,14 @@ function(spec_source = "NULL", discipline = "NULL") {
         mutate(
           code = ifelse(ID == "Namibia", "NA", iso.alpha(ID)), Specimens = 0L
         ) |>
+        mutate(ID = countries[code, "name"]) |>
         mutate(text = paste0(ID, ": " , Specimens))
 
     }
 
     dbDisconnect(db)
+
+    names(ans)[which(names(ans) == "Specimens")] <- translator$t("Specimens")
 
     ans
 

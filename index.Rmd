@@ -19,22 +19,26 @@ runtime: shiny_prerendered
 ---
 
 ```{r setup, context = "setup", include = FALSE}
-library(dplyr)
-library(DT)
-library(flexdashboard)
-library(future)
-library(geofi)
-library(ggplot2)
-library(httr2)
-library(lubridate)
-library(plotly)
-library(promises)
-library(scales)
-library(sf)
-library(shiny.i18n)
-library(shinyjs)
-library(thematic)
-library(waiter)
+suppressPackageStartupMessages({
+
+  library(dplyr, quietly = TRUE)
+  library(DT, quietly = TRUE)
+  library(flexdashboard, quietly = TRUE)
+  library(future, quietly = TRUE)
+  library(geofi, quietly = TRUE)
+  library(ggplot2, quietly = TRUE)
+  library(httr2, quietly = TRUE)
+  library(lubridate, quietly = TRUE)
+  library(plotly, quietly = TRUE)
+  library(promises, quietly = TRUE)
+  library(scales, quietly = TRUE)
+  library(sf, quietly = TRUE)
+  library(shiny.i18n, quietly = TRUE)
+  library(shinyjs, quietly = TRUE)
+  library(thematic, quietly = TRUE)
+  library(waiter, quietly = TRUE)
+
+})
 
 plan(multisession)
 
@@ -177,8 +181,8 @@ observe({
     "maplevel",
     "institution",
     "discipline",
-    "spec_map_source",
-    "map_discipline",
+    "mapinstitution",
+    "mapdiscipline",
     "projects"
   )
 
@@ -207,8 +211,8 @@ bindEvent(
   input$maplevel,
   input$institution,
   input$discipline,
-  input$spec_map_source,
-  input$map_discipline,
+  input$mapinstitution,
+  input$mapdiscipline,
   input$projects,
   ignoreInit = TRUE
 )
@@ -274,6 +278,20 @@ observe(
   )
 ) |>
 bindEvent(input$discipline_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "mapinstitution", selected = input[["mapinstitution_link"]]
+  )
+) |>
+bindEvent(input$mapinstitution_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session, "mapdiscipline", selected = input[["mapdiscipline_link"]]
+  )
+) |>
+bindEvent(input$mapdiscipline_link, ignoreInit = TRUE)
 
 site_title <-
   reactive({
@@ -1753,31 +1771,59 @@ collection_plot <-
       req_url_query(
         discipline = input$discipline,
         institution = input$institution,
-        stat = "table"
+        stat = "table",
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Collection, n, fill = Status) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        scale_fill_viridis_d() +
-        labs(x = NULL, y = "Specimens")
+        translator$set_translation_language(lang)
 
-    }, seed = TRUE)
+        collection <- translator$t("Collection")
+
+        specimens <- translator$t("Specimens")
+
+        status <- translator$t("Status")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[collection]], .data[[specimens]], fill = .data[[status]]) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          scale_fill_viridis_d() +
+          labs(x = NULL)
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$discipline, input$institution, cache = "session") |>
-  bindEvent(input$discipline, input$institution)
+  bindCache(
+    input$discipline,
+    input$institution,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$discipline,
+    input$institution,
+    input$lang
+  )
 
 output$collection_plot <- renderPlotly({
 
   collection_plot() %...>%
-  ggplotly(dynamicTicks = TRUE) %...>%
+  ggplotly_locale(dynamicTicks = TRUE) %...>%
   layout(
     legend = list(
       x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
@@ -1813,39 +1859,86 @@ progress_plot <-
       req_url_path(req, "progress-plot") |>
       req_url_query(
         discipline = input$discipline,
-        institution = input$institution
+        institution = input$institution,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      mutate(Date = as_date(Date)) |>
-      ggplot() +
-        aes(x = Date, y = Specimens) +
-        geom_line() +
-        facet_wrap(~Status, 2) +
-        scale_y_continuous(label = comma) +
-        labs(x = NULL, y = NULL) +
-        theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
+        translator$set_translation_language(lang) 
 
-    }, seed = TRUE)
+        date <- translator$t("Date")
+
+        specimens <- translator$t("Specimens")
+  
+        status <- translator$t("Status")
+  
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        res[[date]] <- as_date(res[[date]])
+
+        big_mark <- switch(lang, fi = ".", ",")
+
+        dec_mark <-switch(lang, fi = ",", ".")
+
+        gg <-
+          ggplot(res) +
+          aes(x = .data[[date]], y = .data[[specimens]]) +
+          geom_line() +
+          facet_wrap(~.data[[status]], 2) +
+          scale_y_continuous(
+            label = label_comma(big.mark = big_mark, decimal.mark = dec_mark)
+          ) +
+          labs(x = NULL, y = NULL) +
+          theme(plot.margin = unit(c(20, 0, 0, 10), "points"))
+        
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$discipline, input$institution, cache = "session") |>
-  bindEvent(input$discipline, input$institution)
+  bindCache(
+    input$discipline,
+    input$institution,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$discipline,
+    input$institution,
+    input$lang
+  )
 
 output$progress_plot <- renderPlotly({
 
   progress_plot() %...>%
-  ggplotly(dynamicTicks = TRUE)
+  ggplotly_locale(dynamicTicks = TRUE)
 
 })
 ```
 
 `r textOutput("specimen_map_title")` {#specimen-map-page}
 ================================================================================
+
+```{r specimen_map_page_title_render, context = "server"}
+specimen_map_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Specimens Map")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_map_title <- renderText(specimen_map_title())
+```
 
 Column {data-width=150}
 --------------------------------------------------------------------------------
@@ -1862,56 +1955,115 @@ output$site_title3 <- renderText(site_title())
 
 ####
 
-```{r specimen_map_page_title_render, context = "server"}
-specimen_map_title <-
+```{r specimen_map_page_inputs, context = "render", echo = FALSE}
+uiOutput("mapinstitution")
+uiOutput("mapdiscipline")
+```
+
+```{r mapinstitution_render, context = "server"}
+mapinstitution <-
   reactive({
+
     translator$set_translation_language(input$lang)
-    translator$t("Specimens Map")
-  })|>
+
+    choices <- c("", "NULL", collections$institutions)
+
+    names(choices) <- c(
+      paste0(translator$t("Institution"), "   "),
+      translator$t(c("All Institutions", names(collections$institutions)))
+    )
+
+    selectInput(
+      "mapinstitution_link",
+      NULL,
+      choices,
+      input$mapinstitution,
+      width = "100%"
+    )
+
+  }) |>
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$specimen_map_title <- renderText(specimen_map_title())
+output$mapinstitution <- renderUI(mapinstitution())
 ```
 
-```{r spec_sources2, context = "render", echo = FALSE}
-selectInput(
-  "spec_map_source",
-  NULL,
-  c(
-    "Institution   " = "",
-    "All Institutions" = "NULL",
-    collections$institutions
-  ),
-  width = "100%"
-)
-selectInput(
-  "map_discipline",
-  NULL,
-  c(
-    "Discipline   " = "",
-    "All Disciplines" = "NULL",
-    "Botany" = "is_botany",
-    "Zoology" = "is_zoology",
-    "Geology" = "is_geology"
-  ),
-  width = "100%"
-)
+```{r mapdiscipline_render, context = "server"}
+mapdiscipline <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    choices <- c(
+      "",
+      "NULL",
+      "botany",
+      "zoology",
+      "geology"
+    )
+
+    names(choices) <- c(
+      paste0(translator$t("Discipline"), "   "),
+      translator$t(c("All Disciplines", "Botany", "Zoology", "Geology"))
+    )
+
+    selectInput(
+      "mapdiscipline_link",
+      NULL,
+      choices,
+      input$mapdiscipline,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$mapdiscipline <- renderUI(mapdiscipline())
 ```
 
 ####
 
 ```{r reset3, context = "render", echo = FALSE}
-actionButton("reset3", "Reset", width = "100%", class = "btn-primary")
+uiOutput("reset3")
 ```
 
 ```{r reset_render3, context = "server"}
-observeEvent(
-  input$reset3,
+reset3 <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    actionButton(
+      "reset3",
+      translator$t("Reset"),
+      width = "100%",
+      class = "btn-primary"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$reset3 <- renderUI(reset3())
+
+observe(
   {
-    reset("spec_map_source")
-    reset("map_discipline")
+    updateSelectInput(session, "mapinstitution_link", selected = "")
+    updateSelectInput(session, "mapdiscipline_link", selected = "")
   }
+) |>
+bindEvent(input$reset3)
+```
+
+#### {.invisible}
+
+```{r hidden_inputs3, context = "render", echo = FALSE}
+selectInput(
+  "mapinstitution", NULL, choices = c("", "NULL", collections$institutions)
+)
+selectInput(
+  "mapdiscipline", NULL, choices = c("", "NULL", "botany", "zoology", "geology")
 )
 ```
 
@@ -1928,33 +2080,64 @@ fillCol(plotlyOutput("specimen_map"))
 specimen_map <-
   reactive({
 
-    req <- 
+    req <-
       req_url_path(req, "specimen-map") |>
       req_url_query(
-        discipline = input$map_discipline,
-        spec_source = input$spec_map_source
+        mapinstitution = input$mapinstitution,
+        mapdiscipline = input$mapdiscipline,
+        lang = input$lang
       )
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(fill = Specimens, text = text) +
-        geom_sf(lwd = .1) +
-        scale_fill_viridis_c(label = comma, trans = "pseudo_log")
+        translator$set_translation_language(lang) 
 
-    }, seed = TRUE)
+        specimens <- translator$t("Specimens")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        big_mark <- switch(lang, fi = ".", ",")
+
+        dec_mark <-switch(lang, fi = ",", ".")
+
+        gg <-
+          ggplot(res) +
+          aes(fill = .data[[specimens]], text = text) +
+          geom_sf(lwd = .1) +
+          scale_fill_viridis_c(
+            label = label_comma(big.mark = big_mark, decimal.mark = dec_mark),
+            trans = "pseudo_log"
+          )
+        
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "scales", "sf", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$map_discipline, input$spec_map_source, cache = "session") |>
-  bindEvent(input$map_discipline, input$spec_map_source)
+  bindCache(
+    input$mapinstitution,
+    input$mapdiscipline,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$mapinstitution,
+    input$mapdiscipline,
+    input$lang
+  )
 
 output$specimen_map <- renderPlotly({
 
   specimen_map() %...>%
-  ggplotly(tooltip = "text")
+  ggplotly_locale(tooltip = "text")
 
 })
 ```

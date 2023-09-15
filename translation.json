@@ -85,6 +85,10 @@
     {"en": "Imaged", "fi": "Kuvattu"},
     {"en": "Percent Imaged", "fi": "Kuvattu Prosentti"},
     {"en": "Collections", "fi": "Aineistot"},
-    {"en": "Progress", "fi": "Edistyminen"}
+    {"en": "Progress", "fi": "Edistyminen"},
+    {"en": "Status", "fi": "Tila"},
+    {"en": "Digitised Only", "fi": "Vain Digitalisoitu"},
+    {"en": "Undigitised", "fi": "Digitalisoimaton"},
+    {"en": "Unimaged", "fi": "Kuvaamaton"}
   ]
 }

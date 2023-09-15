@@ -1269,7 +1269,7 @@ function(mapinstitution= "NULL", mapdiscipline = "NULL", lang = "en") {
 #----cit-sci-species-count----
 #* @get /cit-sci-species-count
 #* @serializer rds
-function(projects = "NULL") {
+function(projects = "NULL", lang = "en") {
 
   filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
 
@@ -1288,6 +1288,8 @@ function(projects = "NULL") {
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     ans <-
       fb_occurrence(
@@ -1298,6 +1300,8 @@ function(projects = "NULL") {
 
     dbDisconnect(db)
 
+    names(ans) <- translator$t(names(ans))
+
     ans
 
   }, seed = TRUE)
@@ -1307,7 +1311,7 @@ function(projects = "NULL") {
 #----cit-sci-user-count----
 #* @get /cit-sci-user-count
 #* @serializer rds
-function(projects = "NULL") {
+function(projects = "NULL", lang = "en") {
 
   filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
 
@@ -1326,6 +1330,8 @@ function(projects = "NULL") {
     db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
 
     options(finbif_cache_path = db)
+
+    translator$set_translation_language(lang)
 
     n_user_years <- fb_occurrence(
       filter = filter, select = c("team_member", Year = "year"),
@@ -1353,6 +1359,8 @@ function(projects = "NULL") {
 
     dbDisconnect(db)
 
+    names(ans) <- translator$t(names(ans))
+
     ans
 
   }, seed = TRUE)
@@ -1362,7 +1370,7 @@ function(projects = "NULL") {
 #----occurrence-citsci----
 #* @get /occurrence-citsci
 #* @serializer rds
-function(projects = "NULL") {
+function(projects = "NULL", lang = "en") {
 
   filter <- list(subcollections = FALSE, exclude_missing_levels = FALSE)
 
@@ -1382,6 +1390,8 @@ function(projects = "NULL") {
 
     options(finbif_cache_path = db)
 
+    translator$set_translation_language(lang)
+
     ans <-
       fb_occurrence(
         filter = filter,
@@ -1390,13 +1400,15 @@ function(projects = "NULL") {
         n = "all"
       ) |>
       mutate(
-        Project = names(
-          collections$cit_sci_projects[
-            match(
-              sub("http://tun.fi/", "", Project),
-              collections$cit_sci_projects
-            )
-          ]
+        Project = translator$t(
+          names(
+            collections$cit_sci_projects[
+              match(
+                sub("http://tun.fi/", "", Project),
+                collections$cit_sci_projects
+              )
+            ]
+          )
         )
       ) |>
       arrange(-n_records) |>
@@ -1404,6 +1416,8 @@ function(projects = "NULL") {
       mutate(Project = factor(Project, levels = rev(Project)))
 
     dbDisconnect(db)
+
+    names(ans) <- translator$t(names(ans))
 
     ans
 

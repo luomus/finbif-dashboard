@@ -293,6 +293,13 @@ observe(
 ) |>
 bindEvent(input$mapdiscipline_link, ignoreInit = TRUE)
 
+observe(
+  updateSelectInput(
+    session, "projects", selected = input[["projects_link"]]
+  )
+) |>
+bindEvent(input$projects_link, ignoreInit = TRUE)
+
 site_title <-
   reactive({
     translator$set_translation_language(input$lang)
@@ -2145,6 +2152,18 @@ output$specimen_map <- renderPlotly({
 `r textOutput("citsci_title")` {#citsci-page}
 ================================================================================
 
+```{r citsci_title_render, context = "server"}
+citsci_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Citizen Science")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$citsci_title <- renderText(citsci_title())
+```
+
 Column {data-width=150}
 --------------------------------------------------------------------------------
 
@@ -2160,43 +2179,76 @@ output$site_title4 <- renderText(site_title())
 
 ####
 
-```{r citsci_title_render, context = "server"}
-citsci_title <-
+```{r citsci_page_inputs, context = "render", echo = FALSE}
+uiOutput("projects")
+```
+
+```{r projects_render, context = "server"}
+projects <-
   reactive({
+
     translator$set_translation_language(input$lang)
-    translator$t("Citizen Science")
-  })|>
+
+    choices <- c("", "NULL", collections$cit_sci_projects)
+
+    names(choices) <- c(
+      paste0(translator$t("Project"), "   "),
+      translator$t(c("All Project", names(collections$cit_sci_projects)))
+    )
+
+    selectInput(
+      "projects_link",
+      NULL,
+      choices,
+      input$projects,
+      width = "100%"
+    )
+
+  }) |>
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$citsci_title <- renderText(citsci_title())
-```
-
-```{r projects, context = "render", echo = FALSE}
-selectInput(
-  "projects",
-  NULL,
-  c(
-    "Project   " = "",
-    "All Projects" = "NULL",
-    collections$cit_sci_projects
-  ),
-  width = "100%"
-)
+output$projects <- renderUI(projects())
 ```
 
 ####
 
 ```{r reset4, context = "render", echo = FALSE}
-actionButton("reset4", "Reset", width = "100%", class = "btn-primary")
+uiOutput("reset4")
 ```
 
 ```{r reset_render4, context = "server"}
-observeEvent(
-  input$reset4,
+reset4 <-
+  reactive({
+
+    translator$set_translation_language(input$lang)
+
+    actionButton(
+      "reset4",
+      translator$t("Reset"),
+      width = "100%",
+      class = "btn-primary"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$reset4 <- renderUI(reset4())
+
+observe(
   {
-    reset("projects")
+    updateSelectInput(session, "projects_link", selected = "")
   }
+) |>
+bindEvent(input$reset4)
+```
+
+#### {.invisible}
+
+```{r hidden_inputs4, context = "render", echo = FALSE}
+selectInput(
+  "projects", NULL, choices = c("", "NULL", collections$cit_sci_projects)
 )
 ```
 
@@ -2213,15 +2265,17 @@ valueBoxOutput("project_count")
 project_count <-
   reactive({
 
+    translator$set_translation_language(input$lang)
+
     n <- length(collections$cit_sci_projects)
 
-    caption <- "Projects"
+    caption <- translator$t("Projects")
 
     if (!input$projects %in% c("", "NULL")) {
   
       n <- 1L
 
-      caption <- "Project"
+      caption <- translator$t("Project")
 
     }
 
@@ -2234,8 +2288,8 @@ project_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$projects, cache = "session") |>
-  bindEvent(input$projects)
+  bindCache(input$projects, input$lang, cache = "session") |>
+  bindEvent(input$projects, input$lang)
 
 output$project_count <- renderValueBox(project_count())
 ```
@@ -2272,7 +2326,19 @@ observe({
 })
 ```
 
-### Species {#species-cit-plot}
+### `r textOutput("sp_cit_plot_title", inline = TRUE)` {#species-cit-plot}
+
+```{r sp_cit_plot_title_render, context = "server"}
+sp_cit_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Species")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$sp_cit_plot_title <- renderText(sp_cit_plot_title())
+```
 
 ```{r project_species_plot_output, context = "render", echo = FALSE}
 plotlyOutput("project_species_plot")
@@ -2284,32 +2350,61 @@ project_species_plot <-
 
     req <-
       req_url_path(req, "cit-sci-species-count") |>
-      req_url_query(projects = input$projects)
-    
-    future_promise({
+      req_url_query(projects = input$projects, lang = input$lang)
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Year, Species) +
-        geom_bar(stat = "identity")
+    future_promise(
+      {
 
-    }, seed = TRUE)
+        translator$set_translation_language(lang)
+
+        year <- translator$t("Year")
+
+        species <- translator$t("Species")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[year]], .data[[species]]) +
+          geom_bar(stat = "identity") +
+          labs(x = NULL, y = NULL)
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$projects, cache = "session") |>
-  bindEvent(input$projects)
+  bindCache(input$projects, input$lang, cache = "session") |>
+  bindEvent(input$project, input$lang)
 
 output$project_species_plot <- renderPlotly({
 
   project_species_plot() %...>%
-  ggplotly()
+  ggplotly_locale()
 
 })
 ```
 
-### Users {#users-cit-plot}
+### `r textOutput("users_cit_plot_title", inline = TRUE)` {#users-cit-plot}
+
+```{r users_cit_plot_title_render, context = "server"}
+users_cit_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Users")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$users_cit_plot_title <- renderText(users_cit_plot_title())
+```
 
 ```{r project_users_plot_output, context = "render", echo = FALSE}
 plotlyOutput("project_users_plot")
@@ -2321,32 +2416,61 @@ project_users_plot <-
 
     req <-
       req_url_path(req, "cit-sci-user-count") |>
-      req_url_query(projects = input$projects)
-    
-    future_promise({
+      req_url_query(projects = input$projects, lang = input$lang)
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Year, Users) +
-        geom_bar(stat = "identity")
+    future_promise(
+      {
 
-    }, seed = TRUE)
+        translator$set_translation_language(lang)
+
+        year <- translator$t("Year")
+
+        users <- translator$t("Users")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+        
+        gg <-
+          ggplot(res) +
+          aes(.data[[year]], .data[[users]]) +
+          geom_bar(stat = "identity") +
+          labs(x = NULL, y = NULL)
+
+        list(plot = gg, lang = lang)
+  
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$projects, cache = "session") |>
-  bindEvent(input$projects)
+  bindCache(input$projects, input$lang, cache = "session") |>
+  bindEvent(input$projects, input$lang)
 
 output$project_users_plot <- renderPlotly({
 
   project_users_plot() %...>%
-  ggplotly()
+  ggplotly_locale()
 
 })
 ```
 
-### Occurrences {#occurrences-cit-plot}
+### `r textOutput("occ_cit_plot_title", inline = TRUE)` {#occurrences-cit-plot}
+
+```{r occ_cit_plot_title_render, context = "server"}
+occ_cit_plot_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Occurrences")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$occ_cit_plot_title <- renderText(occ_cit_plot_title())
+```
 
 ```{r occurrence_cit_plot_output, context = "render", echo = FALSE}
 plotlyOutput("occurrence_cit_plot")
@@ -2358,29 +2482,45 @@ occurrence_cit_plot <-
 
     req <-
       req_url_path(req, "occurrence-citsci") |>
-      req_url_query(projects = input$projects)
+      req_url_query(projects = input$projects, lang = input$lang)
 
-    future_promise({
+    future_promise(
+      {
 
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      ggplot() +
-        aes(Project, Occurrences) +
-        geom_bar(stat = "identity") +
-        coord_flip() +
-        labs(x = NULL, y = "Occurrences")
+        translator$set_translation_language(lang)
 
-    }, seed = TRUE)
+        project <- translator$t("Project")
+
+        occurrences <- translator$t("Occurrences")
+
+        res <-
+          req_perform(req) |>
+          resp_body_raw() |>
+          unserialize()
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[project]], .data[[occurrences]]) +
+          geom_bar(stat = "identity") +
+          coord_flip() +
+          labs(x = NULL, y = NULL)
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(translator = translator, req = req, lang = input$lang),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
 
   }) |>
-  bindCache(input$projects, cache = "session") |>
-  bindEvent(input$projects)
+  bindCache(input$projects, input$lang, cache = "session") |>
+  bindEvent(input$projects, input$lang)
 
 output$occurrence_cit_plot <- renderPlotly({
 
   occurrence_cit_plot() %...>%
-    ggplotly(dynamicTicks = TRUE)
+    ggplotly_locale(dynamicTicks = TRUE)
 
 })
 ```

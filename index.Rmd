@@ -2255,13 +2255,23 @@ selectInput(
 Column {data-width=200}
 --------------------------------------------------------------------------------
 
-### Projects
+### `r textOutput("project_count_title")`
 
 ```{r fb_project_count_output, context = "render", echo = FALSE}
 valueBoxOutput("project_count")
 ```
 
 ```{r fb_project_count_render, context = "server"}
+project_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Projects")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$project_count_title <- renderText(project_count_title())
+
 project_count <-
   reactive({
 

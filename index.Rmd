@@ -2193,7 +2193,7 @@ projects <-
 
     names(choices) <- c(
       paste0(translator$t("Project"), "   "),
-      translator$t(c("All Project", names(collections$cit_sci_projects)))
+      translator$t(c("All Projects", names(collections$cit_sci_projects)))
     )
 
     selectInput(

@@ -1312,7 +1312,7 @@ municipality_map <-
           aes(fill = .data[[records]], text = text) +
           geom_sf(lwd = .1) +
           scale_fill_viridis_c(
-            label_comma(big.mark = big_mark, decimal.mark = dec_mark)
+            label = label_comma(big.mark = big_mark, decimal.mark = dec_mark)
           )
 
         list(plot = gg, lang = lang)

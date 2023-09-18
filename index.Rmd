@@ -2392,7 +2392,7 @@ project_species_plot <-
 
   }) |>
   bindCache(input$projects, input$lang, cache = "session") |>
-  bindEvent(input$project, input$lang)
+  bindEvent(input$projects, input$lang)
 
 output$project_species_plot <- renderPlotly({
 

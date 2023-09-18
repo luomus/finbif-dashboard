@@ -1037,9 +1037,14 @@
     },
     "plotly": {
       "Package": "plotly",
-      "Version": "4.10.2",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "4.10.2.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "wkmor1",
+      "RemoteRepo": "plotly.R",
+      "RemoteRef": "master",
+      "RemoteSha": "d1cdbbd93d17786234297d1939d94fb6c98bd399",
       "Requirements": [
         "R",
         "RColorBrewer",
@@ -1065,7 +1070,7 @@
         "vctrs",
         "viridisLite"
       ],
-      "Hash": "6c00a09ba7d34917d9a3e28b15dd74e3"
+      "Hash": "256ba1eac7c5db36f929f9f57e20e3dd"
     },
     "promises": {
       "Package": "promises",

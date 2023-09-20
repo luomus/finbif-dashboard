@@ -594,31 +594,12 @@ record_count_title <-
 
 output$record_count_title <- renderText(record_count_title())
 
-record_count <-
-  reactive({
-
-    req <-
-      req_url_path(req, "record-count") |>
-      req_url_query(
-        restriction = input$restriction,
-        taxa = input$taxa,
-        source = input$source
-      )
-
-    future_promise({
-
-      req_perform(req) |>
-      resp_body_raw() |>
-      unserialize() |>
-      valueBox(icon = "fa-pen", color = "#55AAE2")
-
-    }, seed = TRUE)
-
-  }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
-
-output$record_count <- renderValueBox(record_count())
+output$record_count <- renderValueBox({
+  quality_table() %...>%
+  slice_tail %...>%
+  pull %...>%
+  valueBox(icon = "fa-pen", color = "#55AAE2")
+})
 ```
 
 ### `r textOutput("species_count_title")`

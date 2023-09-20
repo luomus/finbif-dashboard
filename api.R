@@ -181,39 +181,6 @@ function() {
 
 }
 
-#----record-count----
-#* @get /record-count
-#* @serializer rds
-function(restriction = "NULL", taxa = "NULL", source = "NULL") {
-
-  filter <- list()
-
-  filter[["restricted"]] <- sanitise(restriction)
-
-  filter[["informal_groups"]] <- sanitise(taxa)
-
-  filter[["collection"]] <- sanitise(source)
-
-  future_promise({
-
-    options(op)
-
-    db <- dbConnect(Postgres(), dbname = Sys.getenv("DB_NAME"))
-
-    options(finbif_cache_path = db)
-
-    ans <- fb_occurrence(
-      filter = filter, select = "record_id", count_only = TRUE
-    )
-
-    dbDisconnect(db)
-
-    ans
-
-  }, seed = TRUE)
-
-}
-
 #----species-count----
 #* @get /species-count
 #* @serializer rds

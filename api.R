@@ -328,7 +328,7 @@ function(
 #* @serializer rds
 function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
-  filter <- list()
+  filter <- list(exclude_missing_levels = FALSE)
 
   filter[["restricted"]] <- sanitise(restriction)
 
@@ -359,7 +359,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
           "Specimen" ~ translator$t("Specimens"),
           "Specimen" ~ translator$t("Specimens"),
           .default = translator$t("Observations")
-        )
+        ),
+        Date = replace_na(Date, min(Date, na.rm = TRUE))
       ) |>
       group_by(Type, Date) |>
       summarise(Records = sum(n_records), .groups = "drop_last") |>

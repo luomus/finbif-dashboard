@@ -451,7 +451,7 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "8a1d3e005f2ebe257f5becad9646124d4ec60bb9",
+      "RemoteSha": "d6f7ea4c7521db47c6eb1b06c26530d3050503e4",
       "Requirements": [
         "R",
         "digest",
@@ -460,7 +460,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "16adca2d8fd92e2f8b718e4100412409"
+      "Hash": "cff451479ef5d6060143964845d2b8e8"
     },
     "flexdashboard": {
       "Package": "flexdashboard",

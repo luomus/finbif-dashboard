@@ -537,7 +537,7 @@ bindEvent(input$reset1)
 #### {.invisible}
 
 ```{r hidden_inputs1, context = "render", echo = FALSE}
-selectInput("lang", NULL, choices = c("en", "fi"))
+selectInput("lang", NULL, choices = c("fi", "en"))
 selectInput("occurrence_tab", NULL, choices = 0:3)
 selectInput("collections_tab", NULL, choices = 0:1)
 selectInput("citsci_tab", NULL, choices = 0:2)

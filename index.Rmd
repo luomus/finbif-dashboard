@@ -59,7 +59,7 @@ url <- "https://cdn.laji.fi/files/biogeographical-province/%s"
 url <- sprintf(url, bio_province_zip)
 
 if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
-  
+
   download.file(url, bio_province_zip)
 
   unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")

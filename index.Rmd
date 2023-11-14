@@ -229,6 +229,32 @@ onBookmarked({
   }
 })
 
+onRestored({
+  function(state) {
+    runjs('
+      $.urlParam = function (name) {
+        var r = new RegExp(\'[\\?&]\' + name + \'=([^&#]*)\')
+                  .exec(window.location.search);
+        return (r !== null) ? decodeURI(r[1]).replace(/[\'"]+/g, \'\') || 0 : "";
+      }
+      Shiny.setInputValue("lang_link",  $.urlParam("lang"));
+      Shiny.setInputValue("source_link",  $.urlParam("source"));
+      Shiny.setInputValue("taxa_link",  $.urlParam("taxa"));
+      Shiny.setInputValue("restriction_link",  $.urlParam("restriction"));
+      Shiny.setInputValue("occurrence_tab_link",  $.urlParam("occurrence_tab"));
+      Shiny.setInputValue("collections_tab_link",  $.urlParam("collections_tab"));
+      Shiny.setInputValue("citsci_tab_link",  $.urlParam("citsci_tab"));
+      Shiny.setInputValue("collection_quality_link",  $.urlParam("collection_quality"));
+      Shiny.setInputValue("maplevel_link",  $.urlParam("maplevel"));
+      Shiny.setInputValue("institution_link",  $.urlParam("institution"));
+      Shiny.setInputValue("discipline_link",  $.urlParam("discipline"));
+      Shiny.setInputValue("mapinstitution_link",  $.urlParam("mapinstitution"));
+      Shiny.setInputValue("mapdiscipline_link",  $.urlParam("mapdiscipline"));
+      Shiny.setInputValue("projects_link",  $.urlParam("projects"));
+    ')
+  }
+})
+
 observe(
   updateSelectInput(session, "lang", selected = input[["lang_link"]])
 ) |>

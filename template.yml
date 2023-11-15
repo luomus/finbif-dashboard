@@ -130,6 +130,10 @@ objects:
           env:
           - name: DASHBOARD_API
             value: ${API}-${BRANCH}.${APP}.svc:${API_PORT}
+          - name: BRANCH
+            value: ${BRANCH}
+          - name: HOST
+            value: ${HOST}
           ports:
           - containerPort: ${{APP_PORT}}
           livenessProbe:

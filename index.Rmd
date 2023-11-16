@@ -159,6 +159,15 @@ $("body").on(
 ```
 
 ```{r server, context = "server"}
+message(
+  "INFO [", Sys.time(), "] ",
+  session$request$REMOTE_ADDR, " \"",
+  session$request$HTTP_USER_AGENT, "\" ",
+  isolate(session$clientData$url_hostname), " ",
+  session$request$REQUEST_METHOD, " ",
+  isolate(session$clientData$url_pathname)
+)
+
 useShinyjs(html = TRUE)
 
 observe({

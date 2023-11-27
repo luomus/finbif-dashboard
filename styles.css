@@ -29,11 +29,19 @@
 
 .navbar-brand {
   margin: 0;
-  padding: 15px;
+}
+
+.navbar-brand a {
+  margin: 0;
+  padding-left: 15px;
+  padding-right: 15px;
+  padding-top: 14px;
+  padding-bottom: 14px;
   font-size: 18px;
   font-weight: 700;
   letter-spacing: 2px;
   line-height: 20px !important;
+  color: #141B15 !important;
 }
 
 .nav-link {
@@ -52,12 +60,19 @@ a.nav-link, a.nav-link span, a.nav-link div {
   line-height: 20px;
 }
 
-.navbar-brand, .navbar .nav-link {
+.navbar .nav-link {
   color: #141B15 !important;
 }
 
-.navbar-brand:hover, .nav-link:hover, .navbar-left .nav-link.active {
+.navbar-brand a:hover, .nav-link:hover, .navbar-left .nav-link.active {
   background-color: #3B9DDE;
+  text-decoration: none;
+}
+
+@media (max-width: 576px) {
+  .navbar-brand a:hover {
+    padding-bottom: 6px;
+  }
 }
 
 .site-title > div {

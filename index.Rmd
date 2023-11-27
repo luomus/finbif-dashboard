@@ -89,8 +89,8 @@ addResourcePath("favicon.ico", "favicon.ico")
 <script src="shinyjs/inject.js"></script>
 
 ```{js javascript, echo = FALSE}
-document.querySelector(".navbar-header").innerHTML =
-  '<a href="https://laji.fi" class="navbar-brand">LAJI.FI</a>'
+document.querySelector(".navbar-brand").innerHTML =
+  '<a href="https://laji.fi">LAJI.FI</a>'
 
 $("body").on(
   "click",

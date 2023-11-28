@@ -90,7 +90,9 @@ addResourcePath("favicon.ico", "favicon.ico")
 
 ```{js javascript, echo = FALSE}
 document.querySelector(".navbar-brand").innerHTML =
-  '<a href="https://laji.fi">LAJI.FI</a>'
+  '<a href="https://laji.fi">LAJI.FI</a>';
+
+document.documentElement.lang = "en";
 
 $("body").on(
   "click",
@@ -116,6 +118,7 @@ $("body").on(
   "a[href='#en-lang']",
   function(e) {
     Shiny.setInputValue("lang_link", "en");
+    document.documentElement.lang = "en";
   }
 )
 
@@ -124,6 +127,7 @@ $("body").on(
   "a[href='#fi-lang']",
   function(e) {
     Shiny.setInputValue("lang_link", "fi");
+    document.documentElement.lang = "fi";
   }
 )
 

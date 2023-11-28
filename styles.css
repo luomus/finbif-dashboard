@@ -70,9 +70,16 @@ a.nav-link, a.nav-link span, a.nav-link div {
 }
 
 @media (max-width: 576px) {
-  .navbar-brand a:hover {
-    padding-bottom: 6px;
+
+  .navbar-brand a {
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
+
+  .navbar-brand a:hover {
+    background-color: #55AAE2;
+  }
+
 }
 
 .site-title > div {

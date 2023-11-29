@@ -29,10 +29,13 @@
 
 .navbar-brand {
   margin: 0;
+  display: block;
+  padding: 0;
 }
 
 .navbar-brand a {
   margin: 0;
+  display: block;
   padding-left: 15px;
   padding-right: 15px;
   padding-top: 14px;
@@ -71,7 +74,14 @@ a.nav-link, a.nav-link span, a.nav-link div {
 
 @media (max-width: 576px) {
 
+  .navbar-brand {
+    display: inline-block;
+    padding-top: .32422rem;
+    padding-bottom: .32422rem;
+  }
+
   .navbar-brand a {
+    display: inline;
     padding-top: 8px;
     padding-bottom: 8px;
   }

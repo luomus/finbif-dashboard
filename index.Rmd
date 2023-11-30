@@ -1521,6 +1521,51 @@ selectInput(
 Column {data-width=200}
 --------------------------------------------------------------------------------
 
+### `r textOutput("specimen_collection_count_title")`
+
+```{r fb_specimen_collection_count_output, context = "render", echo = FALSE}
+valueBoxOutput("specimen_collection_count")
+```
+
+```{r fb_specimen_collection_count_render, context = "server"}
+specimen_collection_count_title <-
+  reactive({
+    translator$set_translation_language(input$lang)
+    translator$t("Collections")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$specimen_collection_count_title <- renderText(
+  specimen_collection_count_title()
+)
+
+specimen_collection_count <-
+  reactive({
+
+    req <-
+      req_url_path(req, "specimen-collections") |>
+      req_url_query(
+        discipline = input$discipline,
+        institution = input$institution
+      )
+
+    future_promise({
+
+      req_perform(req) |>
+      resp_body_raw() |>
+      unserialize() |>
+      valueBox(icon = "fa-database", color = "#55AAE2")
+
+    }, seed = TRUE)
+
+  }) |>
+  bindCache(input$discipline, input$institution, cache = "session") |>
+  bindEvent(input$discipline, input$institution)
+
+output$specimen_collection_count <- renderValueBox(specimen_collection_count())
+```
+
 ### `r textOutput("specimen_count_title")`
 
 ```{r fb_specimen_count_output, context = "render", echo = FALSE}
@@ -1545,7 +1590,8 @@ specimen_count <-
       req_url_path(req, "specimen-collections") |>
       req_url_query(
         discipline = input$discipline,
-        institution = input$institution
+        institution = input$institution,
+        stat = "n_specimens"
       )
 
     future_promise({

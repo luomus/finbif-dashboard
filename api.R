@@ -688,7 +688,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
 #* @get /specimen-collections
 #* @serializer rds
 function(
-  stat = "n_specimens",
+  stat = "n_collections",
   institution = "NULL",
   discipline = "NULL",
   lang = "en"
@@ -851,6 +851,10 @@ function(
 
     }
 
+    cols <- filter(cols, n_specimens > 0L)
+
+    n_collections <- nrow(cols)
+
     n_specimens <- pull(cols, n_specimens)
 
     n_specimens <- sum(n_specimens)
@@ -866,8 +870,6 @@ function(
     tbl_data <- data.frame(
       Collection = character(), Status = character(), n = integer()
     )
-
-    cols <- filter(cols, n_specimens > 0L)
 
     if (nrow(cols) > 0L) {
 
@@ -919,6 +921,7 @@ function(
 
     switch(
       stat,
+      n_collections = n_collections,
       n_specimens = n_specimens,
       n_specimens_digitised = n_specimens_digitised,
       n_specimens_imaged = n_specimens_imaged,

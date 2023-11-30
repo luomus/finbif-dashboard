@@ -36,6 +36,7 @@ suppressPackageStartupMessages({
   library(sf, quietly = TRUE)
   library(shiny.i18n, quietly = TRUE)
   library(shinyjs, quietly = TRUE)
+  library(stats, quietly = TRUE)
   library(thematic, quietly = TRUE)
   library(waiter, quietly = TRUE)
 

@@ -860,10 +860,35 @@ observe({
     class = "active", selector = "#section-occurrence-data-plots li"
   )
 
+  removeCssClass(
+    class = "active", 
+    selector = "#section-occurrence-data-plots .tab-content div"
+  )
+
+  removeCssClass(
+    class = "in", selector = "#section-occurrence-data-plots .tab-content div"
+  )
+
   addCssClass(
     class = "active",
     selector = sprintf(
       "#section-occurrence-data-plots li:nth-child(%s)",
+      as.integer(input$occurrence_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-occurrence-data-plots .tab-content div:nth-child(%s)",
+      as.integer(input$occurrence_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "in",
+    selector = sprintf(
+      "#section-occurrence-data-plots .tab-content div:nth-child(%s)",
       as.integer(input$occurrence_tab) + 1L
     )
   )
@@ -1808,10 +1833,35 @@ observe({
     class = "active", selector = "#section-collection-data-plots li"
   )
 
+  removeCssClass(
+    class = "active", 
+    selector = "#section-collection-data-plots .tab-content div"
+  )
+
+  removeCssClass(
+    class = "in", selector = "#section-collection-data-plots .tab-content div"
+  )
+
   addCssClass(
     class = "active",
     selector = sprintf(
       "#section-collection-data-plots li:nth-child(%s)",
+      as.integer(input$collections_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-collection-data-plots .tab-content div:nth-child(%s)",
+      as.integer(input$collections_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "in",
+    selector = sprintf(
+      "#section-collection-data-plots .tab-content div:nth-child(%s)",
       as.integer(input$collections_tab) + 1L
     )
   )
@@ -2393,10 +2443,35 @@ observe({
     class = "active", selector = "#section-citsci-data-plots li"
   )
 
+  removeCssClass(
+    class = "active", 
+    selector = "#section-citsci-data-plots .tab-content div"
+  )
+
+  removeCssClass(
+    class = "in", selector = "#section-citsci-data-plots .tab-content div"
+  )
+
   addCssClass(
     class = "active",
     selector = sprintf(
       "#section-citsci-data-plots li:nth-child(%s)",
+      as.integer(input$citsci_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-citsci-data-plots .tab-content div:nth-child(%s)",
+      as.integer(input$citsci_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "in",
+    selector = sprintf(
+      "#section-citsci-data-plots .tab-content div:nth-child(%s)",
       as.integer(input$citsci_tab) + 1L
     )
   )

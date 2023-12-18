@@ -799,7 +799,7 @@ quality_table <-
         restriction = input$restriction,
         taxa = input$taxa,
         source = input$source,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise({
@@ -930,7 +930,7 @@ occurrence_plot <-
         restriction = input$restriction,
         taxa = input$taxa,
         source = input$source,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -1027,7 +1027,7 @@ species_plot <-
         restriction = input$restriction,
         taxa = input$taxa,
         source = input$source,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -1112,7 +1112,7 @@ annotations_plot <-
         restriction = input$restriction,
         taxa = input$taxa,
         source = input$source,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -1205,7 +1205,7 @@ datasets_plot <-
         restriction = input$restriction,
         taxa = input$taxa,
         source = input$source,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -1322,7 +1322,7 @@ municipality_map <-
       level,
       bioprovince = "MAAKUNTA_FI",
       municipality = "municipality_name_fi",
-      paste0("maakunta_name_", input$lang)
+      paste0("maakunta_name_", sanitise_lang(input$lang))
     )
 
     endpoint <- switch(
@@ -1911,7 +1911,7 @@ collection_plot <-
         discipline = input$discipline,
         institution = input$institution,
         stat = "table",
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -2001,7 +2001,7 @@ progress_plot <-
       req_url_query(
         discipline = input$discipline,
         institution = input$institution,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -2228,7 +2228,7 @@ specimen_map <-
       req_url_query(
         mapinstitution = input$mapinstitution,
         mapdiscipline = input$mapdiscipline,
-        lang = input$lang
+        lang = sanitise_lang(input$lang)
       )
 
     future_promise(
@@ -2523,7 +2523,7 @@ project_species_plot <-
 
     req <-
       req_url_path(req, "cit-sci-species-count") |>
-      req_url_query(projects = input$projects, lang = input$lang)
+      req_url_query(projects = input$projects, lang = sanitise_lang(input$lang))
 
     future_promise(
       {
@@ -2591,7 +2591,7 @@ project_users_plot <-
 
     req <-
       req_url_path(req, "cit-sci-user-count") |>
-      req_url_query(projects = input$projects, lang = input$lang)
+      req_url_query(projects = input$projects, lang = sanitise_lang(input$lang))
 
     future_promise(
       {
@@ -2659,7 +2659,7 @@ occurrence_cit_plot <-
 
     req <-
       req_url_path(req, "occurrence-citsci") |>
-      req_url_query(projects = input$projects, lang = input$lang)
+      req_url_query(projects = input$projects, lang = sanitise_lang(input$lang))
 
     future_promise(
       {

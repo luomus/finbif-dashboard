@@ -33,6 +33,12 @@ sanitise <- function(x) {
 
 }
 
+sanitise_lang <- function(lang) {
+
+  switch(lang, fi = "fi", "en")
+
+}
+
 get_children <- function(x, y = character(), cols) {
 
   is_part_of <- cols$is_part_of
@@ -274,6 +280,8 @@ function(
 
   filter[["collection_quality"]] <- sanitise(collection_quality)
 
+  lang <- sanitise_lang(lang)
+
   future_promise({
 
     options(op)
@@ -335,6 +343,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
   filter[["informal_groups"]] <- sanitise(taxa)
 
   filter[["collection"]] <- sanitise(source)
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -400,6 +410,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
 
   filter[["collection"]] <- sanitise(source)
 
+  lang <- sanitise_lang(lang)
+
   future_promise({
 
     options(op)
@@ -444,6 +456,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
   filter[["collection"]] <- sanitise(source)
 
   n <- 500L
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -512,6 +526,8 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
   filter[["informal_groups"]] <- sanitise(taxa)
 
   collection_source <- sanitise(source)
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -697,6 +713,8 @@ function(
   institution <- sanitise(institution)
 
   discipline <- sanitise(discipline)
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -943,6 +961,8 @@ function(institution = "NULL", discipline = "NULL", lang = "en") {
 
   discipline <- sanitise(discipline)
 
+  lang <- sanitise_lang(lang)
+
   future_promise({
 
     options(op)
@@ -1091,6 +1111,8 @@ function(mapinstitution= "NULL", mapdiscipline = "NULL", lang = "en") {
   mapinstitution <- sanitise(mapinstitution)
 
   mapdiscipline <- sanitise(mapdiscipline)
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -1252,6 +1274,8 @@ function(projects = "NULL", lang = "en") {
 
   }
 
+  lang <- sanitise_lang(lang)
+
   future_promise({
 
     options(op)
@@ -1293,6 +1317,8 @@ function(projects = "NULL", lang = "en") {
     filter[["collection"]] <- unname(collections$cit_sci_projects)
 
   }
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 
@@ -1352,6 +1378,8 @@ function(projects = "NULL", lang = "en") {
     filter[["collection"]] <- unname(collections$cit_sci_projects)
 
   }
+
+  lang <- sanitise_lang(lang)
 
   future_promise({
 

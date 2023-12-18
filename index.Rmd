@@ -80,6 +80,12 @@ ggplotly_locale <- function(x, ...) {
   config(ggplotly(x$plot, ...), locale = x$lang)
 
 }
+
+sanitise_lang <- function(lang) {
+
+  switch(lang, fi = "fi", "en")
+
+}
 ```
 
 ```{r resources, context = "render", echo = FALSE}
@@ -343,7 +349,7 @@ bindEvent(input$projects_link, ignoreInit = TRUE)
 
 site_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("DASHBOARD")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -380,7 +386,7 @@ autoWaiter(
 ```{r occurrence_page_title_render, context = "server"}
 occurrence_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Occurrence Data")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -414,7 +420,7 @@ uiOutput("restriction")
 sources <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c("", "NULL", collections$sources)
 
@@ -442,7 +448,7 @@ output$sources <- renderUI(sources())
 taxa <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c(
       "",
@@ -503,7 +509,7 @@ output$taxa <- renderUI(taxa())
 restriction <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c(
       "",
@@ -548,7 +554,7 @@ uiOutput("reset1")
 reset1 <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     actionButton(
       "reset1",
@@ -627,7 +633,7 @@ valueBoxOutput("record_count")
 ```{r fb_record_count_render, context = "server"}
 record_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Records")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -652,7 +658,7 @@ valueBoxOutput("species_count")
 ```{r fb_species_count_render, context = "server"}
 species_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Species")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -696,7 +702,7 @@ valueBoxOutput("collection_count")
 ```{r fb_collection_count_render, context = "server"}
 collection_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Datasets")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -741,7 +747,7 @@ uiOutput("collection_quality", inline = TRUE)
 collection_quality <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c(
       "",
@@ -901,7 +907,7 @@ observe({
 ```{r occ_occ_plot_title_render, context = "server"}
 occ_occ_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Occurrences")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -964,7 +970,9 @@ occurrence_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
     )
 
@@ -996,7 +1004,7 @@ output$occurrence_plot <- renderPlotly({
 ```{r sp_occ_plot_title_render, context = "server"}
 sp_occ_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Species")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1047,7 +1055,9 @@ species_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 
@@ -1079,7 +1089,7 @@ output$species_plot <- renderPlotly(
 ```{r ann_occ_plot_title_render, context = "server"}
 ann_occ_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Annotations")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1138,7 +1148,9 @@ annotations_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
     )
 
@@ -1170,7 +1182,7 @@ output$annotations_plot <- renderPlotly(
 ```{r data_occ_plot_title_render, context = "server"}
 data_occ_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Datasets")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1227,7 +1239,9 @@ datasets_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 
@@ -1277,7 +1291,7 @@ fillCol(
 maplevel <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c("NULL", "bioprovince", "municipality")
 
@@ -1371,7 +1385,7 @@ municipality_map <-
         req = req,
         bio_provinces = bio_provinces,
         finland = finland,
-        lang = input$lang,
+        lang = sanitise_lang(input$lang),
         level = level
       ),
       packages = c("dplyr", "ggplot2", "httr2", "scales", "sf", "shiny.i18n")
@@ -1408,7 +1422,7 @@ output$municipality_map <- renderPlotly({
 ```{r specimen_collection_page_title_render, context = "server"}
 specimen_collection_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Specimen Collections/Digitisation")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1441,7 +1455,7 @@ uiOutput("discipline")
 institution <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c("", "NULL", collections$institutions)
 
@@ -1469,7 +1483,7 @@ output$institution <- renderUI(institution())
 discipline <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c(
       "",
@@ -1509,7 +1523,7 @@ uiOutput("reset2")
 reset2 <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     actionButton(
       "reset2",
@@ -1556,7 +1570,7 @@ valueBoxOutput("specimen_collection_count")
 ```{r fb_specimen_collection_count_render, context = "server"}
 specimen_collection_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Collections")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1601,7 +1615,7 @@ valueBoxOutput("specimen_count")
 ```{r fb_specimen_count_render, context = "server"}
 specimen_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Specimens")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1645,7 +1659,7 @@ valueBoxOutput("digitised_count")
 ```{r fb_digitised_count_render, context = "server"}
 digitised_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Digitised")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1689,7 +1703,7 @@ gaugeOutput("digitised_percent")
 ```{r fb_digitised_percent_render, context = "server"}
 digitised_percent_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Percent Digitised")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1733,7 +1747,7 @@ valueBoxOutput("imaged_count")
 ```{r fb_imaged_count_render, context = "server"}
 imaged_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Imaged")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1777,7 +1791,7 @@ gaugeOutput("imaged_percent")
 ```{r fb_imaged_percent_render, context = "server"}
 imaged_percent_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Percent Imaged")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1874,7 +1888,7 @@ observe({
 ```{r col_col_plot_title_render, context = "server"}
 col_col_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Collections")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1928,7 +1942,9 @@ collection_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 
@@ -1963,7 +1979,7 @@ output$collection_plot <- renderPlotly({
 ```{r prog_col_plot_title_render, context = "server"}
 prog_col_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Progress")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -1991,7 +2007,7 @@ progress_plot <-
     future_promise(
       {
 
-        translator$set_translation_language(lang) 
+        translator$set_translation_language(lang)
 
         date <- translator$t("Date")
 
@@ -2025,7 +2041,9 @@ progress_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "lubridate", "scales", "shiny.i18n")
     )
 
@@ -2056,7 +2074,7 @@ output$progress_plot <- renderPlotly({
 ```{r specimen_map_page_title_render, context = "server"}
 specimen_map_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Specimens Map")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2089,7 +2107,7 @@ uiOutput("mapdiscipline")
 mapinstitution <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c("", "NULL", collections$institutions)
 
@@ -2117,7 +2135,7 @@ output$mapinstitution <- renderUI(mapinstitution())
 mapdiscipline <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c(
       "",
@@ -2157,7 +2175,7 @@ uiOutput("reset3")
 reset3 <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     actionButton(
       "reset3",
@@ -2216,7 +2234,7 @@ specimen_map <-
     future_promise(
       {
 
-        translator$set_translation_language(lang) 
+        translator$set_translation_language(lang)
 
         specimens <- translator$t("Specimens")
 
@@ -2242,7 +2260,9 @@ specimen_map <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "scales", "sf", "shiny.i18n")
     )
 
@@ -2273,7 +2293,7 @@ output$specimen_map <- renderPlotly({
 ```{r citsci_title_render, context = "server"}
 citsci_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Citizen Science")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2305,7 +2325,7 @@ uiOutput("projects")
 projects <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     choices <- c("", "NULL", collections$cit_sci_projects)
 
@@ -2339,7 +2359,7 @@ uiOutput("reset4")
 reset4 <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     actionButton(
       "reset4",
@@ -2382,7 +2402,7 @@ valueBoxOutput("project_count")
 ```{r fb_project_count_render, context = "server"}
 project_count_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Projects")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2393,7 +2413,7 @@ output$project_count_title <- renderText(project_count_title())
 project_count <-
   reactive({
 
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
 
     n <- length(collections$cit_sci_projects)
 
@@ -2484,7 +2504,7 @@ observe({
 ```{r sp_cit_plot_title_render, context = "server"}
 sp_cit_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Species")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2529,7 +2549,9 @@ project_species_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 
@@ -2550,7 +2572,7 @@ output$project_species_plot <- renderPlotly({
 ```{r users_cit_plot_title_render, context = "server"}
 users_cit_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Users")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2595,7 +2617,9 @@ project_users_plot <-
   
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 
@@ -2616,7 +2640,7 @@ output$project_users_plot <- renderPlotly({
 ```{r occ_cit_plot_title_render, context = "server"}
 occ_cit_plot_title <-
   reactive({
-    translator$set_translation_language(input$lang)
+    translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Occurrences")
   })|>
   bindCache(input$lang, cache = "session") |>
@@ -2662,7 +2686,9 @@ occurrence_cit_plot <-
 
       },
       seed = TRUE,
-      globals = list(translator = translator, req = req, lang = input$lang),
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
       packages = c("ggplot2", "httr2", "shiny.i18n")
     )
 

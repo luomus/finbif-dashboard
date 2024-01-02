@@ -11,14 +11,14 @@
   "Packages": {
     "DBI": {
       "Package": "DBI",
-      "Version": "1.1.3",
+      "Version": "1.2.0",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "methods"
       ],
-      "Hash": "b2866e62bab9378c3cc9476a1954226b"
+      "Hash": "3e0051431dff9acfe66c23765e55c556"
     },
     "DT": {
       "Package": "DT",
@@ -452,16 +452,15 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "400961ac43e743260bb3c686a5079edd97db46bd",
+      "RemoteSha": "a6a21abd559726583eed65397e23427d5b87065d",
       "Requirements": [
         "R",
         "digest",
         "httr",
-        "lubridate",
         "lutz",
         "utils"
       ],
-      "Hash": "ff291ca57adaeab8c6174207cadc5445"
+      "Hash": "ce88f77251496e56c50624f65282559a"
     },
     "flexdashboard": {
       "Package": "flexdashboard",
@@ -510,7 +509,7 @@
     },
     "future": {
       "Package": "future",
-      "Version": "1.33.0",
+      "Version": "1.33.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -521,7 +520,7 @@
         "parallelly",
         "utils"
       ],
-      "Hash": "8e92c7bc53e91b9bb1faf9a6ef0e8514"
+      "Hash": "e57e292737f7a4efa9d8a91c5908222c"
     },
     "generics": {
       "Package": "generics",
@@ -536,7 +535,7 @@
     },
     "geofi": {
       "Package": "geofi",
-      "Version": "1.0.10",
+      "Version": "1.0.11",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -552,7 +551,7 @@
         "xml2",
         "yaml"
       ],
-      "Hash": "651f0a234f8d61a440b7722cc968b22d"
+      "Hash": "0d5a2a33ea1591eec79e613e94ca99f3"
     },
     "ggplot2": {
       "Package": "ggplot2",
@@ -937,7 +936,7 @@
     },
     "mgcv": {
       "Package": "mgcv",
-      "Version": "1.9-0",
+      "Version": "1.9-1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -950,7 +949,7 @@
         "stats",
         "utils"
       ],
-      "Hash": "086028ca0460d0c368028d3bda58f31b"
+      "Hash": "110ee9d83b496279960e162ac97764ce"
     },
     "mime": {
       "Package": "mime",
@@ -1187,7 +1186,7 @@
     },
     "s2": {
       "Package": "s2",
-      "Version": "1.1.5",
+      "Version": "1.1.6",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1195,7 +1194,7 @@
         "Rcpp",
         "wk"
       ],
-      "Hash": "a93c11b1037ccc257a3d0eb3563b061e"
+      "Hash": "32f7b1a15bb01ae809022960abad5363"
     },
     "sass": {
       "Package": "sass",
@@ -1233,7 +1232,7 @@
     },
     "sf": {
       "Package": "sf",
-      "Version": "1.0-14",
+      "Version": "1.0-15",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -1252,7 +1251,7 @@
         "units",
         "utils"
       ],
-      "Hash": "e2111252a76984ca50bf8d6314348681"
+      "Hash": "f432b3379fb1a47046e253468b6b6b6d"
     },
     "shiny": {
       "Package": "shiny",

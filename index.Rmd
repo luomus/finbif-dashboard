@@ -53,7 +53,7 @@ api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
 
-finland <- suppressWarnings(suppressMessages(get_municipalities()))
+invisible(capture.output(finland <- get_municipalities()))
 
 if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
 

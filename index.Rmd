@@ -52,22 +52,22 @@ api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
 
-finland <- get_municipalities()
-
-bio_province_zip <- "FI_FMNH_BGR_20161118.zip"
-
-url <- "https://cdn.laji.fi/files/biogeographical-province/%s"
-
-url <- sprintf(url, bio_province_zip)
+finland <- suppressWarnings(suppressMessages(get_municipalities()))
 
 if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
 
-  download.file(url, bio_province_zip)
+  bio_province_zip <- "FI_FMNH_BGR_20161118.zip"
+
+  url_bio <- "https://cdn.laji.fi/files/biogeographical-province/%s"
+  
+  url_bio <- sprintf(url_bio, bio_province_zip)
+  
+  download.file(url_bio, bio_province_zip, quiet = TRUE)
 
   unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
 }
 
-bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml")
+bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml", quiet = TRUE)
 
 source("collections.R")
 

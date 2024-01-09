@@ -129,7 +129,7 @@ objects:
           command: ${{APP_CMD}}
           env:
           - name: DASHBOARD_API
-            value: ${API}-${BRANCH}.${APP}.svc:${API_PORT}
+            value: ${API}-${BRANCH}
           - name: BRANCH
             value: ${BRANCH}
           - name: HOST

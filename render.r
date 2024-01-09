@@ -1,4 +1,4 @@
-#!/usr/bin/env -S Rscript -s
+#!/usr/bin/env Rscript
 
 if (Sys.getenv("BRANCH") == "main") {
 

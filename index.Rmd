@@ -22,23 +22,24 @@ runtime: shiny_prerendered
 ```{r setup, context = "setup", include = FALSE}
 suppressPackageStartupMessages({
 
-  library(dplyr, quietly = TRUE)
-  library(DT, quietly = TRUE)
-  library(flexdashboard, quietly = TRUE)
-  library(future, quietly = TRUE)
-  library(geofi, quietly = TRUE)
-  library(ggplot2, quietly = TRUE)
-  library(httr2, quietly = TRUE)
-  library(lubridate, quietly = TRUE)
-  library(plotly, quietly = TRUE)
-  library(promises, quietly = TRUE)
-  library(scales, quietly = TRUE)
-  library(sf, quietly = TRUE)
-  library(shiny.i18n, quietly = TRUE)
-  library(shinyjs, quietly = TRUE)
-  library(stats, quietly = TRUE)
-  library(thematic, quietly = TRUE)
-  library(waiter, quietly = TRUE)
+  library(curl, warn.conflicts = FALSE, quietly = TRUE)
+  library(dplyr, warn.conflicts = FALSE, quietly = TRUE)
+  library(DT, warn.conflicts = FALSE, quietly = TRUE)
+  library(flexdashboard, warn.conflicts = FALSE, quietly = TRUE)
+  library(future, warn.conflicts = FALSE, quietly = TRUE)
+  library(geofi, warn.conflicts = FALSE, quietly = TRUE)
+  library(ggplot2, warn.conflicts = FALSE, quietly = TRUE)
+  library(httr2, warn.conflicts = FALSE, quietly = TRUE)
+  library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
+  library(plotly, warn.conflicts = FALSE, quietly = TRUE)
+  library(promises, warn.conflicts = FALSE, quietly = TRUE)
+  library(scales, warn.conflicts = FALSE, quietly = TRUE)
+  library(sf, warn.conflicts = FALSE, quietly = TRUE)
+  library(shiny.i18n, warn.conflicts = FALSE, quietly = TRUE)
+  library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
+  library(stats, warn.conflicts = FALSE, quietly = TRUE)
+  library(thematic, warn.conflicts = FALSE, quietly = TRUE)
+  library(waiter, warn.conflicts = FALSE, quietly = TRUE)
 
 })
 
@@ -59,12 +60,13 @@ if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
   bio_province_zip <- "FI_FMNH_BGR_20161118.zip"
 
   url_bio <- "https://cdn.laji.fi/files/biogeographical-province/%s"
-  
+
   url_bio <- sprintf(url_bio, bio_province_zip)
-  
-  download.file(url_bio, bio_province_zip, quiet = TRUE)
+
+  curl_download(url_bio, bio_province_zip)
 
   unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
+
 }
 
 bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml", quiet = TRUE)

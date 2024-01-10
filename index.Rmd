@@ -13,8 +13,9 @@ output:
       fg: "#FFFFFF"
       primary: "#55AAE2"
       base_font:
-        google: Roboto
-        local: false
+        google:
+          family: Roboto
+          local: false
     orientation: columns
     vertical_layout: fill
 runtime: shiny_prerendered

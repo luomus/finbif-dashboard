@@ -164,7 +164,7 @@ $("body").on(
 
 ```{r server, context = "server"}
 message(
-  "INFO [", Sys.time(), "] ",
+  "INFO [", format(Sys.time()), "] ",
   session$request$REMOTE_ADDR, " \"",
   session$request$HTTP_USER_AGENT, "\" ",
   isolate(session$clientData$url_hostname), " ",

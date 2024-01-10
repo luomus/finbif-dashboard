@@ -27,7 +27,6 @@ suppressPackageStartupMessages({
   library(DT, warn.conflicts = FALSE, quietly = TRUE)
   library(flexdashboard, warn.conflicts = FALSE, quietly = TRUE)
   library(future, warn.conflicts = FALSE, quietly = TRUE)
-  library(geofi, warn.conflicts = FALSE, quietly = TRUE)
   library(ggplot2, warn.conflicts = FALSE, quietly = TRUE)
   library(httr2, warn.conflicts = FALSE, quietly = TRUE)
   library(lubridate, warn.conflicts = FALSE, quietly = TRUE)
@@ -53,7 +52,7 @@ api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
 
-invisible(capture.output(finland <- get_municipalities()))
+finland <- readRDS("finland.rds")
 
 if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
 

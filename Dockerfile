@@ -16,5 +16,6 @@ COPY translation.json /home/user/translation.json
 COPY navbar.html /home/user/navbar.html
 COPY styles.css /home/user/styles.css
 COPY render.r /home/user/render.r
+COPY finland.rds /home/user/finland.rds
 
 RUN  permissions.sh

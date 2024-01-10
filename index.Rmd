@@ -44,13 +44,6 @@ suppressPackageStartupMessages({
 
 plan(multisession)
 
-thematic_shiny(
-  font = font_spec("Roboto", install = FALSE),
-  bg = "#141B15",
-  fg = "#FFFFFF",
-  accent = "#55AAE2"
-)
-
 api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)

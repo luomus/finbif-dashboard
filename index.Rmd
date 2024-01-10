@@ -44,13 +44,17 @@ suppressPackageStartupMessages({
 
 plan(multisession)
 
+thematic_shiny(
+  font = "Roboto", bg = "#141B15", fg = "#FFFFFF", accent = "#55AAE2"
+)
+
 api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
 
 finland <- readRDS("finland.rds")
 
-bio_provinces <- st_read("bio-provinces.gml", quiet = TRUE)
+bio_provinces <- readRDS("bio-provinces.rds")
 
 source("collections.R")
 

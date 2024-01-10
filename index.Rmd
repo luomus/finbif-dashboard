@@ -14,6 +14,7 @@ output:
       primary: "#55AAE2"
       base_font:
         google: Roboto
+        local: false
     orientation: columns
     vertical_layout: fill
 runtime: shiny_prerendered
@@ -45,7 +46,10 @@ suppressPackageStartupMessages({
 plan(multisession)
 
 thematic_shiny(
-  font = "Roboto", bg = "#141B15", fg = "#FFFFFF", accent = "#55AAE2"
+  font = font_spec("Roboto", install = FALSE),
+  bg = "#141B15",
+  fg = "#FFFFFF",
+  accent = "#55AAE2"
 )
 
 api <- Sys.getenv("DASHBOARD_API")

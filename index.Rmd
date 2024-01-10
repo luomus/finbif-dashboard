@@ -54,20 +54,6 @@ req <- request(api)
 
 finland <- readRDS("finland.rds")
 
-if (!file.exists("FI_FMNH_BGR_20161118_3067.gml")) {
-
-  bio_province_zip <- "FI_FMNH_BGR_20161118.zip"
-
-  url_bio <- "https://cdn.laji.fi/files/biogeographical-province/%s"
-
-  url_bio <- sprintf(url_bio, bio_province_zip)
-
-  curl_download(url_bio, bio_province_zip)
-
-  unzip(bio_province_zip, "FI_FMNH_BGR_20161118_3067.gml")
-
-}
-
 bio_provinces <- st_read("FI_FMNH_BGR_20161118_3067.gml", quiet = TRUE)
 
 source("collections.R")

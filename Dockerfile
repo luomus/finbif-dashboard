@@ -18,4 +18,4 @@ COPY styles.css /home/user/styles.css
 COPY render.r /home/user/render.r
 COPY finland.rds /home/user/finland.rds
 
-RUN  permissions.sh
+RUN permissions.sh

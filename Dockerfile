@@ -17,5 +17,6 @@ COPY navbar.html /home/user/navbar.html
 COPY styles.css /home/user/styles.css
 COPY render.r /home/user/render.r
 COPY finland.rds /home/user/finland.rds
+COPY bio-provinces.gml home/user/bio-provinces.gml
 
 RUN permissions.sh

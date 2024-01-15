@@ -11,14 +11,14 @@
   "Packages": {
     "DBI": {
       "Package": "DBI",
-      "Version": "1.2.0",
+      "Version": "1.2.1",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
         "R",
         "methods"
       ],
-      "Hash": "3e0051431dff9acfe66c23765e55c556"
+      "Hash": "9b4993e98e0e19da84c168460c032fef"
     },
     "DT": {
       "Package": "DT",
@@ -445,14 +445,9 @@
     },
     "finbif": {
       "Package": "finbif",
-      "Version": "0.9.3.9000",
-      "Source": "GitHub",
-      "RemoteType": "github",
-      "RemoteHost": "api.github.com",
-      "RemoteUsername": "luomus",
-      "RemoteRepo": "finbif",
-      "RemoteRef": "dev",
-      "RemoteSha": "63e07fa776ec824860aaabb2aa81553dd1a95bd5",
+      "Version": "0.9.4",
+      "Source": "Repository",
+      "Repository": "CRAN",
       "Requirements": [
         "R",
         "digest",
@@ -460,7 +455,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "e3aa9f883517534f07e0683872955e80"
+      "Hash": "ab63017b9fe294b43829ffee99758a29"
     },
     "flexdashboard": {
       "Package": "flexdashboard",
@@ -1011,14 +1006,14 @@
     },
     "plotly": {
       "Package": "plotly",
-      "Version": "4.10.3.9000",
+      "Version": "4.10.4.9000",
       "Source": "GitHub",
       "RemoteType": "github",
       "RemoteHost": "api.github.com",
       "RemoteUsername": "wkmor1",
       "RemoteRepo": "plotly.R",
       "RemoteRef": "master",
-      "RemoteSha": "7a32788277e94be0105d2d3a31ecc0fc751f5749",
+      "RemoteSha": "3d74f211add91f0dbfba79cca3f0b3e0d8d750d5",
       "Requirements": [
         "R",
         "RColorBrewer",
@@ -1044,7 +1039,7 @@
         "vctrs",
         "viridisLite"
       ],
-      "Hash": "5483ac44da725ff3e2414517d123a4a9"
+      "Hash": "84508c935e69d8c71c77529dfad29617"
     },
     "promises": {
       "Package": "promises",

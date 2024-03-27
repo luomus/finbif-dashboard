@@ -78,8 +78,6 @@ sanitise_lang <- function(lang) {
   switch(lang, fi = "fi", "en")
 
 }
-
-options(shiny.legacy.datatable = TRUE)
 ```
 
 ```{r resources, context = "render", echo = FALSE}

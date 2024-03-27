@@ -78,6 +78,8 @@ sanitise_lang <- function(lang) {
   switch(lang, fi = "fi", "en")
 
 }
+
+options(shiny.legacy.datatable = TRUE)
 ```
 
 ```{r resources, context = "render", echo = FALSE}
@@ -777,7 +779,7 @@ output$collection_quality <- renderUI(collection_quality())
 ```
 
 ```{r quality_table_output, context = "render", echo = FALSE}
-DTOutput("quality_table")
+dataTableOutput("quality_table")
 ```
 
 ```{r quality_table_render, context = "server"}
@@ -819,7 +821,7 @@ quality_table <-
     input$lang
   )
 
-output$quality_table <- renderDT({
+output$quality_table <- renderDataTable({
 
   quality_table() %...>%
   datatable(
@@ -834,7 +836,7 @@ output$quality_table <- renderDT({
     fillContainer = TRUE
   )
 
-}, future = TRUE)
+})
 ```
 
 Column {#occurrence-data-plots data-width=250 .tabset .tabset-fade}

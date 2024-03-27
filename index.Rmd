@@ -777,7 +777,7 @@ output$collection_quality <- renderUI(collection_quality())
 ```
 
 ```{r quality_table_output, context = "render", echo = FALSE}
-dataTableOutput("quality_table")
+DTOutput("quality_table")
 ```
 
 ```{r quality_table_render, context = "server"}
@@ -819,7 +819,7 @@ quality_table <-
     input$lang
   )
 
-output$quality_table <- renderDataTable({
+output$quality_table <- renderDT({
 
   quality_table() %...>%
   datatable(

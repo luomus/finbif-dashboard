@@ -834,7 +834,7 @@ output$quality_table <- renderDT({
     fillContainer = TRUE
   )
 
-})
+}, future = TRUE)
 ```
 
 Column {#occurrence-data-plots data-width=250 .tabset .tabset-fade}

@@ -1,5 +1,5 @@
 # docker manifest inspect ghcr.io/luomus/base-r-image:main -v | jq '.Descriptor.digest'
-FROM ghcr.io/luomus/base-r-image@sha256:8f8d6d0a1c79a64781dcbed69d606bda6ba774e470cfda5a49e42fee20380bdb
+FROM ghcr.io/luomus/base-r-image@sha256:96eabbde6a3818ee14eae47be02c60918de825c16d82cc3f6c8f3c082f50557c
 
 ENV FINBIF_USER_AGENT=https://github.com/luomus/finbif-dashboard
 ENV FINBIF_USE_PRIVATE_API=true

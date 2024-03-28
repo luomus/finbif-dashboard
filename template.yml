@@ -55,6 +55,14 @@ parameters:
     required: true
   - name: HOST
     required: true
+  - name: SMTP_SERVER
+    value: ${SMTP_SERVER}
+  - name: SMTP_PORT
+    value: ${SMTP_PORT}
+  - name: ERROR_EMAIL_TO
+    value: ${ERROR_EMAIL_TO}
+  - name: ERROR_EMAIL_FROM
+    value: ${ERROR_EMAIL_FROM}
   - name: GITHUB_SECRET
     required: true
     generate: expression

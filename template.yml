@@ -191,6 +191,16 @@ objects:
             value: ${DB_SUPER_PASSWORD}
           - name: DB_NAME
             value: ${DB_NAME}
+          - name: BRANCH
+            value: ${BRANCH}
+          - name: SMTP_SERVER
+            value: ${SMTP_SERVER}
+          - name: SMTP_PORT
+            value: ${SMTP_PORT}
+          - name: ERROR_EMAIL_TO
+            value: ${ERROR_EMAIL_TO}
+          - name: ERROR_EMAIL_FROM
+            value: ${ERROR_EMAIL_FROM}
           ports:
           - containerPort: ${{API_PORT}}
           livenessProbe:

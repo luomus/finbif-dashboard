@@ -6,6 +6,15 @@ parameters:
   - name: APP
     required: true
     value: finbif-dashboard
+  - name: ACCESS_MODE
+    required: true
+    value: ReadWriteOnce
+  - name: STORAGE_CLASS
+    required: true
+    value: standard-csi
+  - name: STORAGE
+    required: true
+    value: "20Gi"
   - name: API
     required: true
     value: plumber
@@ -15,58 +24,55 @@ parameters:
   - name: API_PORT
     required: true
     value: "8000"
-  - name: APP_CMD
-    required: true
-    value: '["/home/user/render.r"]'
   - name: DB
     required: true
     value: postgres
-  - name: DB_IMAGE
-    required: true
-    value: crunchydata/crunchy-postgres:centos8-13.6-4.7.5
   - name: DB_HEALTHCHECK
     required: true
     value: '[
       "sh",
       "-c",
-      "PGPASSWORD=$PG_PASSWORD
-        psql -h 0.0.0.0 -U $PG_USER -d $PG_DATABASE -c \"SELECT 1\""
+      "PGPASSWORD=$POSTGRES_PASSWORD
+        psql -h 0.0.0.0 -U postgres -d postgres -c \"SELECT 1\""
     ]'
   - name: DB_PORT
     required: true
-  - name: DB_MODE
+    value: "5432"
+  - name: DB_PATH
     required: true
-    value: primary
-  - name: DB_NAME
+    value: /var/lib/postgresql/data
+  - name: DB_DATA
     required: true
-  - name: DB_USER
-    required: true
-  - name: DB_PRIMARY_USER
-    required: true
-  - name: DB_SUPER_USER
-    required: true
-  - name: DB_USER_PASSWORD
-    required: true
-  - name: DB_PRIMARY_PASSWORD
-    required: true
-  - name: DB_SUPER_PASSWORD
+    value: /pgdata
+  - name: DB_PASSWORD
     required: true
   - name: FINBIF_PRIVATE_API
     required: true
   - name: HOST
     required: true
-  - name: SMTP_SERVER
-    value: ${SMTP_SERVER}
-  - name: SMTP_PORT
-    value: ${SMTP_PORT}
-  - name: ERROR_EMAIL_TO
-    value: ${ERROR_EMAIL_TO}
-  - name: ERROR_EMAIL_FROM
-    value: ${ERROR_EMAIL_FROM}
-  - name: GITHUB_SECRET
+  - name: APP_HEALTH
     required: true
-    generate: expression
-    from: "[a-zA-Z0-9]{64}"
+    value: /robots.txt
+  - name: API_HEALTH
+    required: true
+    value: /healthz
+  - name: LIVENESS_PERIOD
+    required: true
+    value: "30"
+  - name: FAILURE_THRESHOLD
+    required: true
+    value: "5"
+  - name: READINESS_PERIOD
+    required: true
+    value: "5"
+  - name: SMTP_SERVER
+    required: true
+  - name: SMTP_PORT
+    required: true
+  - name: ERROR_EMAIL_TO
+    required: true
+  - name: ERROR_EMAIL_FROM
+    required: true
 metadata:
   name: ${APP}
 objects:
@@ -75,47 +81,30 @@ objects:
   metadata:
    name: ${DB}-${BRANCH}
   spec:
-    storageClassName: "standard-rwo"
+    storageClassName: ${STORAGE_CLASS}
     accessModes:
-    - ReadWriteOnce
-    persistentVolumeReclaimPolicy: Retain
+    - ${ACCESS_MODE}
     resources:
       requests:
-        storage: "10Gi"
-- kind: ImageStream
+        storage: ${STORAGE}
+- kind: ConfigMap
   apiVersion: v1
   metadata:
     name: ${APP}-${BRANCH}
-    labels:
-      app: ${APP}
-  spec:
-    lookupPolicy:
-      local: true
-- kind: BuildConfig
+  data:
+    branch: ${BRANCH}
+    db_port: ${DB_PORT}
+    app_port: ${APP_PORT}
+    api_port: ${API_PORT}
+- kind: Secret
   apiVersion: v1
   metadata:
     name: ${APP}-${BRANCH}
-    labels:
-      app: ${APP}
-  spec:
-    output:
-      to:
-        kind: ImageStreamTag
-        name: ${APP}-${BRANCH}:latest
-    source:
-      type: Git
-      git:
-        uri: https://github.com/luomus/${APP}.git
-        ref: ${BRANCH}
-    strategy:
-      type: Docker
-    triggers:
-    - type: ConfigChange
-    - type: GitHub
-      github:
-        secret: ${GITHUB_SECRET}
-- kind: DeploymentConfig
-  apiVersion: v1
+  type: Opaque
+  data:
+    db_password: ${DB_PASSWORD}
+- kind: Deployment
+  apiVersion: apps/v1
   metadata:
     name: ${APP}-${BRANCH}
     labels:
@@ -123,51 +112,57 @@ objects:
   spec:
     replicas: 1
     selector:
-      app: ${APP}
-      deploymentconfig: ${APP}-${BRANCH}
+      matchLabels:
+        app: ${APP}
+    strategy:
+      type: Recreate
     template:
       metadata:
         labels:
           app: ${APP}
-          deploymentconfig: ${APP}-${BRANCH}
+          branch: ${BRANCH}
+          port: ${APP_PORT}
       spec:
         containers:
-        - image: ${APP}-${BRANCH}:latest
+        - image: ghcr.io/luomus/${APP}:${BRANCH}
+          imagePullPolicy: Always
           name: ${APP}-${BRANCH}
-          command: ${{APP_CMD}}
+          command: /home/user/render.r
           env:
           - name: DASHBOARD_API
             value: ${API}-${BRANCH}
           - name: BRANCH
-            value: ${BRANCH}
+            valueFrom:
+              configMapKeyRef:
+                name: ${APP}-${BRANCH}
+                key: branch
           - name: HOST
             value: ${HOST}
           ports:
           - containerPort: ${{APP_PORT}}
+          startupProbe:
+            httpGet:
+              path: ${APP_HEALTH}
+              port: ${{APP_PORT}}
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           livenessProbe:
             httpGet:
-              path: /robots.txt
+              path: ${APP_HEALTH}
               port: ${{APP_PORT}}
-            failureThreshold: 5
-            periodSeconds: 30
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           readinessProbe:
             httpGet:
-              path: /robots.txt
+              path: ${APP_HEALTH}
               port: ${{APP_PORT}}
-            initialDelaySeconds: 5
-            periodSeconds: 5
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${APP}-${BRANCH}
-        from:
-          kind: ImageStreamTag
-          name: ${APP}-${BRANCH}:latest
-- kind: DeploymentConfig
-  apiVersion: v1
+            periodSeconds: ${{READINESS_PERIOD}}
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "1Gi"
+- kind: Deployment
+  apiVersion: apps/v1
   metadata:
     name: ${API}-${BRANCH}
     labels:
@@ -175,32 +170,48 @@ objects:
   spec:
     replicas: 1
     selector:
-      app: ${APP}
-      deploymentconfig: ${API}-${BRANCH}
+      matchLabels:
+        app: ${APP}
+    strategy:
+      type: Recreate
     template:
       metadata:
         labels:
           app: ${APP}
-          deploymentconfig: ${API}-${BRANCH}
+          branch: ${BRANCH}
+          port: ${API_PORT}
       spec:
         containers:
-        - image: ${APP}-${BRANCH}:latest
+        - image: ghcr.io/luomus/${APP}:${BRANCH}
+          imagePullPolicy: Always
           name: ${API}-${BRANCH}
           env:
           - name: FINBIF_PRIVATE_API
             value: ${FINBIF_PRIVATE_API}
+          - name: FINBIF_USE_PRIVATE_API
+            value: "true"
+          - name: FINBIF_DEBUG
+            value: stdout
+          - name: FINBIF_USER_AGENT
+            value: https://github.com/luomus/${APP}:${BRANCH}
           - name: PGHOST
             value: ${DB}-${BRANCH}
           - name: PGPORT
             value: ${DB_PORT}
           - name: PGUSER
-            value: ${DB_SUPER_USER}
+            value: ${DB}
           - name: PGPASSWORD
-            value: ${DB_SUPER_PASSWORD}
+            valueFrom:
+              secretKeyRef:
+                name: ${APP}-${BRANCH}
+                key: db_password
           - name: DB_NAME
-            value: ${DB_NAME}
+            value: ${DB}
           - name: BRANCH
-            value: ${BRANCH}
+            valueFrom:
+              configMapKeyRef:
+                name: ${APP}-${BRANCH}
+                key: branch
           - name: SMTP_SERVER
             value: ${SMTP_SERVER}
           - name: SMTP_PORT
@@ -211,30 +222,29 @@ objects:
             value: ${ERROR_EMAIL_FROM}
           ports:
           - containerPort: ${{API_PORT}}
+          startupProbe:
+            httpGet:
+              path: ${API_HEALTH}
+              port: ${{API_PORT}}
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: ${API_HEALTH}
               port: ${{API_PORT}}
-            failureThreshold: 5
-            periodSeconds: 30
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: ${API_HEALTH}
               port: ${{API_PORT}}
-            initialDelaySeconds: 5
-            periodSeconds: 5
-    triggers:
-    - type: ConfigChange
-    - type: ImageChange
-      imageChangeParams:
-        automatic: true
-        containerNames:
-        - ${API}-${BRANCH}
-        from:
-          kind: ImageStreamTag
-          name: ${APP}-${BRANCH}:latest
-- kind: DeploymentConfig
-  apiVersion: v1
+            periodSeconds: ${{READINESS_PERIOD}}
+        resources:
+          limits:
+            cpu: "500m"
+            memory: "2Gi"
+- kind: Deployment
+  apiVersion: apps/v1
   metadata:
     name: ${DB}-${BRANCH}
     labels:
@@ -242,59 +252,65 @@ objects:
   spec:
     replicas: 1
     selector:
-      app: ${APP}
-      deploymentconfig: ${DB}-${BRANCH}
+      matchLabels:
+        app: ${APP}
     strategy:
       type: Recreate
     template:
       metadata:
         labels:
           app: ${APP}
-          deploymentconfig: ${DB}-${BRANCH}
+          branch: ${BRANCH}
+          port: ${DB_PORT}
       spec:
         containers:
-        - image: ${DB_IMAGE}
+        - image: ghcr.io/luomus/postgis-image:main
+          imagePullPolicy: Always
           name: ${DB}-${BRANCH}
           volumeMounts:
-          - mountPath: /pgdata
+          - mountPath: ${DB_PATH}
             name: ${DB}-${BRANCH}
           ports:
             - containerPort: ${{DB_PORT}}
+          startupProbe:
+            exec:
+              command: ${{DB_HEALTHCHECK}}
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           livenessProbe:
             exec:
               command: ${{DB_HEALTHCHECK}}
-            failureThreshold: 5
-            periodSeconds: 30
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
           readinessProbe:
             exec:
               command: ${{DB_HEALTHCHECK}}
-            initialDelaySeconds: 5
-            periodSeconds: 5
+            periodSeconds: ${{READINESS_PERIOD}}
           env:
-          - name: MODE
+          - name: PGDATA
+            value: ${DB_PATH}${DB_DATA}
+          - name: POSTGRES_DB
             value: ${DB}
-          - name: PG_MODE
-            value: ${DB_MODE}
-          - name: PG_PRIMARY_PORT
-            value: ${DB_PORT}
-          - name: PG_DATABASE
-            value: ${DB_NAME}
-          - name: PG_USER
-            value: ${DB_USER}
-          - name: PG_PRIMARY_USER
-            value: ${DB_PRIMARY_USER}
-          - name: PG_PASSWORD
-            value: ${DB_USER_PASSWORD}
-          - name: PG_PRIMARY_PASSWORD
-            value: ${DB_PRIMARY_PASSWORD}
-          - name: PG_ROOT_PASSWORD
-            value: ${DB_SUPER_PASSWORD}
+          - name: POSTGRES_PORT
+            valueFrom:
+              configMapKeyRef:
+                name: ${APP}-${BRANCH}
+                key: db_port
+          - name: POSTGRES_USER
+            value: ${DB}
+          - name: POSTGRES_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: ${APP}-${BRANCH}
+                key: db_password
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "1Gi"
         volumes:
         - name: ${DB}-${BRANCH}
           persistentVolumeClaim:
             claimName: ${DB}-${BRANCH}
-    triggers:
-    - type: ConfigChange
 - kind: Service
   apiVersion: v1
   metadata:
@@ -308,7 +324,8 @@ objects:
       targetPort: ${{APP_PORT}}
     selector:
       app: ${APP}
-      deploymentconfig: ${APP}-${BRANCH}
+      branch: ${BRANCH}
+      port: ${APP_PORT}
 - kind: Service
   apiVersion: v1
   metadata:
@@ -322,7 +339,8 @@ objects:
       targetPort: ${{API_PORT}}
     selector:
       app: ${APP}
-      deploymentconfig: ${API}-${BRANCH}
+      branch: ${BRANCH}
+      port: ${API_PORT}
 - kind: Service
   apiVersion: v1
   metadata:
@@ -336,7 +354,8 @@ objects:
       targetPort: ${{DB_PORT}}
     selector:
       app: ${APP}
-      deploymentconfig: ${DB}-${BRANCH}
+      branch: ${BRANCH}
+      port: ${DB_PORT}
 - kind: Route
   apiVersion: v1
   metadata:
@@ -348,8 +367,7 @@ objects:
     port:
       targetPort: ${{APP_PORT}}
     tls:
-      termination: edge
+      insecureEdgeTerminationPolicy: Redirect
     to:
       kind: Service
       name: ${APP}-${BRANCH}
-    wildcardPolicy: None

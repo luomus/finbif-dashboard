@@ -73,6 +73,8 @@ parameters:
     required: true
   - name: ERROR_EMAIL_FROM
     required: true
+  - name: MEMORY
+    required: true
 metadata:
   name: ${APP}
 objects:
@@ -161,7 +163,7 @@ objects:
         resources:
           limits:
             cpu: "2000m"
-            memory: "2Gi"
+            memory: ${MEMORY}
 - kind: Deployment
   apiVersion: apps/v1
   metadata:
@@ -243,7 +245,7 @@ objects:
         resources:
           limits:
             cpu: "2000m"
-            memory: "2Gi"
+            memory: ${MEMORY}
 - kind: Deployment
   apiVersion: apps/v1
   metadata:

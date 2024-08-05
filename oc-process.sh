@@ -26,6 +26,7 @@ if [ "$BRANCH" != "main" ]; then
   HOST=$HOST_DEV
   FINBIF_PRIVATE_API="dev"
   DB_PASSWORD=$DB_PASSWORD_DEV
+  MEMORY=$MEMORY_DEV
 
 fi
 
@@ -93,4 +94,5 @@ oc process -f $f \
   -p SMTP_PORT="$SMTP_PORT" \
   -p ERROR_EMAIL_TO="$ERROR_EMAIL_TO" \
   -p ERROR_EMAIL_FROM="$ERROR_EMAIL_FROM" \
+  -p MEMORY="$MEMORY" \
   | jq $ITEM

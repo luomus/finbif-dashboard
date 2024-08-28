@@ -831,7 +831,8 @@ output$quality_table <- renderDataTable({
       ordering = FALSE,
       processing = FALSE
     ),
-    fillContainer = TRUE
+    fillContainer = TRUE,
+    callback = JS("$.fn.dataTable.ext.errMode = 'throw';")
   )
 
 })

@@ -375,6 +375,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
       group_by(Type, Date) |>
       summarise(Records = sum(n_records), .groups = "drop_last") |>
       arrange(Date) |>
+      na.omit() |>
       mutate(Records = cumsum(Records))
 
     if (nrow(ans) < 1L) {

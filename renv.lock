@@ -435,7 +435,7 @@
     },
     "finbif": {
       "Package": "finbif",
-      "Version": "0.9.7",
+      "Version": "0.9.8",
       "Source": "Repository",
       "Repository": "CRAN",
       "Requirements": [
@@ -445,7 +445,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "9e2f89ab5cdb9aa8a2a44b813fa63318"
+      "Hash": "abab2fb74ad205389de2a749618166f5"
     },
     "flexdashboard": {
       "Package": "flexdashboard",

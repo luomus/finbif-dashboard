@@ -18,6 +18,7 @@ plan(multisession)
 
 options(
   finbif_use_cache = 24,
+  finbif_use_cache_metadata = 24,
   finbif_timeout_offset = .1,
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,

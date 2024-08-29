@@ -367,7 +367,6 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL", lang = "en") {
         Type = case_match(
           Type,
           "Specimen" ~ translator$t("Specimens"),
-          "Specimen" ~ translator$t("Specimens"),
           .default = translator$t("Observations")
         ),
         Date = replace_na(Date, min(Date, na.rm = TRUE))

@@ -435,9 +435,14 @@
     },
     "finbif": {
       "Package": "finbif",
-      "Version": "0.9.8",
-      "Source": "Repository",
-      "Repository": "CRAN",
+      "Version": "0.9.8.9000",
+      "Source": "GitHub",
+      "RemoteType": "github",
+      "RemoteHost": "api.github.com",
+      "RemoteUsername": "luomus",
+      "RemoteRepo": "finbif",
+      "RemoteRef": "dev",
+      "RemoteSha": "a0a81bd9f4012627e968f9d4dfb136f19a1fd39a",
       "Requirements": [
         "R",
         "digest",
@@ -445,7 +450,7 @@
         "lutz",
         "utils"
       ],
-      "Hash": "abab2fb74ad205389de2a749618166f5"
+      "Hash": "c684847679dde24a76a46f7f2697a062"
     },
     "flexdashboard": {
       "Package": "flexdashboard",

@@ -39,7 +39,9 @@ server {
 
   location /healthz {
 
-    return 200 '';
+    return 200    '';
+    access_log    off;
+    log_not_found off;
 
   }
 

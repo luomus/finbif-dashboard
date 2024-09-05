@@ -27,6 +27,9 @@ parameters:
   - name: PROXY_PORT
     required: true
     value: "8080"
+  - name: PROXY_HEALTH_PORT
+    required: true
+    value: "8081"
   - name: DB
     required: true
     value: postgres
@@ -63,6 +66,9 @@ parameters:
     required: true
     value: /robots.txt
   - name: API_HEALTH
+    required: true
+    value: /healthz
+  - name: PROXY_HEALTH
     required: true
     value: /healthz
   - name: LIVENESS_PERIOD
@@ -164,6 +170,23 @@ objects:
             value: ${PROXY_PORT}
           - name: APP_PORT
             value: ${APP_PORT}
+          startupProbe:
+            httpGet:
+              path: ${PROXY_HEALTH}
+              port: ${{PROXY_HEALTH_PORT}}
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
+          livenessProbe:
+            httpGet:
+              path: ${PROXY_HEALTH}
+              port: ${{PROXY_HEALTH_PORT}}
+            failureThreshold: ${{FAILURE_THRESHOLD}}
+            periodSeconds: ${{LIVENESS_PERIOD}}
+          readinessProbe:
+            httpGet:
+              path: ${PROXY_HEALTH}
+              port: ${{PROXY_HEALTH_PORT}}
+            periodSeconds: ${{READINESS_PERIOD}}
           ports:
           - containerPort: ${{PROXY_PORT}}
           resources:

@@ -33,3 +33,14 @@ server {
   }
 
 }
+
+server {
+  listen 8081;
+
+  location /healthz {
+
+    return 200 '';
+
+  }
+
+}

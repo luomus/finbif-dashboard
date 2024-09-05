@@ -184,7 +184,7 @@ objects:
             - '/home/user/render.r'
           env:
           - name: DASHBOARD_API
-            value: http://${API}-${BRANCH}.{APP}.svc.cluster.local:${API_PORT}
+            value: http://${API}-${BRANCH}.${APP}.svc.cluster.local:${API_PORT}
           - name: BRANCH
             valueFrom:
               configMapKeyRef:

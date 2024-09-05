@@ -48,3 +48,7 @@ vignettes/*.pdf
 # Prerendered shiny content
 index.html
 /index_files/
+
+# Certs
+tls.crt
+tls.key

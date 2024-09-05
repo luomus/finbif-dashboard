@@ -109,4 +109,4 @@ oc process -f $f \
   -p NGINX_TEMPLATE="$NGINX_TEMPLATE" \
   -p TLS_CRT="$TLS_CRT" \
   -p TLS_KEY="$TLS_KEY" \
-| jq $ITEM
+  | jq $ITEM

@@ -38,37 +38,45 @@ elif [ $i = "config" ]; then
 
   ITEM=".items[1]"
 
-elif [ $i = "secrets" ]; then
+elif [ $i = "nginx-config" ]; then
 
   ITEM=".items[2]"
 
-elif [ $i = "deploy-app" ]; then
+elif [ $i = "secrets" ]; then
 
   ITEM=".items[3]"
 
-elif [ $i = "deploy-api" ]; then
+elif [ $i = "nginx-secrets" ]; then
 
   ITEM=".items[4]"
 
-elif [ $i = "deploy-db" ]; then
+elif [ $i = "deploy-app" ]; then
 
   ITEM=".items[5]"
 
-elif [ $i = "service-app" ]; then
+elif [ $i = "deploy-api" ]; then
 
   ITEM=".items[6]"
 
-elif [ $i = "service-api" ]; then
+elif [ $i = "deploy-db" ]; then
 
   ITEM=".items[7]"
 
-elif [ $i = "service-db" ]; then
+elif [ $i = "service-app" ]; then
 
   ITEM=".items[8]"
 
-elif [ $i = "route" ]; then
+elif [ $i = "service-api" ]; then
 
   ITEM=".items[9]"
+
+elif [ $i = "service-db" ]; then
+
+  ITEM=".items[10]"
+
+elif [ $i = "route" ]; then
+
+  ITEM=".items[11]"
 
 elif [ $i = "all" ]; then
 
@@ -82,6 +90,9 @@ else
 fi
 
 DB_PASSWORD=$(echo -n $DB_PASSWORD | base64)
+NGINX_TEMPLATE=$(cat default.conf.template)
+TLS_CRT=$(cat tls.crt | base64)
+TLS_KEY=$(cat tls.key | base64)
 
 echo "# $(oc project finbif-dashboard)"
 
@@ -95,4 +106,7 @@ oc process -f $f \
   -p ERROR_EMAIL_TO="$ERROR_EMAIL_TO" \
   -p ERROR_EMAIL_FROM="$ERROR_EMAIL_FROM" \
   -p MEMORY="$MEMORY" \
-  | jq $ITEM
+  -p NGINX_TEMPLATE="$NGINX_TEMPLATE" \
+  -p TLS_CRT="$TLS_CRT" \
+  -p TLS_KEY="$TLS_KEY" \
+| jq $ITEM

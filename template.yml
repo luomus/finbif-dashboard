@@ -54,10 +54,6 @@ parameters:
     required: true
   - name: NGINX_TEMPLATE
     required: true
-  - name: TLS_CRT
-    required: true
-  - name: TLS_KEY
-    required: true
   - name: FINBIF_PRIVATE_API
     required: true
   - name: HOST
@@ -104,6 +100,17 @@ objects:
     resources:
       requests:
         storage: ${STORAGE}
+- kind: PersistentVolumeClaim
+  apiVersion: v1
+  metadata:
+   name: ${APP}-${BRANCH}
+  spec:
+    storageClassName: ${STORAGE_CLASS}
+    accessModes:
+    - ${ACCESS_MODE}
+    resources:
+      requests:
+        storage: 10Mi
 - kind: ConfigMap
   apiVersion: v1
   metadata:
@@ -126,14 +133,6 @@ objects:
   type: Opaque
   data:
     db_password: ${DB_PASSWORD}
-- kind: Secret
-  apiVersion: v1
-  metadata:
-    name: tls-${BRANCH}
-  type: kubernetes.io/tls
-  data:
-    tls.crt: ${TLS_CRT}
-    tls.key: ${TLS_KEY}
 - kind: Deployment
   apiVersion: apps/v1
   metadata:
@@ -146,7 +145,7 @@ objects:
       matchLabels:
         app: ${APP}
     strategy:
-      type: RollingUpdate
+      type: Recreate
     template:
       metadata:
         labels:
@@ -155,12 +154,42 @@ objects:
           port: ${PROXY_PORT}
       spec:
         volumes:
-        - name: tls-${BRANCH}
-          secret:
-            secretName: tls-${BRANCH}
+        - name: ${APP}-${BRANCH}
+          persistentVolumeClaim:
+            claimName: ${APP}-${BRANCH}
         - name: nginx-template-${BRANCH}
           configMap:
             name: nginx-template-${BRANCH}
+        initContainers:
+        - image: goacme/lego:v4.18
+          imagePullPolicy: Always
+          name: lego-${BRANCH}
+          command:
+          - 'sh'
+          - '-c'
+          - >-
+            echo "Requesting/renewing cert";
+            sleep 15;
+            if [ -f ".lego/$HOST.crt" ]; then
+              ./lego --domains="$HOST" --email="$EMAIL" --accept-tos --http --http.port=":$PORT" renew
+            else
+              ./lego --domains="$HOST" --email="$EMAIL" --accept-tos --http --http.port=":$PORT" run
+            fi;
+            sleep 120;
+          env:
+          - name: HOST
+            value: ${HOST}
+          - name: EMAIL
+            value: ${ERROR_EMAIL_TO}
+          - name: PORT
+            value: ${PROXY_PORT}
+          - name: LEGO_SERVER
+            value: https://acme-staging-v02.api.letsencrypt.org/directory
+          volumeMounts:
+          - name: ${APP}-${BRANCH}
+            mountPath: .lego
+          ports:
+            - containerPort: ${{PROXY_PORT}}
         containers:
         - image: nginxinc/nginx-unprivileged:1.27.1
           imagePullPolicy: Always
@@ -194,12 +223,10 @@ objects:
               cpu: "500m"
               memory: "500Mi"
           volumeMounts:
-          - name: tls-${BRANCH}
+          - name: ${APP}-${BRANCH}
             mountPath: /etc/ssl
-            readOnly: true
           - name: nginx-template-${BRANCH}
             mountPath: /etc/nginx/templates
-            readOnly: true
         - image: ghcr.io/luomus/${APP}:${BRANCH}
           imagePullPolicy: Always
           name: ${APP}-${BRANCH}

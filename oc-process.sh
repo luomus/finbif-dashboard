@@ -30,23 +30,23 @@ if [ "$BRANCH" != "main" ]; then
 
 fi
 
-if [ $i = "volume" ]; then
+if [ $i = "volume-db" ]; then
 
   ITEM=".items[0]"
 
-elif [ $i = "config" ]; then
+elif [ $i = "volume-app" ]; then
 
   ITEM=".items[1]"
 
-elif [ $i = "nginx-config" ]; then
+elif [ $i = "config" ]; then
 
   ITEM=".items[2]"
 
-elif [ $i = "secrets" ]; then
+elif [ $i = "nginx-config" ]; then
 
   ITEM=".items[3]"
 
-elif [ $i = "nginx-secrets" ]; then
+elif [ $i = "secrets" ]; then
 
   ITEM=".items[4]"
 
@@ -91,8 +91,6 @@ fi
 
 DB_PASSWORD=$(echo -n $DB_PASSWORD | base64)
 NGINX_TEMPLATE=$(cat default.conf.template)
-TLS_CRT=$(cat tls.crt | base64)
-TLS_KEY=$(cat tls.key | base64)
 
 echo "# $(oc project finbif-dashboard)"
 
@@ -107,6 +105,4 @@ oc process -f $f \
   -p ERROR_EMAIL_FROM="$ERROR_EMAIL_FROM" \
   -p MEMORY="$MEMORY" \
   -p NGINX_TEMPLATE="$NGINX_TEMPLATE" \
-  -p TLS_CRT="$TLS_CRT" \
-  -p TLS_KEY="$TLS_KEY" \
   | jq $ITEM

@@ -650,7 +650,7 @@ function(restriction = "NULL", taxa = "NULL", source = "NULL") {
     ans <-
       fb_occurrence(
         filter = filter,
-        select = c(municipality_name_fi = "municipality"),
+        select = c(municipality_name_fi = "finnish_municipality"),
         aggregate = "records",
         n = "all",
         locale = "fi"

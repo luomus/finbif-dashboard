@@ -44,7 +44,7 @@ suppressPackageStartupMessages({
 
 })
 
-#plan(multisession)
+plan(multisession, workers = 2)
 
 thematic_shiny(
   font = font_spec("Roboto", install = FALSE),

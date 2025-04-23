@@ -1,6 +1,6 @@
 collections <- switch(
   Sys.getenv("FINBIF_PRIVATE_API"),
-  dev = list(
+  beta = list(
     cit_sci_projects = c(
       "Bird Feeder Monitoring" = "HR.60",
       "Bird Ringing" = "HR.48",

@@ -14,7 +14,7 @@ suppressPackageStartupMessages({
 
 })
 
-plan(multisession)
+#plan(multisession)
 
 options(
   finbif_use_cache = 24,

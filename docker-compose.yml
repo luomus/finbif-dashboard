@@ -1,0 +1,31 @@
+services:
+  app:
+    build:
+      context: .
+    command: /home/user/render.r
+    environment:
+    - "DASHBOARD_API=http://api:8000"
+    ports:
+    - "3838:3838"
+  api:
+    build:
+      context: .
+    environment:
+    - "FINBIF_PRIVATE_API=beta"
+    - "FINBIF_USE_PRIVATE_API=true"
+    - "FINBIF_DEBUG=stdout"
+    - "FINBIF_USER_AGENT=https://github.com/luomus/finbif-dashboard:dev"
+    - "PGHOST=postgres"
+    - "PGPORT=5432"
+    - "PGUSER=postgres"
+    - "PGPASSWORD=1234"
+    - "DB_NAME=postgres"
+    expose:
+    - "8000"
+  postgres:
+    image: ghcr.io/luomus/postgis-image:main
+    environment:
+    - "POSTGRES_DB=postgres"
+    - "POSTGRES_PORT=5432"
+    - "POSTGRES_USER=postgres"
+    - "POSTGRES_PASSWORD=1234"

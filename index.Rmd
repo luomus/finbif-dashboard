@@ -196,7 +196,8 @@ observe({
     "discipline",
     "mapinstitution",
     "mapdiscipline",
-    "projects"
+    "projects",
+    "datreqinstitutions"
   )
 
   excluded_ids <- setdiff(names(inputs), includes)
@@ -227,6 +228,7 @@ bindEvent(
   input$mapinstitution,
   input$mapdiscipline,
   input$projects,
+  input$datreqinstitutions,
   ignoreInit = TRUE
 )
 
@@ -264,6 +266,7 @@ onRestored({
       Shiny.setInputValue("mapinstitution_link",  $.urlParam("mapinstitution"));
       Shiny.setInputValue("mapdiscipline_link",  $.urlParam("mapdiscipline"));
       Shiny.setInputValue("projects_link",  $.urlParam("projects"));
+      Shiny.setInputValue("datreqinstitutions_link",  $.urlParam("datreqinstitutions"));
     ')
   }
 })
@@ -339,6 +342,15 @@ observe(
 ) |>
 bindEvent(input$projects_link, ignoreInit = TRUE)
 
+observe(
+  updateSelectInput(
+    session,
+    "datreqinstitutions",
+    selected = input[["datreqinstitutionss_link"]]
+  )
+) |>
+bindEvent(input$datreqinstitutions_link, ignoreInit = TRUE)
+
 site_title <-
   reactive({
     translator$set_translation_language(sanitise_lang(input$lang))
@@ -364,7 +376,8 @@ autoWaiter(
     "specimen_map", 
     "project_species_plot",
     "project_users_plot",
-    "occurrence_cit_plot"
+    "occurrence_cit_plot",
+    "datareq_plot"
   ),
   html = bs4_spinner(),
   color = "transparent",
@@ -2693,6 +2706,184 @@ output$occurrence_cit_plot <- renderPlotly({
 
   occurrence_cit_plot() %...>%
     ggplotly_locale(dynamicTicks = TRUE)
+
+})
+```
+
+`r textOutput("datreq_title")` {#datreq-page}
+================================================================================
+
+```{r datreq_title_render, context = "server"}
+datreq_title <-
+  reactive({
+    translator$set_translation_language(sanitise_lang(input$lang))
+    translator$t("Data Requests")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datreq_title <- renderText(datreq_title())
+```
+
+Column {data-width=150}
+--------------------------------------------------------------------------------
+
+```{r site_title5, context = "render", echo = FALSE}
+span(textOutput("site_title5"), class = "site-title")
+```
+
+```{r site_title5_render, context = "server"}
+output$site_title5 <- renderText(site_title())
+```
+
+### {data-height=250}
+
+####
+
+```{r datreq_page_inputs, context = "render", echo = FALSE}
+uiOutput("datreqinstitutions")
+```
+
+```{r datreqinstitution_render, context = "server"}
+datreqinstitutions <-
+  reactive({
+
+    translator$set_translation_language(sanitise_lang(input$lang))
+
+    choices <- c("", "NULL", collections$sources)
+
+    names(choices) <- c(
+      paste0(translator$t("Institution"), "   "),
+      translator$t(c("All Institutions", names(collections$sources)))
+    )
+
+    selectInput(
+      "datreqinstitutionss_link",
+      NULL,
+      choices,
+      input$datreqinstitutions,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datreqinstitutions <- renderUI(datreqinstitutions())
+```
+
+####
+
+```{r reset5, context = "render", echo = FALSE}
+uiOutput("reset5")
+```
+
+```{r reset_render5, context = "server"}
+reset5 <-
+  reactive({
+
+    translator$set_translation_language(sanitise_lang(input$lang))
+
+    actionButton(
+      "reset5",
+      translator$t("Reset"),
+      width = "100%",
+      class = "btn-primary"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$reset5 <- renderUI(reset5())
+
+observe(
+  {
+    updateSelectInput(session, "projects_link", selected = "")
+  }
+) |>
+bindEvent(input$reset5)
+```
+
+#### {.invisible}
+
+```{r hidden_inputs5, context = "render", echo = FALSE}
+selectInput(
+  "datreqinstitutions", NULL, choices = c("", "NULL", collections$sources)
+)
+```
+
+Column {data-width=750}
+--------------------------------------------------------------------------------
+
+###
+
+```{r datareq_plot_output, context = "render", echo = FALSE}
+fillCol(plotlyOutput("datareq_plot"))
+```
+
+```{r datareq_plot_render, context = "server"}
+datareq_plot <-
+  reactive({
+
+    req <-
+      request("https://staging-pyha.laji.fi") |>
+      req_url_path("api/statistics/countByYear")
+
+    future_promise(
+      {
+
+        translator$set_translation_language(lang)
+
+        count <- translator$t("Data Requests")
+
+        year <- translator$t("Year")
+        
+        res <-
+          req_perform(req) |>
+          resp_body_json()
+
+        res <- structure(
+          as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
+          names = c(year, count)
+        )
+        
+        res[[year]] <- factor(res[[year]])
+        
+        gg <-
+          ggplot(res) +
+          aes(.data[[year]], .data[[count]]) +
+          geom_bar(stat = "identity") +
+          coord_flip()
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
+
+  }) |>
+  bindCache(
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$lang
+  )
+
+output$datareq_plot <- renderPlotly({
+
+  datareq_plot() %...>%
+  ggplotly_locale(dynamicTicks = TRUE) %...>%
+  layout(
+    legend = list(
+      x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
+    )
+  )
 
 })
 ```

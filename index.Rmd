@@ -40,6 +40,7 @@ suppressPackageStartupMessages({
   library(shinyjs, warn.conflicts = FALSE, quietly = TRUE)
   library(stats, warn.conflicts = FALSE, quietly = TRUE)
   library(thematic, warn.conflicts = FALSE, quietly = TRUE)
+  library(viridisLite, warn.conflicts = FALSE, quietly = TRUE)
   library(waiter, warn.conflicts = FALSE, quietly = TRUE)
 
 })
@@ -57,6 +58,14 @@ api <- Sys.getenv("DASHBOARD_API")
 
 req <- request(api)
 
+pyha_api <- switch(
+  Sys.getenv("BRANCH"),
+  main = "https://pyha.laji.fi",
+  "https://staging-pyha.laji.fi"
+)
+
+datareq_years <- seq(as.integer(format(Sys.Date(), "%Y")), 2021L, -1L)
+
 finland <- readRDS("finland.rds")
 
 bio_provinces <- readRDS("bio-provinces.rds")
@@ -70,6 +79,29 @@ translator <- Translator$new(translation_json_path = "translation.json")
 ggplotly_locale <- function(x, ...) {
 
   config(ggplotly(x$plot, ...), locale = x$lang)
+
+}
+
+plot_ly_locale <- function(x, ...) {
+
+  config(plot_ly(x$data, ...), locale = x$lang)
+
+}
+
+datatable_locale <- function(x) {
+
+  datatable(
+    x$table,
+    options = list(
+      pageLength = 20,
+      lengthMenu = c(20, 40, 60, 80, 100),
+      ordering = FALSE,
+      processing = FALSE,
+      language = x$language
+    ),
+    rownames = FALSE,
+    callback = JS("$.fn.dataTable.ext.errMode = 'throw';")
+  )
 
 }
 
@@ -160,6 +192,16 @@ $("body").on(
     );
   }
 )
+
+$("body").on(
+  "shown.bs.tab",
+  "a[href$='datareq-plot']",
+  function(e) {
+    Shiny.setInputValue(
+      "datareq_tab_link", $(e.target).parent().index()
+    );
+  }
+)
 ```
 
 ```{r server, context = "server"}
@@ -184,7 +226,7 @@ observe({
 
   includes <- c(
     "lang",
-    "source",
+    "sources",
     "taxa",
     "restriction",
     "occurrence_tab",
@@ -197,7 +239,9 @@ observe({
     "mapinstitution",
     "mapdiscipline",
     "projects",
-    "datreqinstitutions"
+    "datareq_institutions",
+    "datareq_year",
+    "datareq_tab"
   )
 
   excluded_ids <- setdiff(names(inputs), includes)
@@ -215,7 +259,7 @@ observe({
 }) |>
 bindEvent(
   input$lang,
-  input$source,
+  input$sources,
   input$taxa,
   input$restriction,
   input$occurrence_tab,
@@ -228,7 +272,9 @@ bindEvent(
   input$mapinstitution,
   input$mapdiscipline,
   input$projects,
-  input$datreqinstitutions,
+  input$datareq_institutions,
+  input$datareq_tab,
+  input$datareq_year,
   ignoreInit = TRUE
 )
 
@@ -252,21 +298,23 @@ onRestored({
                   .exec(window.location.search);
         return (r !== null) ? decodeURI(r[1]).replace(/[\'"]+/g, \'\') || 0 : "";
       }
-      Shiny.setInputValue("lang_link",  $.urlParam("lang"));
-      Shiny.setInputValue("source_link",  $.urlParam("source"));
-      Shiny.setInputValue("taxa_link",  $.urlParam("taxa"));
-      Shiny.setInputValue("restriction_link",  $.urlParam("restriction"));
-      Shiny.setInputValue("occurrence_tab_link",  $.urlParam("occurrence_tab"));
-      Shiny.setInputValue("collections_tab_link",  $.urlParam("collections_tab"));
-      Shiny.setInputValue("citsci_tab_link",  $.urlParam("citsci_tab"));
-      Shiny.setInputValue("collection_quality_link",  $.urlParam("collection_quality"));
-      Shiny.setInputValue("maplevel_link",  $.urlParam("maplevel"));
-      Shiny.setInputValue("institution_link",  $.urlParam("institution"));
-      Shiny.setInputValue("discipline_link",  $.urlParam("discipline"));
-      Shiny.setInputValue("mapinstitution_link",  $.urlParam("mapinstitution"));
-      Shiny.setInputValue("mapdiscipline_link",  $.urlParam("mapdiscipline"));
-      Shiny.setInputValue("projects_link",  $.urlParam("projects"));
-      Shiny.setInputValue("datreqinstitutions_link",  $.urlParam("datreqinstitutions"));
+      Shiny.setInputValue("lang_link", $.urlParam("lang"));
+      Shiny.setInputValue("sources_link", $.urlParam("sources"));
+      Shiny.setInputValue("taxa_link", $.urlParam("taxa"));
+      Shiny.setInputValue("restriction_link", $.urlParam("restriction"));
+      Shiny.setInputValue("occurrence_tab_link", $.urlParam("occurrence_tab"));
+      Shiny.setInputValue("collections_tab_link", $.urlParam("collections_tab"));
+      Shiny.setInputValue("citsci_tab_link", $.urlParam("citsci_tab"));
+      Shiny.setInputValue("collection_quality_link", $.urlParam("collection_quality"));
+      Shiny.setInputValue("maplevel_link", $.urlParam("maplevel"));
+      Shiny.setInputValue("institution_link", $.urlParam("institution"));
+      Shiny.setInputValue("discipline_link", $.urlParam("discipline"));
+      Shiny.setInputValue("mapinstitution_link", $.urlParam("mapinstitution"));
+      Shiny.setInputValue("mapdiscipline_link", $.urlParam("mapdiscipline"));
+      Shiny.setInputValue("projects_link", $.urlParam("projects"));
+      Shiny.setInputValue("datareq_institutions_link", $.urlParam("datareq_institutions"));
+      Shiny.setInputValue("datareq_tab_link", $.urlParam("datareq_tab"));
+      Shiny.setInputValue("datareq_year_link", $.urlParam("datareq_year"));
     ')
   }
 })
@@ -277,9 +325,9 @@ observe(
 bindEvent(input$lang_link)
 
 observe(
-  updateSelectInput(session, "source", selected = input[["source_link"]])
+  updateSelectInput(session, "sources", selected = input[["sources_link"]])
 ) |>
-bindEvent(input$source_link, ignoreInit = TRUE)
+bindEvent(input$sources_link, ignoreInit = TRUE)
 
 observe(
   updateSelectInput(session, "taxa", selected = input[["taxa_link"]])
@@ -345,11 +393,20 @@ bindEvent(input$projects_link, ignoreInit = TRUE)
 observe(
   updateSelectInput(
     session,
-    "datreqinstitutions",
-    selected = input[["datreqinstitutionss_link"]]
+    "datareq_institutions",
+    selected = input[["datareq_institutions_link"]]
   )
 ) |>
-bindEvent(input$datreqinstitutions_link, ignoreInit = TRUE)
+bindEvent(input$datareq_institutions_link, ignoreInit = TRUE)
+
+observe(
+  updateSelectInput(
+    session,
+    "datareq_year",
+    selected = input[["datareq_year_link"]]
+  )
+) |>
+bindEvent(input$datareq_year_link, ignoreInit = TRUE)
 
 site_title <-
   reactive({
@@ -377,7 +434,11 @@ autoWaiter(
     "project_species_plot",
     "project_users_plot",
     "occurrence_cit_plot",
-    "datareq_plot"
+    "datareq_table",
+    "datareq_year_plot",
+    "datareq_reason_plot",
+    "datareq_keyword_plot",
+    "datareq_disclosure_plot"
   ),
   html = bs4_spinner(),
   color = "transparent",
@@ -416,12 +477,12 @@ output$site_title1 <- renderText(site_title())
 ####
 
 ```{r occurrence_page_inputs, context = "render", echo = FALSE}
-uiOutput("sources")
-uiOutput("taxa")
-uiOutput("restriction")
+uiOutput("sources_output")
+uiOutput("taxa_output")
+uiOutput("restriction_output")
 ```
 
-```{r source_render, context = "server"}
+```{r sources_render, context = "server"}
 sources <-
   reactive({
 
@@ -435,10 +496,10 @@ sources <-
     )
 
     selectInput(
-      "source_link",
+      "sources_link",
       NULL,
       choices,
-      input$source,
+      input$sources,
       width = "100%"
     )
 
@@ -446,7 +507,7 @@ sources <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$sources <- renderUI(sources())
+output$sources_output <- renderUI(sources())
 ```
 
 ```{r taxa_render, context = "server"}
@@ -507,7 +568,7 @@ taxa <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$taxa <- renderUI(taxa())
+output$taxa_output <- renderUI(taxa())
 ```
 
 ```{r restriction_render, context = "server"}
@@ -546,13 +607,13 @@ restriction <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$restriction <- renderUI(restriction())
+output$restriction_output <- renderUI(restriction())
 ```
 
 ####
 
 ```{r reset1, context = "render", echo = FALSE}
-uiOutput("reset1")
+uiOutput("reset1_output")
 ```
 
 ```{r reset_render1, context = "server"}
@@ -572,11 +633,11 @@ reset1 <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$reset1 <- renderUI(reset1())
+output$reset1_output <- renderUI(reset1())
 
 observe(
   {
-    updateSelectInput(session, "source_link", selected = "")
+    updateSelectInput(session, "sources_link", selected = "")
     updateSelectInput(session, "taxa_link", selected = "")
     updateSelectInput(session, "restriction_link", selected = "")
     updateSelectInput(session, "collection_quality_link", selected = "")
@@ -593,7 +654,8 @@ selectInput("lang", NULL, choices = c("en", "fi"))
 selectInput("occurrence_tab", NULL, choices = 0:3)
 selectInput("collections_tab", NULL, choices = 0:1)
 selectInput("citsci_tab", NULL, choices = 0:2)
-selectInput("source", NULL, choices = c("", "NULL", collections$sources))
+selectInput("datareq_tab", NULL, choices = 0:3)
+selectInput("sources", NULL, choices = c("", "NULL", collections$sources))
 selectInput(
   "taxa",
   NULL,
@@ -692,8 +754,8 @@ species_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(input$restriction, input$taxa, input$sources, cache = "session") |>
+  bindEvent(input$restriction, input$taxa, input$sources)
 
 output$species_count <- renderValueBox(species_count())
 ```
@@ -736,8 +798,8 @@ collection_count <-
     }, seed = TRUE)
 
   }) |>
-  bindCache(input$restriction, input$taxa, input$source, cache = "session") |>
-  bindEvent(input$restriction, input$taxa, input$source)
+  bindCache(input$restriction, input$taxa, input$sources, cache = "session") |>
+  bindEvent(input$restriction, input$taxa, input$sources)
 
 output$collection_count <- renderValueBox(collection_count())
 ```
@@ -745,7 +807,7 @@ output$collection_count <- renderValueBox(collection_count())
 ###
 
 ```{r quality_table_ui_output, context = "render", echo = FALSE}
-uiOutput("collection_quality", inline = TRUE)
+uiOutput("collection_quality_output", inline = TRUE)
 ```
 
 ```{r quality_table_render_ui, context = "server"}
@@ -786,7 +848,7 @@ collection_quality <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$collection_quality <- renderUI(collection_quality())
+output$collection_quality_output <- renderUI(collection_quality())
 ```
 
 ```{r quality_table_output, context = "render", echo = FALSE}
@@ -803,7 +865,7 @@ quality_table <-
         collection_quality = input$collection_quality,
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source,
+        source = input$sources,
         lang = sanitise_lang(input$lang)
       )
 
@@ -820,7 +882,7 @@ quality_table <-
     input$collection_quality,
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
@@ -828,7 +890,7 @@ quality_table <-
     input$collection_quality,
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -838,7 +900,7 @@ output$quality_table <- renderDataTable({
   datatable(
     rownames = FALSE,
     options = list(
-      bPaginate = FALSE,
+      paging = FALSE,
       searching = FALSE,
       info = FALSE,
       ordering = FALSE,
@@ -935,7 +997,7 @@ occurrence_plot <-
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source,
+        source = input$sources,
         lang = sanitise_lang(input$lang)
       )
 
@@ -986,14 +1048,14 @@ occurrence_plot <-
   bindCache(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
   bindEvent(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -1032,7 +1094,7 @@ species_plot <-
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source,
+        source = input$sources,
         lang = sanitise_lang(input$lang)
       )
 
@@ -1071,14 +1133,14 @@ species_plot <-
   bindCache(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
   bindEvent(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -1117,7 +1179,7 @@ annotations_plot <-
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source,
+        source = input$sources,
         lang = sanitise_lang(input$lang)
       )
 
@@ -1164,14 +1226,14 @@ annotations_plot <-
   bindCache(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
   bindEvent(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -1210,7 +1272,7 @@ datasets_plot <-
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source,
+        source = input$sources,
         lang = sanitise_lang(input$lang)
       )
 
@@ -1255,14 +1317,14 @@ datasets_plot <-
   bindCache(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
   bindEvent(
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -1288,7 +1350,7 @@ Column {data-width=300}
 fillCol(
   height = "100%",
   flex = c(NA, 1),
-  uiOutput("maplevel"),
+  uiOutput("maplevel_output"),
   plotlyOutput("municipality_map")
 )
 ```
@@ -1317,7 +1379,7 @@ maplevel <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$maplevel <- renderUI(maplevel())
+output$maplevel_output <- renderUI(maplevel())
 
 municipality_map <-
   reactive({
@@ -1340,7 +1402,7 @@ municipality_map <-
       req_url_query(
         restriction = input$restriction,
         taxa = input$taxa,
-        source = input$source
+        source = input$sources
       )
 
     future_promise(
@@ -1402,7 +1464,7 @@ municipality_map <-
     input$maplevel,
     input$restriction,
     input$taxa,
-    input$source,
+    input$sources,
     input$lang,
     cache = "session"
   ) |>
@@ -1410,7 +1472,7 @@ municipality_map <-
     input$maplevel,
     input$restriction,
     input$taxa, 
-    input$source,
+    input$sources,
     input$lang
   )
 
@@ -1453,8 +1515,8 @@ output$site_title2 <- renderText(site_title())
 ####
 
 ```{r specimen_collection_page_inputs, context = "render", echo = FALSE}
-uiOutput("institution")
-uiOutput("discipline")
+uiOutput("institution_output")
+uiOutput("discipline_output")
 ```
 
 ```{r institution_render, context = "server"}
@@ -1482,7 +1544,7 @@ institution <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$institution <- renderUI(institution())
+output$institution_output <- renderUI(institution())
 ```
 
 ```{r discipline_render, context = "server"}
@@ -1516,13 +1578,13 @@ discipline <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$discipline <- renderUI(discipline())
+output$discipline_output <- renderUI(discipline())
 ```
 
 ####
 
 ```{r reset2, context = "render", echo = FALSE}
-uiOutput("reset2")
+uiOutput("reset2_output")
 ```
 
 ```{r reset_render2, context = "server"}
@@ -1542,7 +1604,7 @@ reset2 <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$reset2 <- renderUI(reset2())
+output$reset2_output <- renderUI(reset2())
 
 observe(
   {
@@ -2105,8 +2167,8 @@ output$site_title3 <- renderText(site_title())
 ####
 
 ```{r specimen_map_page_inputs, context = "render", echo = FALSE}
-uiOutput("mapinstitution")
-uiOutput("mapdiscipline")
+uiOutput("mapinstitution_output")
+uiOutput("mapdiscipline_output")
 ```
 
 ```{r mapinstitution_render, context = "server"}
@@ -2134,7 +2196,7 @@ mapinstitution <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$mapinstitution <- renderUI(mapinstitution())
+output$mapinstitution_output <- renderUI(mapinstitution())
 ```
 
 ```{r mapdiscipline_render, context = "server"}
@@ -2168,13 +2230,13 @@ mapdiscipline <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$mapdiscipline <- renderUI(mapdiscipline())
+output$mapdiscipline_output <- renderUI(mapdiscipline())
 ```
 
 ####
 
 ```{r reset3, context = "render", echo = FALSE}
-uiOutput("reset3")
+uiOutput("reset3_output")
 ```
 
 ```{r reset_render3, context = "server"}
@@ -2194,7 +2256,7 @@ reset3 <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$reset3 <- renderUI(reset3())
+output$reset3_output <- renderUI(reset3())
 
 observe(
   {
@@ -2324,7 +2386,7 @@ output$site_title4 <- renderText(site_title())
 ####
 
 ```{r citsci_page_inputs, context = "render", echo = FALSE}
-uiOutput("projects")
+uiOutput("projects_output")
 ```
 
 ```{r projects_render, context = "server"}
@@ -2352,13 +2414,13 @@ projects <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$projects <- renderUI(projects())
+output$projects_output <- renderUI(projects())
 ```
 
 ####
 
 ```{r reset4, context = "render", echo = FALSE}
-uiOutput("reset4")
+uiOutput("reset4_output")
 ```
 
 ```{r reset_render4, context = "server"}
@@ -2378,7 +2440,7 @@ reset4 <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$reset4 <- renderUI(reset4())
+output$reset4_output <- renderUI(reset4())
 
 observe(
   {
@@ -2710,11 +2772,11 @@ output$occurrence_cit_plot <- renderPlotly({
 })
 ```
 
-`r textOutput("datreq_title")` {#datreq-page}
+`r textOutput("datareq_title")` {#datareq-page}
 ================================================================================
 
-```{r datreq_title_render, context = "server"}
-datreq_title <-
+```{r datareq_title_render, context = "server"}
+datareq_title <-
   reactive({
     translator$set_translation_language(sanitise_lang(input$lang))
     translator$t("Data Requests")
@@ -2722,7 +2784,7 @@ datreq_title <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$datreq_title <- renderText(datreq_title())
+output$datareq_title <- renderText(datareq_title())
 ```
 
 Column {data-width=150}
@@ -2740,12 +2802,13 @@ output$site_title5 <- renderText(site_title())
 
 ####
 
-```{r datreq_page_inputs, context = "render", echo = FALSE}
-uiOutput("datreqinstitutions")
+```{r datareq_page_inputs, context = "render", echo = FALSE}
+uiOutput("datareq_institutions_output")
+uiOutput("datareq_year_output")
 ```
 
-```{r datreqinstitution_render, context = "server"}
-datreqinstitutions <-
+```{r datareq_institution_render, context = "server"}
+datareq_institutions <-
   reactive({
 
     translator$set_translation_language(sanitise_lang(input$lang))
@@ -2758,10 +2821,10 @@ datreqinstitutions <-
     )
 
     selectInput(
-      "datreqinstitutionss_link",
+      "datareq_institutions_link",
       NULL,
       choices,
-      input$datreqinstitutions,
+      input$datareq_institutions,
       width = "100%"
     )
 
@@ -2769,13 +2832,41 @@ datreqinstitutions <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$datreqinstitutions <- renderUI(datreqinstitutions())
+output$datareq_institutions_output <- renderUI(datareq_institutions())
+```
+
+```{r datareq_year_render, context = "server"}
+datareq_year <-
+  reactive({
+
+    translator$set_translation_language(sanitise_lang(input$lang))
+
+    choices <- c("", "NULL", datareq_years)
+
+    names(choices) <- c(
+      paste0(translator$t("Year"), "   "),
+      c(translator$t("All Years"), datareq_years)
+    )
+
+    selectInput(
+      "datareq_year_link",
+      NULL,
+      choices,
+      input$datareq_year,
+      width = "100%"
+    )
+
+  }) |>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datareq_year_output <- renderUI(datareq_year())
 ```
 
 ####
 
 ```{r reset5, context = "render", echo = FALSE}
-uiOutput("reset5")
+uiOutput("reset5_output")
 ```
 
 ```{r reset_render5, context = "server"}
@@ -2795,11 +2886,12 @@ reset5 <-
   bindCache(input$lang, cache = "session") |>
   bindEvent(input$lang)
 
-output$reset5 <- renderUI(reset5())
+output$reset5_output <- renderUI(reset5())
 
 observe(
   {
-    updateSelectInput(session, "projects_link", selected = "")
+    updateSelectInput(session, "datareq_institutions_link", selected = "")
+    updateSelectInput(session, "datareq_year_link", selected = "")
   }
 ) |>
 bindEvent(input$reset5)
@@ -2809,25 +2901,287 @@ bindEvent(input$reset5)
 
 ```{r hidden_inputs5, context = "render", echo = FALSE}
 selectInput(
-  "datreqinstitutions", NULL, choices = c("", "NULL", collections$sources)
+  "datareq_institutions", NULL, choices = c("", "NULL", collections$sources)
+)
+selectInput(
+  "datareq_year", NULL, choices = c("", "NULL", datareq_years)
 )
 ```
 
-Column {data-width=750}
+Column {data-width=400}
 --------------------------------------------------------------------------------
 
 ###
 
-```{r datareq_plot_output, context = "render", echo = FALSE}
-fillCol(plotlyOutput("datareq_plot"))
+```{r datareq_table_output, context = "render", echo = FALSE}
+DTOutput("datareq_table")
 ```
 
-```{r datareq_plot_render, context = "server"}
-datareq_plot <-
+```{r datareq_table_render, context = "server"}
+datareq_table <-
+  reactive({
+
+    collection <- input$datareq_institutions
+
+    if (collection %in% c("", "NULL")) collection <- NULL
+
+    req <-
+      request(pyha_api) |>
+      req_url_path("api/statistics/collectionCounts") |>
+      req_url_query(
+        collection = collection,
+        year = input$datareq_year,
+        lang = sanitise_lang(input$lang)
+      )
+
+    future_promise(
+      {
+
+        translator$set_translation_language(lang)
+
+        dataset <- translator$t("Dataset")
+        total <- translator$t("Total")
+        approved <- translator$t("Approved")
+        waiting <- translator$t("Waiting")
+        rejected <- translator$t("Rejected")
+        waiting_for_info <- translator$t("Waiting for information")
+        language <- list(
+          info = translator$t("Showing _START_ to _END_ of _TOTAL_ entries"),
+          infoEmpty = translator$t("Showing 0 to 0 of 0 entries"),
+          infoFiltered = translator$t("(filtered from _MAX_ total entries)"),
+          lengthMenu = translator$t("Show _MENU_ entries"),
+          search = translator$t("Search:"),
+          paginate = list(
+            previous = translator$t("Previous"),
+            `next` = translator$t("Next")
+          ),
+          zeroRecords = translator$t("No data available in table")
+        )
+
+        res <-
+          req_perform(req) |>
+          resp_body_json()
+
+        res <- as.data.frame(do.call(rbind, lapply(res[["results"]], unlist)))
+
+        colnames <- c(
+          "collectionName",
+          "totalCount",
+          "approvedCount",
+          "waitingCount",
+          "rejectedCount",
+          "waitingForInformationCount"
+        )
+  
+        if (nrow(res) < 1) {
+          res <- structure(
+            vector("list", length = 6), names = colnames, class = "data.frame"
+          )
+        }
+
+        res <- res[, colnames]
+  
+        names(res) <- c(
+          dataset, total, approved, waiting, rejected, waiting_for_info
+        )
+  
+        list(table = res, language = language)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
+  
+  }) |>
+  bindCache(
+    input$datareq_institutions,
+    input$datareq_year,
+    input$lang,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$datareq_institutions,
+    input$datareq_year,
+    input$lang
+  )
+
+output$datareq_table <- renderDT({
+
+  datareq_table() %...>%
+  datatable_locale()
+})
+```
+
+Column {#datareq-plots data-width=350 .tabset .tabset-fade}
+--------------------------------------------------------------------------------
+
+```{r datareq_plot_observers, context = "server"}
+observeEvent(
+  input$datareq_tab_link,
+  {
+    updateSelectInput(
+      session,
+      "datareq_tab",
+      selected = input[["datareq_tab_link"]]
+    )
+  }
+)
+
+observe({
+
+  removeCssClass(
+    class = "active", selector = "#section-datareq-plots li"
+  )
+
+  removeCssClass(
+    class = "active", 
+    selector = "#section-datareq-plots .tab-content div"
+  )
+
+  removeCssClass(
+    class = "in", selector = "#section-datareq-plots .tab-content div"
+  )
+
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-datareq-plots li:nth-child(%s)",
+      as.integer(input$datareq_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "active",
+    selector = sprintf(
+      "#section-datareq-plots .tab-content div:nth-child(%s)",
+      as.integer(input$datareq_tab) + 1L
+    )
+  )
+
+  addCssClass(
+    class = "in",
+    selector = sprintf(
+      "#section-datareq-plots .tab-content div:nth-child(%s)",
+      as.integer(input$datareq_tab) + 1L
+    )
+  )
+
+})
+```
+
+### `r textOutput("datareq_reason_plot_title", inline = TRUE)` {#reason-datareq-plot}
+
+```{r datareq_reason_plot_title_render, context = "server"}
+datareq_reason_plot_title <-
+  reactive({
+    translator$set_translation_language(sanitise_lang(input$lang))
+    translator$t("Data Use")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datareq_reason_plot_title <- renderText(datareq_reason_plot_title())
+```
+
+```{r datareq_reason_plot_output, context = "render", echo = FALSE}
+fillCol(plotlyOutput("datareq_reason_plot"))
+```
+
+```{r datareq_reason_plot_render, context = "server"}
+datareq_reason_plot <-
   reactive({
 
     req <-
-      request("https://staging-pyha.laji.fi") |>
+      request(pyha_api) |>
+      req_url_path("api/statistics/reasonCounts") |>
+      req_url_query(
+        year = input$datareq_year,
+        lang = sanitise_lang(input$lang)
+      )
+
+    future_promise(
+      {
+
+        res <-
+          req_perform(req) |>
+          resp_body_json()
+
+        res <- structure(
+          as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
+          names = c("reason", "count")
+        )
+
+        list(data = res, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
+
+  }) |>
+  bindCache(
+    input$lang,
+    input$datareq_year,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$lang,
+    input$datareq_year
+  )
+
+output$datareq_reason_plot <- renderPlotly({
+
+  datareq_reason_plot() %...>%
+  plot_ly_locale(
+    labels = ~reason,
+    values = ~count,
+    type = "pie",
+    marker = list(colors = viridis(7)),
+    textposition = "inside",
+    textinfo = "label+value",
+    showlegend = FALSE
+  ) %...>%
+  layout(
+    paper_bgcolor = "#141B15",
+    legend = list(
+      xaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE),
+      yaxis = list(showgrid = FALSE, zeroline = FALSE, showticklabels = FALSE)
+    )
+  )
+
+})
+```
+
+### `r textOutput("datareq_year_plot_title", inline = TRUE)` {#year-datareq-plot}
+
+```{r datareq_year_plot_title_render, context = "server"}
+datareq_year_plot_title <-
+  reactive({
+    translator$set_translation_language(sanitise_lang(input$lang))
+    translator$t("Data Requests by Year")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datareq_year_plot_title <- renderText(datareq_year_plot_title())
+```
+
+```{r datareq_year_plot_output, context = "render", echo = FALSE}
+fillCol(plotlyOutput("datareq_year_plot"))
+```
+
+```{r datareq_year_plot_render, context = "server"}
+datareq_year_plot <-
+  reactive({
+
+    req <-
+      request(pyha_api) |>
       req_url_path("api/statistics/countByYear")
 
     future_promise(
@@ -2836,9 +3190,8 @@ datareq_plot <-
         translator$set_translation_language(lang)
 
         count <- translator$t("Data Requests")
-
         year <- translator$t("Year")
-        
+
         res <-
           req_perform(req) |>
           resp_body_json()
@@ -2847,14 +3200,15 @@ datareq_plot <-
           as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
           names = c(year, count)
         )
-        
+
+        res <- res[res[[year]] > 2020, ]
+
         res[[year]] <- factor(res[[year]])
-        
+
         gg <-
           ggplot(res) +
           aes(.data[[year]], .data[[count]]) +
-          geom_bar(stat = "identity") +
-          coord_flip()
+          geom_bar(stat = "identity")
 
         list(plot = gg, lang = lang)
 
@@ -2875,15 +3229,173 @@ datareq_plot <-
     input$lang
   )
 
-output$datareq_plot <- renderPlotly({
+output$datareq_year_plot <- renderPlotly({
 
-  datareq_plot() %...>%
-  ggplotly_locale(dynamicTicks = TRUE) %...>%
-  layout(
-    legend = list(
-      x = 0, xanchor = "left", yanchor = "bottom", orientation = "h"
+  datareq_year_plot() %...>%
+  ggplotly_locale(dynamicTicks = TRUE)
+
+})
+```
+
+### `r textOutput("datareq_keyword_plot_title", inline = TRUE)` {#keyword-datareq-plot}
+
+```{r datareq_keyword_plot_title_render, context = "server"}
+datareq_keyword_plot_title <-
+  reactive({
+    translator$set_translation_language(sanitise_lang(input$lang))
+    translator$t("Data Requests by Keyword")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datareq_keyword_plot_title <- renderText(datareq_keyword_plot_title())
+```
+
+
+```{r datareq_keyword_plot_output, context = "render", echo = FALSE}
+fillCol(plotlyOutput("datareq_keyword_plot"))
+```
+
+```{r datareq_keyword_plot_render, context = "server"}
+datareq_keyword_plot <-
+  reactive({
+
+    req <-
+      request(pyha_api) |>
+      req_url_path("api/statistics/reasonPhraseCounts")|>
+      req_url_query(
+        year = input$datareq_year
+      )
+
+    future_promise(
+      {
+
+        translator$set_translation_language(lang)
+
+        count <- translator$t("Data Requests")
+        keyword <- translator$t("Keyword")
+
+        res <-
+          req_perform(req) |>
+          resp_body_json()
+
+        res <- structure(
+          as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
+          names = c(keyword, count)
+        )
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[keyword]], .data[[count]]) +
+          geom_bar(stat = "identity")
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
     )
+
+  }) |>
+  bindCache(
+    input$lang,
+    input$datareq_year,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$lang,
+    input$datareq_year
   )
+
+output$datareq_keyword_plot <- renderPlotly({
+
+  datareq_keyword_plot() %...>%
+  ggplotly_locale(dynamicTicks = TRUE)
+
+})
+```
+
+### `r textOutput("datareq_disclosure_plot_title", inline = TRUE)` {#disclosure-datareq-plot}
+
+```{r datareq_disclosure_plot_title_render, context = "server"}
+datareq_disclosure_plot_title <-
+  reactive({
+    translator$set_translation_language(sanitise_lang(input$lang))
+    translator$t("Data Requests by Disclosure")
+  })|>
+  bindCache(input$lang, cache = "session") |>
+  bindEvent(input$lang)
+
+output$datareq_disclosure_plot_title <- renderText(datareq_disclosure_plot_title())
+```
+
+
+```{r datareq_disclosure_plot_output, context = "render", echo = FALSE}
+fillCol(plotlyOutput("datareq_disclosure_plot"))
+```
+
+```{r datareq_disclosure_plot_render, context = "server"}
+datareq_disclosure_plot <-
+  reactive({
+
+    req <-
+      request(pyha_api) |>
+      req_url_path("api/statistics/partyInvolvementCounts")|>
+      req_url_query(
+        year = input$datareq_year,
+        lang = sanitise_lang(input$lang)
+      )
+
+    future_promise(
+      {
+
+        translator$set_translation_language(lang)
+
+        count <- translator$t("Data Requests")
+        disclosure <- translator$t("Disclosure")
+
+        res <-
+          req_perform(req) |>
+          resp_body_json()
+
+        res <- structure(
+          as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
+          names = c(disclosure, count)
+        )
+
+        gg <-
+          ggplot(res) +
+          aes(.data[[disclosure]], .data[[count]]) +
+          geom_bar(stat = "identity")
+
+        list(plot = gg, lang = lang)
+
+      },
+      seed = TRUE,
+      globals = list(
+        translator = translator, req = req, lang = sanitise_lang(input$lang)
+      ),
+      packages = c("ggplot2", "httr2", "shiny.i18n")
+    )
+
+  }) |>
+  bindCache(
+    input$lang,
+    input$datareq_year,
+    cache = "session"
+  ) |>
+  bindEvent(
+    input$lang,
+    input$datareq_year
+  )
+
+output$datareq_disclosure_plot <- renderPlotly({
+
+  datareq_disclosure_plot() %...>%
+  ggplotly_locale(dynamicTicks = TRUE)
 
 })
 ```

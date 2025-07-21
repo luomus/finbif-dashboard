@@ -109,3 +109,12 @@ a.nav-link, a.nav-link span, a.nav-link div {
   margin-bottom: 8px;
   display: block;
 }
+
+.chart-wrapper .chart-stage {
+  overflow-y: auto !important;
+}
+
+.dataTables_scrollBody {
+  height: unset !important;
+  margin-bottom: 10px;
+}

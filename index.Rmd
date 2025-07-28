@@ -437,8 +437,7 @@ autoWaiter(
     "datareq_table",
     "datareq_year_plot",
     "datareq_reason_plot",
-    "datareq_keyword_plot",
-    "datareq_disclosure_plot"
+    "datareq_keyword_plot"
   ),
   html = bs4_spinner(),
   color = "transparent",
@@ -3313,88 +3312,6 @@ datareq_keyword_plot <-
 output$datareq_keyword_plot <- renderPlotly({
 
   datareq_keyword_plot() %...>%
-  ggplotly_locale(dynamicTicks = TRUE)
-
-})
-```
-
-### `r textOutput("datareq_disclosure_plot_title", inline = TRUE)` {#disclosure-datareq-plot}
-
-```{r datareq_disclosure_plot_title_render, context = "server"}
-datareq_disclosure_plot_title <-
-  reactive({
-    translator$set_translation_language(sanitise_lang(input$lang))
-    translator$t("Data Requests by Disclosure")
-  })|>
-  bindCache(input$lang, cache = "session") |>
-  bindEvent(input$lang)
-
-output$datareq_disclosure_plot_title <- renderText(datareq_disclosure_plot_title())
-```
-
-
-```{r datareq_disclosure_plot_output, context = "render", echo = FALSE}
-fillCol(plotlyOutput("datareq_disclosure_plot"))
-```
-
-```{r datareq_disclosure_plot_render, context = "server"}
-datareq_disclosure_plot <-
-  reactive({
-
-    req <-
-      request(pyha_api) |>
-      req_url_path("api/statistics/partyInvolvementCounts")|>
-      req_url_query(
-        year = input$datareq_year,
-        lang = sanitise_lang(input$lang)
-      )
-
-    future_promise(
-      {
-
-        translator$set_translation_language(lang)
-
-        count <- translator$t("Data Requests")
-        disclosure <- translator$t("Disclosure")
-
-        res <-
-          req_perform(req) |>
-          resp_body_json()
-
-        res <- structure(
-          as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
-          names = c(disclosure, count)
-        )
-
-        gg <-
-          ggplot(res) +
-          aes(.data[[disclosure]], .data[[count]]) +
-          geom_bar(stat = "identity")
-
-        list(plot = gg, lang = lang)
-
-      },
-      seed = TRUE,
-      globals = list(
-        translator = translator, req = req, lang = sanitise_lang(input$lang)
-      ),
-      packages = c("ggplot2", "httr2", "shiny.i18n")
-    )
-
-  }) |>
-  bindCache(
-    input$lang,
-    input$datareq_year,
-    cache = "session"
-  ) |>
-  bindEvent(
-    input$lang,
-    input$datareq_year
-  )
-
-output$datareq_disclosure_plot <- renderPlotly({
-
-  datareq_disclosure_plot() %...>%
   ggplotly_locale(dynamicTicks = TRUE)
 
 })

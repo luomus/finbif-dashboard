@@ -122,7 +122,7 @@
     {"en": "Approved", "fi": "Hyväksytty"},
     {"en": "Waiting", "fi": "Kesken"},
     {"en": "Rejected", "fi": "Hylätty"},
-    {"en": "Waiting for information", "fi": "Odotta lisätietoja"},
+    {"en": "Waiting for information", "fi": "Odottaa lisätietoja"},
     {"en": "Showing _START_ to _END_ of _TOTAL_ entries", "fi": "Näytetään rivit _START_ - _END_ (yhteensä _TOTAL_)"},
     {"en": "Showing 0 to 0 of 0 entries", "fi": "Näytetään 0 - 0 (yhteensä 0)"},
     {"en": "(filtered from _MAX_ total entries)", "fi": "(suodatettu _MAX_ tuloksen joukosta)"},
@@ -131,9 +131,9 @@
     {"en": "Previous", "fi": "Edellinen"},
     {"en": "Next", "fi": "Seuraava"},
     {"en": "No data available in table", "fi": "Ei hakua vastaavia tuloksia"},
-    {"en": "Data Requests by Year", "fi": "Vuosittaiset aineistopyynnöt"},
+    {"en": "Data Requests by Year", "fi": "Aineistopyynnöt vuosittain"},
     {"en": "Data Use", "fi": "Aineiston käyttötarkoitus"},
-    {"en": "Data Requests by Keyword", "fi": "Avainsanakohtaiset aineistopyynnöt"},
+    {"en": "Data Requests by Keyword", "fi": "Aineistopyyntöjen avainsanat"},
     {"en": "Keyword", "fi": "Avainsana"}
   ]
 }

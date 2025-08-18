@@ -3203,6 +3203,7 @@ datareq_year_plot <-
         res <- res[res[[year]] > 2020, ]
 
         res[[year]] <- factor(res[[year]])
+        res[[count]] <- as.integer(res[[count]])
 
         gg <-
           ggplot(res) +
@@ -3282,6 +3283,9 @@ datareq_keyword_plot <-
           as.data.frame(do.call(rbind, lapply(res[["results"]], unlist))),
           names = c(keyword, count)
         )
+        
+        res[[keyword]] <- factor(res[[keyword]])
+        res[[count]] <- as.integer(res[[count]])
 
         gg <-
           ggplot(res) +

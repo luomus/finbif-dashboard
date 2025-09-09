@@ -2002,7 +2002,7 @@ collection_plot <-
           aes(.data[[collection]], .data[[specimens]], fill = .data[[status]]) +
           geom_bar(stat = "identity") +
           coord_flip() +
-          scale_fill_viridis_d() +
+          scale_fill_viridis_d(begin = .5) +
           labs(x = NULL)
 
         list(plot = gg, lang = lang)

@@ -77,7 +77,6 @@ collections <- switch(
     ),
     sources = c(
       "FinBIF" = "HR.1989",
-      "Iisalmi Museum" = "HR.4911",
       "Kieppi, Kokkola Museum" = "HR.121",
       "Kuopio Museum" = "HR.1127",
       "Luke" = "HR.1915",
@@ -93,7 +92,6 @@ collections <- switch(
     institutions = c(
       "Ark Nature Centre" = "HR.1587",
       "Forssa Museum" = "HR.217",
-      "Iisalmi Museum" = "HR.4911",
       "Kieppi, Kokkola Museum" = "HR.121",
       "Kuopio Museum" = "HR.1127",
       "Luomus" = "HR.128",

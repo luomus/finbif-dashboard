@@ -1091,7 +1091,6 @@
         "lutz",
         "utils"
       ],
-      "Roxygen": "list(markdown = TRUE)",
       "Suggests": [
         "callr",
         "data.table",
@@ -1109,6 +1108,7 @@
       "X-schema.org-keywords": "api, biodiversity, biodiversity-informatics, biodiversity-information, finbif, finbif-access, occurrences, r-package, r-programming, rstats, species, specimens, taxon, taxonomy, web-services",
       "X-schema.org-isPartOf": "https://species.fi",
       "Config/roxygen2/version": "8.0.0",
+      "Config/roxygen2/markdown": "TRUE",
       "Author": "Finnish Museum of Natural History - Luomus [cph] (ROR: <https://ror.org/03tcx6c30>), Finnish Biodiversity Information Facility [cph] (ROR: <https://ror.org/01c0yey93>), William K. Morris [aut, cre] (ORCID: <https://orcid.org/0000-0002-8686-4154>)",
       "Maintainer": "William K. Morris <willi@mmorris.email>",
       "RemoteType": "github",
@@ -1116,7 +1116,7 @@
       "RemoteUsername": "luomus",
       "RemoteRepo": "finbif",
       "RemoteRef": "dev",
-      "RemoteSha": "b90508172b85db9c1aad0675d71bb7fbe3682722"
+      "RemoteSha": "e1ac17ade6aad95e2f0daaa5b05179a69d0a6b0d"
     },
     "flexdashboard": {
       "Package": "flexdashboard",

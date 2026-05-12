@@ -23,7 +23,8 @@ options(
   finbif_hide_progress = TRUE,
   finbif_rate_limit = Inf,
   finbif_max_page_size = 3000L,
-  finbif_use_async = FALSE
+  finbif_use_async = FALSE,
+  finbif_use_dwc = FALSE
 )
 
 op <- options()
